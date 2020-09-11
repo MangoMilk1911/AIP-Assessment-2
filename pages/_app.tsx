@@ -1,7 +1,17 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import { AppProps } from 'next/app';
+import { ThemeProvider, ColorModeProvider, CSSReset } from '@chakra-ui/core';
+import type { AppProps } from 'next/app';
 
-const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => <Component {...pageProps} />;
+import theme from '../theme';
 
-export default MyApp;
+const App: React.FC<AppProps> = ({ Component, pageProps }) => (
+  <ThemeProvider theme={theme}>
+    <ColorModeProvider>
+      <CSSReset />
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <Component {...pageProps} />
+    </ColorModeProvider>
+  </ThemeProvider>
+);
+
+export default App;
