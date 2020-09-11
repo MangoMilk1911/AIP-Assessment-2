@@ -8,7 +8,6 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
   <ThemeProvider theme={theme}>
     <ColorModeProvider>
       <CSSReset />
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <Component {...pageProps} />
     </ColorModeProvider>
   </ThemeProvider>
