@@ -1,8 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-
-import User from "./models/User";
+import routes from "./routes";
 
 // Setup env variables and server
 dotenv.config();
@@ -19,12 +18,8 @@ mongoose
     console.log("\u001b[35m" + "Connected to DB! 😊");
   });
 
-// Setup routes
-app.get("/", async (req, res) => {
-  const user = await User.create({ name: "yeet" });
-
-  res.json(user.name);
-});
+// register routes
+app.use("/api", routes);
 
 // Start listening for requests!
 const port = process.env.PORT || 4000;
