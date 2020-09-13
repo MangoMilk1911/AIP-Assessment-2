@@ -16,7 +16,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("\u001b[35m", "Connected to DB!");
+    console.log("\u001b[35m" + "Connected to DB! 😊");
   });
 
 // Setup routes
@@ -29,5 +29,5 @@ app.get("/", async (req, res) => {
 // Start listening for requests!
 const port = process.env.PORT || 4000;
 app.listen(port, () =>
-  console.log("\x1b[36m", `Server running on port ${port} 🏃‍♂️`)
+  console.log("\x1b[36m" + `Server running on http://localhost:${port} 🏃‍♂️`)
 );
