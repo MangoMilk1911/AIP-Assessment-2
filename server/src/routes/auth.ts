@@ -7,12 +7,44 @@ import { UniqueFieldMongoError } from "../errors";
 
 const authRouter = express.Router();
 
-authRouter.get("/login", async (req, res) => {
-  const user = await User.findOne({ username: "ssddfsdd" }).select("+password");
+/**
+ * LOGIN
+ *
+ * Required POST params
+ * @param username  account username
+ * @param password  account password
+ */
+authRouter.post("/login", async (req, res) => {
+  const { username, password } = req.body;
 
-  res.json(user?.withoutPassword());
+  // Check is user exists
+  const foundUser = await User.findOne({ username }).select("+password");
+  if (!foundUser) {
+    return res.status(401).json({
+      errors: ["Incorrect username or password"],
+    });
+  }
+
+  // Check if correct password
+  const isCorrectPassword = await argon2.verify(foundUser.password!, password);
+  if (!isCorrectPassword) {
+    return res.status(401).json({
+      errors: ["Incorrect username or password"],
+    });
+  }
+
+  // Send user data without password
+  res.json(foundUser?.withoutPassword());
 });
 
+/**
+ * REGISTER
+ *
+ * Required POST params
+ * @param username  a unique username
+ * @param email     a unique email address
+ * @param password  account password
+ */
 authRouter.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
