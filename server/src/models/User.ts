@@ -1,4 +1,9 @@
-import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
+import {
+  DocumentType,
+  getModelForClass,
+  modelOptions,
+  prop,
+} from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
 @modelOptions({
@@ -17,11 +22,22 @@ class User extends TimeStamps {
   @prop({ index: true, unique: true }) // TODO: Add validation
   public email!: string;
 
-  @prop()
-  public password!: string;
+  @prop({ select: false }) // Don't include password by default
+  public password?: string;
 
   @prop()
   public profilePicture?: Buffer;
+
+  /**
+   * Return the document data excluding the password field.
+   *
+   * @param this the User Document Object
+   */
+  public withoutPassword(this: DocumentType<User>) {
+    const temp = this.toJSON() as User;
+    delete temp.password;
+    return temp as Omit<User, "password">;
+  }
 }
 
 export default getModelForClass(User);

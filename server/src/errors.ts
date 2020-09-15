@@ -1,6 +1,6 @@
 import { MongoError } from "mongodb";
 
-export interface BetterMongoError extends MongoError {
+export interface UniqueFieldMongoError extends MongoError {
   keyValue: {
     [val: string]: string;
   };

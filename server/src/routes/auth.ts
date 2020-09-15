@@ -1,33 +1,48 @@
 import express from "express";
+import argon2 from "argon2";
 import { User } from "../models";
-import { BetterMongoError } from "../types";
+
+import { MongoError } from "mongodb";
+import { UniqueFieldMongoError } from "../errors";
+
 const authRouter = express.Router();
 
 authRouter.get("/login", async (req, res) => {
-  res.json("logged in!");
+  const user = await User.findOne({ username: "ssddfsdd" }).select("+password");
+
+  res.json(user?.withoutPassword());
 });
 
 authRouter.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
-  // TODO: Encrypt password
+  // Hash user password before storing in DB
+  const hashedPass = await argon2.hash(password);
 
+  // Try to write new user
   try {
     const newUser = await User.create({
       username,
       email,
-      password,
+      password: hashedPass,
     });
 
-    res.json(newUser);
+    res.json(newUser.withoutPassword());
   } catch (error) {
-    const dupValues = (error as BetterMongoError).keyValue;
-    const field = Object.keys(dupValues)[0];
-    const value = dupValues[field];
+    // If username or email taken
+    if (error instanceof MongoError && error.code === 11000) {
+      // Cast as custom error since mongo doesn't have a unqiue validation error class
+      const { keyValue } = error as UniqueFieldMongoError;
+      const field = Object.keys(keyValue)[0];
+      const value = keyValue[field];
 
-    res.status(406).json({
-      errors: [{ field, msg: `${value} is already taken.` }],
-    });
+      res.status(406).json({
+        errors: [{ field, msg: `${value} is already taken.` }],
+      });
+    } else {
+      // 501 Big Bad error that we don't know how to handle
+      res.status(501).json({ error });
+    }
   }
 });
 

@@ -6,6 +6,7 @@ import routes from "./routes";
 // Setup env variables and server
 dotenv.config();
 const app = express();
+app.use(express.json());
 
 // Establish MongoDB connection
 mongoose
