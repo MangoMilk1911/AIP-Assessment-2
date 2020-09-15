@@ -1,11 +1,11 @@
 import { getModelForClass, prop, DocumentType } from "@typegoose/typegoose";
 
 class UserSchema {
-  @prop()
-  public name!: string;
+  @prop({ unique: true, maxlength: 30 })
+  public username!: string;
 
   @prop()
-  public favNumber?: number;
+  public profile_picture!: number;
 
   // Example of an instance method
   public static async someInstanceMethod(
