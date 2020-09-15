@@ -1,37 +1,27 @@
-import { getModelForClass, prop } from "@typegoose/typegoose";
+import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
-class UserSchema {
-  @prop({ unique: true, maxlength: 30 })
+@modelOptions({
+  schemaOptions: { collection: "users" },
+})
+class User extends TimeStamps {
+  @prop({
+    index: true,
+    unique: true,
+    maxlength: 30,
+    set: (val: string) => val.toLowerCase(),
+    get: (val: string) => val,
+  })
   public username!: string;
 
-  @prop({ unique: true }) //might want to add validate: Y33T
+  @prop({ index: true, unique: true }) // TODO: Add validation
   public email!: string;
 
   @prop()
   public password!: string;
 
-  @prop({ maxlength: 30 })
-  public firstName!: string;
-
-  @prop({ maxlength: 30 })
-  public lastName!: string;
-
-  /*
   @prop()
-  public profilePicture!: ImageData;
-  */
-
-  /*
-  @prop({ default: Date.now() })
-  public dateCreated!: Date;
-  */
-
-  @prop()
-  get fullName() {
-    return `${this.firstName} ${this.lastName}`;
-  }
+  public profilePicture?: Buffer;
 }
 
-export default getModelForClass(UserSchema, {
-  schemaOptions: { collection: "users" },
-});
+export default getModelForClass(User);
