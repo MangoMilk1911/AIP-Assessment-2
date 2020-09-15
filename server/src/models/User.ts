@@ -1,18 +1,34 @@
-import { getModelForClass, prop, DocumentType } from "@typegoose/typegoose";
+import { getModelForClass, prop } from "@typegoose/typegoose";
 
 class UserSchema {
   @prop({ unique: true, maxlength: 30 })
   public username!: string;
 
-  @prop()
-  public profile_picture!: number;
+  @prop({ unique: true }) //might want to add validate: Y33T
+  public email!: string;
 
-  // Example of an instance method
-  public static async someInstanceMethod(
-    this: DocumentType<typeof UserSchema>,
-    someParam: string
-  ) {
-    return this.name + " is an oi! " + someParam;
+  @prop()
+  public password!: string;
+
+  @prop({ maxlength: 30 })
+  public firstName!: string;
+
+  @prop({ maxlength: 30 })
+  public lastName!: string;
+
+  /*
+  @prop()
+  public profilePicture!: ImageData;
+  */
+
+  /*
+  @prop({ default: Date.now() })
+  public dateCreated!: Date;
+  */
+
+  @prop()
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
   }
 }
 
