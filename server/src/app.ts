@@ -5,6 +5,8 @@ import routes from "./routes";
 import passport from "./utils/passport";
 import session from "express-session";
 
+export const __prod__ = process.env.NODE_ENV === "production";
+
 // Setup env variables and server
 dotenv.config();
 const app = express();
@@ -13,10 +15,10 @@ const app = express();
 app.use(express.json());
 app.use(
   session({
-    secret: "lol",
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Change to true when prod
+    cookie: { secure: __prod__ },
   })
 );
 app.use(passport.initialize());
