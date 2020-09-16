@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 import passport from "passport";
-import { Strategy as LocalStratergy, VerifyFunction } from "passport-local";
+import { Strategy as LocalStrategy, VerifyFunction } from "passport-local";
 import { User } from "../models";
 import { UserClass } from "../models/User";
 
@@ -21,7 +21,7 @@ const verify: VerifyFunction = async (username, password, done) => {
   return done(null, foundUser.withoutPassword());
 };
 
-passport.use(new LocalStratergy(verify));
+passport.use(new LocalStrategy(verify));
 
 passport.serializeUser((user: UserClass, done) => {
   console.log("ser");
