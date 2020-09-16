@@ -8,7 +8,8 @@
       "restart": true,
       "runtimeExecutable": "nodemon",
       "skipFiles": ["<node_internals>/**"],
-      "type": "pwa-node"
+      "type": "pwa-node",
+      "outputCapture": "std"
     }
   ]
 }
