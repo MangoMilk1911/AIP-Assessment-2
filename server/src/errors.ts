@@ -1,5 +1,7 @@
 import { MongoError } from "mongodb";
 
+// =================== Mongo Errors =====================
+
 /**
  * @description **MONGO ERROR CODE(S): 11000**
  *
@@ -15,6 +17,11 @@ export class UniqueFieldMongoError extends MongoError {
   };
 }
 
+// =================== Validation Errors =====================
+
+/**
+ * Custom error for repeat password validation
+ */
 export class RepeatPasswordError extends Error {
   constructor() {
     super("Passwords do not match.");

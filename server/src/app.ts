@@ -1,28 +1,17 @@
+require("dotenv").config();
 import express from "express";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import routes from "./routes";
 import passport from "./utils/passport";
-import session from "express-session";
 
 export const __prod__ = process.env.NODE_ENV === "production";
 
-// Setup env variables and server
-dotenv.config();
+// Create server
 const app = express();
 
 // Apply middleware
 app.use(express.json());
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: __prod__ },
-  })
-);
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Establish MongoDB connection
 mongoose
