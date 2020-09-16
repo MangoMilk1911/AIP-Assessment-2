@@ -2,7 +2,8 @@
   "name": "aip_assessment_2_server",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "dev:debug": "nodemon src/app.ts --inspect"
   },
   "dependencies": {
     "@typegoose/typegoose": "^7.3.5",

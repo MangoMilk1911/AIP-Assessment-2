@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "name": "Debug Server",
+      "cwd": "${workspaceFolder}/server",
+      "program": "./src/app.ts",
+      "request": "launch",
+      "restart": true,
+      "runtimeExecutable": "nodemon",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node"
+    }
+  ]
+}
