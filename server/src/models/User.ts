@@ -4,12 +4,16 @@ import {
   modelOptions,
   prop,
 } from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+
+// Disgusting uglyness because typescript doesnt support multiple inheritance...
+export interface UserClass extends Base {}
 
 @modelOptions({
+  options: { customName: "User" },
   schemaOptions: { collection: "users" },
 })
-class User extends TimeStamps {
+export class UserClass extends TimeStamps {
   @prop({
     index: true,
     unique: true,
@@ -33,11 +37,11 @@ class User extends TimeStamps {
    *
    * @param this the User Document Object
    */
-  public withoutPassword(this: DocumentType<User>) {
-    const temp = this.toJSON() as User;
+  public withoutPassword(this: DocumentType<UserClass>) {
+    const temp = this.toJSON() as UserClass;
     delete temp.password;
-    return temp as Omit<User, "password">;
+    return temp as Omit<UserClass, "password">;
   }
 }
 
-export default getModelForClass(User);
+export default getModelForClass(UserClass);

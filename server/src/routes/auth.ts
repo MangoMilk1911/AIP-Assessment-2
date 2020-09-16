@@ -1,11 +1,27 @@
 import express from "express";
 import argon2 from "argon2";
 import { User } from "../models";
+import passport from "../utils/passport";
 
 import { MongoError } from "mongodb";
-import { UniqueFieldMongoError } from "../errors";
+import { UniqueFieldMongoError } from "../utils/errors";
 
 const authRouter = express.Router();
+
+authRouter.post("/log", passport.authenticate("local"), (req, res) => {
+  res.json(req.user);
+});
+
+authRouter.post("/logout", (req, res) => {
+  req.logout();
+  res.end();
+});
+
+authRouter.get("/user", (req, res) => {
+  console.log(req.user);
+
+  res.json(req.user);
+});
 
 /**
  * LOGIN

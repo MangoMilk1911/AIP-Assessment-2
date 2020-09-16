@@ -2,11 +2,25 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import routes from "./routes";
+import passport from "./utils/passport";
+import session from "express-session";
 
 // Setup env variables and server
 dotenv.config();
 const app = express();
+
+// Apply middleware
 app.use(express.json());
+app.use(
+  session({
+    secret: "lol",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Change to true when prod
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Establish MongoDB connection
 mongoose
