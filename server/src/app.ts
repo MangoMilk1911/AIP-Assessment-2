@@ -10,6 +10,7 @@ export const __prod__ = process.env.NODE_ENV === "production";
 const app = express();
 
 // Apply middleware
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(passport.initialize());
 
