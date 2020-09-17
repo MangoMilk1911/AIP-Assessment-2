@@ -1,8 +1,8 @@
 import { getModelForClass, prop } from "@typegoose/typegoose";
 
-export class Reward {
+export class RewardClass {
   @prop()
   public name!: string;
 }
 
-export default getModelForClass(Reward);
+export default getModelForClass(RewardClass);

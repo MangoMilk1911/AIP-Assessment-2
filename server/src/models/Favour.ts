@@ -1,22 +1,26 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { Reward } from "./Reward";
+import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { RewardClass } from "./Reward";
+import { UserClass } from "./User";
+
+export interface FavourClass extends Base {}
 
 @modelOptions({
+  options: { customName: "Favour" },
   schemaOptions: { collection: "favours" },
 })
-class Favour extends TimeStamps {
+export class FavourClass extends TimeStamps {
   @prop()
-  public debtor!: string;
+  public debtor!: UserClass;
 
   @prop()
-  public recipient!: string;
+  public recipient!: UserClass;
 
   @prop()
-  public rewards!: Reward;
+  public rewards!: RewardClass;
 
   @prop()
   public proof?: Buffer;
 }
 
-export default getModelForClass(Favour);
+export default getModelForClass(FavourClass);
