@@ -1,8 +1,8 @@
 import express from "express";
-import authRouter from "./auth";
+import profileRouter from "./profile";
 const apiRouter = express.Router();
 
 // Assign routes to main API router
-apiRouter.use("/auth", authRouter);
+apiRouter.use("/profile", profileRouter);
 
 export default apiRouter;
