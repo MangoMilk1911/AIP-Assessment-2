@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import routes from "./routes";
 import passport from "./utils/passport";
 import session from "express-session";
+import cors from "cors";
 
 export const __prod__ = process.env.NODE_ENV === "production";
 
@@ -12,13 +13,16 @@ dotenv.config();
 const app = express();
 
 // Apply middleware
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET!,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: __prod__ },
+    saveUninitialized: false,
+    cookie: { secure: __prod__, httpOnly: true },
+    // store: // TODO: Add persistent store (https://stackoverflow.com/questions/33897276/what-is-the-difference-between-a-session-store-and-database)
+    // https://www.npmjs.com/package/connect-mongo
   })
 );
 app.use(passport.initialize());
