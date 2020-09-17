@@ -5,6 +5,7 @@ import {
   prop,
 } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import jwt from "jsonwebtoken";
 
 // Disgusting uglyness because typescript doesnt support multiple inheritance...
 export interface UserClass extends Base {}
@@ -41,6 +42,15 @@ export class UserClass extends TimeStamps {
     const temp = this.toJSON() as UserClass;
     delete temp.password;
     return temp as Omit<UserClass, "password">;
+  }
+
+  public generateJWT(this: DocumentType<UserClass>) {
+    // prettier-ignore
+    return jwt.sign(
+      { _id: this._id }, 
+      process.env.JWT_SECRET!, 
+      { expiresIn: "1h" }
+    );
   }
 }
 

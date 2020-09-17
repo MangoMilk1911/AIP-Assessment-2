@@ -1,7 +1,7 @@
 import express from "express";
 import argon2 from "argon2";
-import { User } from "../models";
 import passport from "../utils/passport";
+import { User } from "../models";
 
 import { MongoError } from "mongodb";
 import { RepeatPasswordError, UniqueFieldMongoError } from "../errors";
@@ -10,12 +10,35 @@ const authRouter = express.Router();
 
 // ==================== Login ====================
 
-/**
- * Login is handled by passport js
- * See `src/utils/passport.ts` for implementation
- */
-authRouter.post("/login", passport.authenticate("local"), (req, res) => {
-  res.json(req.user);
+interface LoginBody {
+  username: string;
+  password: string;
+}
+
+authRouter.post("/login", async (req, res) => {
+  const { username, password } = req.body as LoginBody;
+
+  // Check is user exists
+  const foundUser = await User.findOne({ username }).select("+password");
+  if (!foundUser) {
+    return res.status(401).json({
+      errors: ["Incorrect username or password"],
+    });
+  }
+
+  // Check if correct password
+  const isCorrectPassword = await argon2.verify(foundUser.password!, password);
+  if (!isCorrectPassword) {
+    return res.status(401).json({
+      errors: ["Incorrect username or password"],
+    });
+  }
+
+  // Send user data without password & token
+  res.json({
+    user: foundUser.withoutPassword(),
+    token: foundUser.generateJWT(),
+  });
 });
 
 // ==================== Register ====================
@@ -51,7 +74,10 @@ authRouter.post("/register", async (req, res) => {
       password: hashedPass,
     });
 
-    res.json(newUser.withoutPassword());
+    res.json({
+      user: newUser.withoutPassword(),
+      token: newUser.generateJWT(),
+    });
   } catch (error) {
     if (error instanceof MongoError && error.code === 11000) {
       // If username or email taken
@@ -75,17 +101,14 @@ authRouter.post("/register", async (req, res) => {
   }
 });
 
-// ==================== Logout ====================
-
-authRouter.post("/logout", (req, res) => {
-  req.logout();
-  res.end();
-});
-
 // ==================== User Profile ====================
 
-authRouter.get("/user", (req, res) => {
-  res.json(req.isAuthenticated()); // temp
-});
+authRouter.get(
+  "/user",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json(req.user);
+  }
+);
 
 export default authRouter;
