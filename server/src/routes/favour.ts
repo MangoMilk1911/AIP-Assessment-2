@@ -4,8 +4,9 @@ import { Favour } from "../models";
 const favourRouter = express.Router();
 
 favourRouter.post("/create", async (req, res) => {
-  const { debtor, recipient, dateCreated, rewards, proof } = req.body;
+  const { debtor, recipient, rewards } = req.body;
 
+  // Try to create new favour
   try {
     const newFavour = await Favour.create({
       debtor,
