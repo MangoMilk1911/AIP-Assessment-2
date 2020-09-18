@@ -1,8 +1,6 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
-export interface UserClass extends Base<string> {}
-
 @modelOptions({
   options: { customName: "User" },
   schemaOptions: { collection: "users" },

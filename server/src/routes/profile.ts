@@ -9,7 +9,7 @@ const profileRouter = express.Router();
 // ==================== User Profile ====================
 
 profileRouter.get("/me", authMiddleware, async (req, res) => {
-  const user = await auth.getUser(req.userId);
+  const user = await User.findById(req.userId);
   res.json(user);
 });
 
