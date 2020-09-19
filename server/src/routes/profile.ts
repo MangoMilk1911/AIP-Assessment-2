@@ -46,7 +46,7 @@ profileRouter.post(
 
     const { email, displayName, photoURL } = req.body as RegisterBody;
 
-    // Don't create accoutn if user isn't in firebase auth
+    // Don't create account if user isn't in firebase auth
     try {
       await auth.getUser(req.userId);
     } catch (error) {
