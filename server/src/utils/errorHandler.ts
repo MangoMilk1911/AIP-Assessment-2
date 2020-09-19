@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { Result as ValidationResult, ValidationError } from "express-validator";
 import logger from "./logger";
 
 /**
@@ -19,22 +20,49 @@ export class ApiError extends Error {
 }
 
 /**
- * Custom error handling middleware to catch expected errors or
- * return a default 500 error message if unkown
+ * Custom format for errors returned from the server
  */
-// prettier-ignore
-const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+interface ErrorResponse {
+  type: "api" | "validation";
+  status: "error";
+  statusCode: number;
+  message?: string;
+  errors?: ValidationError[];
+}
+
+/**
+ * Custom error handling middleware to catch expected errors or
+ * return a default 500 error message if unknown
+ */
+const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // Expected Custom Api Error
   if (err instanceof ApiError) {
     const { statusCode, message } = err;
     return res.status(statusCode).json({
       status: "error",
+      type: "api",
       statusCode,
-      message
-    });
+      message,
+    } as ErrorResponse);
   }
 
-  // If unkown error
-  logger.error(err.stack)
+  // Validation Error
+  if ((err as Object).hasOwnProperty("throw")) {
+    return res.status(400).json({
+      status: "error",
+      type: "validation",
+      statusCode: 400,
+      errors: ((err as unknown) as ValidationResult<ValidationError>).array(),
+    } as ErrorResponse);
+  }
+
+  // If Unkown Error
+  logger.error(err.stack);
   res.sendStatus(500);
 };
 

@@ -1,9 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { body, validationResult } from "express-validator";
 import routes from "./routes";
 import logger from "./utils/logger";
 import errorHandler from "./utils/errorHandler";
+import { User } from "./models";
 
 // Setup env variables and server
 dotenv.config();
@@ -26,8 +28,20 @@ mongoose
 // register routes
 app.use("/api", routes);
 
-app.get("/test", (req, res) => {
-  throw new Error("bad idk");
+// prettier-ignore
+const testValidation = [
+  body("id")
+    .isMongoId().withMessage("Invalid User ID.").bail()
+    .custom((val) => User.exists(val)),
+  body("name")
+    .exists({ checkFalsy: true }).withMessage("No name provided.").bail()
+    .isEmail().withMessage("Invalid eMail address.")
+];
+
+app.post("/test", ...testValidation, (req, res) => {
+  validationResult(req).throw(); // Validation errors handled externally
+
+  res.json("hi");
 });
 
 app.use(errorHandler);

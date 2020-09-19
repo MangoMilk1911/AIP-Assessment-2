@@ -1,4 +1,9 @@
-import { getModelForClass, prop, DocumentType } from "@typegoose/typegoose";
+import {
+  getModelForClass,
+  prop,
+  DocumentType,
+  ReturnModelType,
+} from "@typegoose/typegoose";
 
 class UserSchema {
   @prop()
@@ -13,6 +18,14 @@ class UserSchema {
     someParam: string
   ) {
     return this.name + " is an oi! " + someParam;
+  }
+
+  public static async exists(
+    this: ReturnModelType<typeof UserSchema>,
+    val: string
+  ) {
+    const foundUser = await this.findById(val);
+    if (!foundUser) throw new Error("No User with that ID exists.");
   }
 }
 
