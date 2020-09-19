@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { Result as ValidationResult, ValidationError } from "express-validator";
+import { MongoError } from "mongodb";
 import logger from "./logger";
 
 /**
@@ -23,7 +24,7 @@ export class ApiError extends Error {
  * Custom format for errors returned from the server
  */
 interface ErrorResponse {
-  type: "api" | "validation";
+  type: "api" | "validation" | "database";
   status: "error";
   statusCode: number;
   message?: string;
@@ -40,25 +41,55 @@ const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  // Expected Custom Api Error
+  /**
+   * Expected Api Errors
+   */
   if (err instanceof ApiError) {
     const { statusCode, message } = err;
     return res.status(statusCode).json({
-      status: "error",
       type: "api",
+      status: "error",
       statusCode,
       message,
     } as ErrorResponse);
   }
 
-  // Validation Error
+  /**
+   * Validation Errors
+   */
   if ((err as Object).hasOwnProperty("throw")) {
     return res.status(400).json({
-      status: "error",
       type: "validation",
+      status: "error",
       statusCode: 400,
       errors: ((err as unknown) as ValidationResult<ValidationError>).array(),
     } as ErrorResponse);
+  }
+
+  /**
+   * Mongo Errors
+   */
+  if (err instanceof MongoError) {
+    // Duplicate key error
+    if (err.code === 11000) {
+      // Find the collection & create a singular
+      const [collection] = err.message.match(/(?<=database\.)((\w+))/g)!;
+      const singular =
+        collection.charAt(0).toUpperCase() + collection.slice(1, -1);
+
+      // Find the affected key
+      const key = Object.keys((err as any).keyValue)[0];
+
+      // Construct error message
+      const message = `${singular} with that ${key} already exists in database.`;
+
+      return res.status(400).json({
+        type: "database",
+        status: "error",
+        statusCode: 400,
+        message,
+      } as ErrorResponse);
+    }
   }
 
   // If Unkown Error

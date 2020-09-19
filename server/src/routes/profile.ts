@@ -2,7 +2,8 @@ import express from "express";
 import { authMiddleware } from "../middleware";
 import { User } from "../models";
 import { auth } from "../utils/firebase";
-import { MongoError } from "mongodb";
+import { body, validationResult } from "express-validator";
+import { ApiError } from "../utils/errorHandler";
 
 const profileRouter = express.Router();
 
@@ -16,44 +17,51 @@ profileRouter.get("/me", authMiddleware, async (req, res) => {
 // ==================== Create New Profile ====================
 
 interface RegisterBody {
-  uid: string;
   email: string;
   displayName: string;
-  photoURL: string;
+  photoURL?: string;
 }
 
-profileRouter.post("/create", async (req, res) => {
-  const { uid, email, displayName, photoURL } = req.body as RegisterBody;
+// prettier-ignore
+const createValidation = [
+  body("email")
+    .exists({ checkFalsy: true }).withMessage("'email' must not be empty.").bail()
+    .isEmail().withMessage("Invalid email address."),
+  body("displayName")
+    .exists({ checkFalsy: true }).withMessage("'displayName' must not be empty.").bail()
+    .isString().withMessage("Display name must be a string.").bail()
+    .isLength({ min: 4, max: 15 }).withMessage("Display name must be between 4 to 15 characters long")
+    .escape(),
+  body("photoURL")
+    .optional()
+    .isURL().withMessage("Photo URL must be a valid URL.")
+];
 
-  if (!uid) {
-    return res.status(400).json("No User ID provided.");
-  }
+profileRouter.post(
+  "/create",
+  authMiddleware,
+  ...createValidation,
+  async (req, res) => {
+    validationResult(req).throw();
 
-  // Only register users that exist with auth provider
-  try {
-    await auth.getUser(uid);
-  } catch (error) {
-    return res.status(400).json("No User with that ID exists on firebase.");
-  }
+    const { email, displayName, photoURL } = req.body as RegisterBody;
 
-  // Try to create new user db entry
-  try {
+    // Don't create accoutn if user isn't in firebase auth
+    try {
+      await auth.getUser(req.userId);
+    } catch (error) {
+      throw new ApiError(400, "No User with that ID exists in Firebase.");
+    }
+
     const newUser = await User.create({
-      _id: uid,
+      _id: req.userId,
       email,
       displayName,
       photoURL,
     });
 
     res.status(201).json(newUser);
-  } catch (error) {
-    // Duplicate field error
-    if (error instanceof MongoError && error.code === 11000) {
-      res.status(400).json("This account has already been created.");
-    } else {
-      res.status(503).json(error.message);
-    }
   }
-});
+);
 
 export default profileRouter;

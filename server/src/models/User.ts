@@ -24,7 +24,7 @@ export class UserClass extends TimeStamps {
   public photoURL?: string;
 
   /**
-   * Util static function for validation
+   * Util function for validation
    * @param userId
    */
   public static async exists(
