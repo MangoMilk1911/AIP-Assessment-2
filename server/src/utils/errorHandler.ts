@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import colors from "colors";
+import logger from "./logger";
 
 /**
  * Custom Error for handling any expected api errors
@@ -34,7 +34,7 @@ const errorHandler = (err: Error, req: Request, res: Response, next: NextFunctio
   }
 
   // If unkown error
-  console.error(colors.red(err.stack!));
+  logger.error(err.stack)
   res.sendStatus(500);
 };
 
