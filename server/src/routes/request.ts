@@ -2,12 +2,14 @@
 import express from "express";
 import { Request, User } from "../models";
 import { authMiddleware } from "../middleware";
+import { body, validationResult } from "express-validator";
 //-- My own shit imports
 import { Contributor } from "../models/Request";
+import { ApiError } from "../utils/errorHandler";
 
 const requestRouter = express.Router();
 
-// -- Create
+// ==================== Create Request ====================
 
 interface RequestBody {
   title: string;
@@ -15,39 +17,54 @@ interface RequestBody {
   initRewards: Map<string, number>;
 }
 
-requestRouter.post("/create", authMiddleware, async (req, res) => {
-  const { title, description, initRewards } = req.body as RequestBody;
+const requestCreateValidation = [
+  body("title")
+    .exists({ checkFalsy: true })
+    .withMessage("Title must not be empty.")
+    .trim()
+    .escape()
+    .isLength({ max: 90 })
+    .bail(),
+  //initRewards needs validation
+  //desciprtion
+];
 
-  //find user from mongodb by their userid (needs a throw error to double check)
-  const user = await User.findById(req.userId);
+requestRouter.post(
+  "/create",
+  authMiddleware,
+  ...requestCreateValidation,
+  async (req, res) => {
+    validationResult(req).throw();
+    const { title, description, initRewards } = req.body as RequestBody;
 
-  //if a userid is not on the request
-  if (!user) {
-    return res.status(400).json("No user id exists");
-  }
+    //find user from mongodb by their userid
+    const user = await User.findById(req.userId);
 
-  //create an array of contributors for the contributors attribute on the Request object
-  const contributors: Contributor[] = [
-    {
-      _id: user._id,
-      displayName: user.displayName,
-      rewards: initRewards,
-    },
-  ];
+    if (!user) {
+      throw new ApiError(400, "User not found in MongoDB.");
+    }
 
-  //Actually create request on mongodb
-  try {
+    //create an array of contributors for the contributors attribute on the Request object
+    const contributors: Contributor[] = [
+      {
+        userId: user._id,
+        displayName: user.displayName,
+        rewards: initRewards,
+      },
+    ];
+
+    //Actually create request on mongodb
     const newRequest = await Request.create({
       title,
       contributors,
       description,
     });
     res.status(201).json(newRequest);
-  } catch (error) {
-    if (true) {
-      res.status(503).json(error.message);
-    }
   }
-});
+);
+
+// ==================== Read Request ====================
+// ==================== Update Request ====================
+// ==================== Delete Request ====================
 
 export default requestRouter;

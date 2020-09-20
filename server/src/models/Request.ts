@@ -5,11 +5,12 @@ import {
   prop,
 } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { UserClass } from "./User";
 
-export interface Contributor {
-  _id: string;
-  displayName: string;
-  rewards: Map<string, number>;
+export class Contributor {
+  public userId!: string;
+  public displayName!: string;
+  public rewards!: Map<string, number>;
 }
 
 interface RequestClass extends Base {}
@@ -21,12 +22,12 @@ interface RequestClass extends Base {}
 class RequestClass extends TimeStamps {
   @prop({
     index: true,
-    maxlength: 30,
+    maxlength: 90,
   })
   public title!: string;
 
-  @prop()
-  public contributors!: Contributor[]; //how to make Array brother?
+  @prop({ type: () => [Contributor] })
+  public contributors!: Contributor[];
 
   @prop({
     maxlength: 800,
@@ -37,7 +38,7 @@ class RequestClass extends TimeStamps {
   public evidence?: Buffer;
 
   @prop()
-  public recipient?: string;
+  public recipient?: UserClass;
 }
 
 export default getModelForClass(RequestClass);
