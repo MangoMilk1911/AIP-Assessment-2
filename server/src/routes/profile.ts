@@ -4,6 +4,7 @@ import { User } from "../models";
 import { auth } from "../utils/firebase";
 import { body, validationResult } from "express-validator";
 import { ApiError } from "../utils/errorHandler";
+import { MongoError } from "mongodb";
 
 const profileRouter = express.Router();
 
@@ -51,6 +52,11 @@ profileRouter.post(
       await auth.getUser(req.userId);
     } catch (error) {
       throw new ApiError(400, "No User with that ID exists in Firebase.");
+    }
+
+    const existingUser = User.findById(req.userId);
+    if (existingUser) {
+      throw new ApiError(400, "This account has already been created.");
     }
 
     const newUser = await User.create({
