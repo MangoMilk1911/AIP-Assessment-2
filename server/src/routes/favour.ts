@@ -1,7 +1,8 @@
 import express from "express";
+import { authMiddleware } from "../middleware";
 import { Favour } from "../models";
 import { RewardClass } from "../models/Reward";
-import { UserClass } from "../models/User";
+import User, { UserClass } from "../models/User";
 
 const favourRouter = express.Router();
 
@@ -11,8 +12,10 @@ interface FavourBody {
   rewards: RewardClass;
 }
 
-favourRouter.post("/create", async (req, res) => {
+favourRouter.post("/create", authMiddleware, async (req, res) => {
   const { debtor, recipient, rewards } = req.body as FavourBody;
+
+  const user = await User.findById(req.userId);
 
   // Try to create new favour
   try {
@@ -21,6 +24,8 @@ favourRouter.post("/create", async (req, res) => {
       recipient,
       rewards,
     });
+
+    res.status(201).json(newFavour);
 
     res.json(newFavour);
   } catch (error) {
