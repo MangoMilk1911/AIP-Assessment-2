@@ -1,9 +1,9 @@
 import express from "express";
+import { validationResult } from "express-validator";
 import { authMiddleware } from "../middleware";
 import { User } from "../models";
-import { auth } from "../utils/firebase";
-import { body, validationResult } from "express-validator";
 import { ApiError } from "../utils/errorHandler";
+import { auth } from "../utils/firebase";
 
 const profileRouter = express.Router();
 
@@ -16,52 +16,32 @@ profileRouter.get("/me", authMiddleware, async (req, res) => {
 
 // ==================== Create New Profile ====================
 
-interface RegisterBody {
-  email: string;
-  displayName: string;
-  photoURL?: string;
-}
+/**
+ * An API call to this route should be made immediately after a
+ * user first signs up on the website to finish creating their
+ * account!
+ */
+profileRouter.post("/create", authMiddleware, async (req, res) => {
+  validationResult(req).throw();
 
-// prettier-ignore
-const createValidation = [
-  body("email")
-    .exists({ checkFalsy: true }).withMessage("'email' must not be empty.").bail()
-    .isEmail().withMessage("Invalid email address."),
-  body("displayName")
-    .exists({ checkFalsy: true }).withMessage("'displayName' must not be empty.").bail()
-    .isString().withMessage("Display name must be a string.").bail()
-    .isLength({ min: 4, max: 15 }).withMessage("Display name must be between 4 to 15 characters long")
-    .escape(),
-  body("photoURL")
-    .optional()
-    .isURL().withMessage("Photo URL must be a valid URL.")
-];
+  let user = await auth.getUser(req.userId);
+  const { uid, email, displayName, photoURL } = user;
 
-profileRouter.post(
-  "/create",
-  authMiddleware,
-  ...createValidation,
-  async (req, res) => {
-    validationResult(req).throw();
-
-    const { email, displayName, photoURL } = req.body as RegisterBody;
-
-    // Don't create account if user isn't in firebase auth
-    try {
-      await auth.getUser(req.userId);
-    } catch (error) {
-      throw new ApiError(400, "No User with that ID exists in Firebase.");
-    }
-
-    const newUser = await User.create({
-      _id: req.userId,
-      email,
-      displayName,
-      photoURL,
-    });
-
-    res.status(201).json(newUser);
+  // Don't create user account data twice
+  const userData = await User.findById(uid);
+  if (userData) {
+    throw new ApiError(400, "This account has already been created.");
   }
-);
+
+  // `email` & `displayName` will always be defined
+  const newUser = await User.create({
+    _id: uid,
+    email: email!,
+    displayName: displayName!,
+    photoURL,
+  });
+
+  res.status(201).json(newUser);
+});
 
 export default profileRouter;

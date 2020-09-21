@@ -1,39 +1,36 @@
-import {
-  getModelForClass,
-  modelOptions,
-  prop,
-  ReturnModelType,
-} from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import mongoose, { Schema, Document } from "mongoose";
+import { Timestamp } from ".";
 
-@modelOptions({
-  options: { customName: "User" },
-  schemaOptions: { collection: "users" },
-})
-export class UserClass extends TimeStamps {
-  @prop()
-  public _id!: string;
-
-  @prop()
-  public email!: string;
-
-  @prop()
-  public displayName!: string;
-
-  @prop()
-  public photoURL?: string;
-
-  /**
-   * Util function for validation
-   * @param userId
-   */
-  public static async exists(
-    this: ReturnModelType<typeof UserClass>,
-    userId: string
-  ) {
-    const foundUser = await this.findById(userId);
-    if (!foundUser) throw new Error("No User with that ID exists.");
-  }
+export interface IUser extends Document, Timestamp {
+  _id: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
 }
 
-export default getModelForClass(UserClass);
+export default mongoose.model<IUser>(
+  "User",
+  new Schema(
+    {
+      _id: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      displayName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      photoURL: {
+        type: String,
+        trim: true,
+      },
+    },
+    { timestamps: true }
+  )
+);

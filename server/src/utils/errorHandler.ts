@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { Result as ValidationResult, ValidationError } from "express-validator";
-import { MongoError } from "mongodb";
 import logger from "./logger";
 
 /**
@@ -24,7 +23,7 @@ export class ApiError extends Error {
  * Custom format for errors returned from the server
  */
 interface ErrorResponse {
-  type: "api" | "validation" | "database";
+  type: "api" | "validation";
   status: "error";
   statusCode: number;
   message?: string;
@@ -64,32 +63,6 @@ const errorHandler = (
       statusCode: 400,
       errors: ((err as unknown) as ValidationResult<ValidationError>).array(),
     } as ErrorResponse);
-  }
-
-  /**
-   * Mongo Errors
-   */
-  if (err instanceof MongoError) {
-    // Duplicate key error
-    if (err.code === 11000) {
-      // Find the collection & create a singular
-      const [collection] = err.message.match(/(?<=database\.)((\w+))/g)!;
-      const singular =
-        collection.charAt(0).toUpperCase() + collection.slice(1, -1);
-
-      // Find the affected key
-      const key = Object.keys((err as any).keyValue)[0];
-
-      // Construct error message
-      const message = `${singular} with that ${key} already exists in database.`;
-
-      return res.status(400).json({
-        type: "database",
-        status: "error",
-        statusCode: 400,
-        message,
-      } as ErrorResponse);
-    }
   }
 
   // If Unkown Error
