@@ -1,10 +1,8 @@
-//-- Imports which I copied
 import express from "express";
-import { Request, User } from "../models";
-import { authMiddleware } from "../middleware";
 import { body, validationResult } from "express-validator";
-//-- My own shit imports
-import { Contributor } from "../models/Request";
+import { authMiddleware } from "../middleware";
+import { Request, User } from "../models";
+import { Contribution } from "../models/Request";
 import { ApiError } from "../utils/errorHandler";
 
 const requestRouter = express.Router();
@@ -17,22 +15,21 @@ interface RequestBody {
   initRewards: Map<string, number>;
 }
 
+// prettier-ignore
 const requestCreateValidation = [
   body("title")
-    .exists({ checkFalsy: true })
-    .withMessage("Title must not be empty.")
+    .exists({ checkFalsy: true }).withMessage("Title must not be empty.").bail()
+    .isLength({ max: 90 }).withMessage("Title less than 90 characters.").bail()
     .trim()
-    .escape()
-    .isLength({ max: 90 })
-    .bail(),
+    .escape(),
   body("description")
-    .exists({ checkFalsy: true })
-    .withMessage("Please provide a short explanation of the Request.")
+    .exists({ checkFalsy: true }).withMessage("Please provide a short explanation of the Request.").bail()
+    .isLength({ min: 20, max: 500 }).withMessage("Description must be between 20 to 500 characters.").bail()
     .trim()
-    .escape()
-    .isLength({ min: 20, max: 500 })
-    .bail(),
-  body("initRewards").exists().withMessage("Incorrect Reward Format.").bail(),
+    .escape(),
+  body("initRewards")
+    .exists().withMessage("Incorrect Reward Format.").bail()
+    // need to add if check for specific reward
 ];
 
 requestRouter.post(
@@ -43,34 +40,34 @@ requestRouter.post(
     validationResult(req).throw();
     const { title, description, initRewards } = req.body as RequestBody;
 
-    //find user from mongodb by their userid
+    // find user from mongodb by their userid
     const user = await User.findById(req.userId);
 
-    //Making sure user is not undefined
+    // making sure user is not undefined
     if (!user) {
       throw new ApiError(400, "User not found in MongoDB.");
     }
 
-    //de-structuring user object from Mongo
-    const { _id, displayName, email, photoURL } = user;
+    // de-structuring user object from Mongo
+    const { _id, email, displayName, photoURL } = user;
 
-    //create an array of contributors for the contributors attribute on the Request object
-    const contributors: Contributor[] = [
+    // create an array of contributors for the contributors attribute on the Request object
+    const contributions: Contribution[] = [
       {
         user: {
           _id,
-          displayName,
           email,
+          displayName,
           photoURL,
         },
         rewards: initRewards,
       },
     ];
 
-    //Actually create request on mongodb
+    // actually create request on mongodb
     const newRequest = await Request.create({
       title,
-      contributors,
+      contributions,
       description,
     });
     res.status(201).json(newRequest);
