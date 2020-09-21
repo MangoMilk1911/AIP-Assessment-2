@@ -11,6 +11,7 @@
     "express-validator": "^6.6.1",
     "firebase-admin": "^9.2.0",
     "mongoose": "^5.10.5",
+    "ts-mongoose": "0.0.21",
     "winston": "^3.3.3"
   },
   "devDependencies": {

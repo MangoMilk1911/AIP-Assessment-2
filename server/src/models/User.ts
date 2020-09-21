@@ -1,54 +1,57 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { Timestamp } from "./types";
+import {
+  createSchema,
+  ExtractDoc,
+  ExtractProps,
+  Type,
+  typedModel,
+} from "ts-mongoose";
 
 // ==================== User Model ====================
 
-export interface IUser extends Document, Timestamp {
-  _id: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
-}
+const UserSchema = createSchema(
+  {
+    _id: Type.string(),
+    email: Type.string({ required: true, trim: true }),
+    displayName: Type.string({ required: true, trim: true }),
+    photoURL: Type.string({ trim: true }),
 
-const User = mongoose.model<IUser>(
-  "User",
-  new Schema(
-    {
-      _id: {
-        type: String,
-        required: true,
-      },
-      email: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      displayName: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      photoURL: {
-        type: String,
-        trim: true,
-      },
-    },
-    { timestamps: true }
-  )
+    // Instance method types
+    ...({} as {
+      asEmbedded: () => EmbeddedUserProps;
+    }),
+  },
+  { timestamps: true }
 );
+
+// Instance method definitions
+UserSchema.method("asEmbedded", function (this: UserDoc): EmbeddedUserProps {
+  const { _id, email, displayName, photoURL } = this;
+
+  return {
+    _id,
+    email,
+    displayName,
+    photoURL,
+  };
+});
+
+const User = typedModel("User", UserSchema);
+
+export type UserProps = ExtractProps<typeof UserSchema>;
+export type UserDoc = ExtractDoc<typeof UserSchema>;
 
 // ==================== Embedded User ====================
 
-export type EmbeddedUser = Pick<
-  IUser,
-  "_id" | "email" | "displayName" | "photoURL"
->;
+export const EmbeddedUserSchema = createSchema(
+  {
+    _id: Type.string(),
+    email: Type.string({ required: true, trim: true }),
+    displayName: Type.string({ required: true, trim: true }),
+    photoURL: Type.string({ trim: true }),
+  },
+  { versionKey: false }
+);
 
-export const EmbeddedUserSchema = new Schema({
-  _id: String,
-  email: String,
-  displayName: String,
-  photoURL: String,
-});
+export type EmbeddedUserProps = ExtractProps<typeof EmbeddedUserSchema>;
 
 export default User;
