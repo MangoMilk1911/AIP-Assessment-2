@@ -1,17 +1,18 @@
 import express from "express";
 import { authMiddleware } from "../middleware";
 import { Favour } from "../models";
-import { RewardClass } from "../models/Reward";
-import User, { UserClass } from "../models/User";
+import { Reward } from "../models/Favour";
+import User, { IUser } from "../models/User";
 
 const favourRouter = express.Router();
 
 interface FavourBody {
-  debtor: UserClass;
-  recipient: UserClass;
-  rewards: RewardClass;
+  debtor: IUser;
+  recipient: IUser;
+  rewards: Reward;
 }
 
+/* ========== CREATE FAVOUR ========== */
 favourRouter.post("/create", authMiddleware, async (req, res) => {
   const { debtor, recipient, rewards } = req.body as FavourBody;
 
@@ -33,8 +34,10 @@ favourRouter.post("/create", authMiddleware, async (req, res) => {
   }
 });
 
-favourRouter.post("/delete", async (req, res) => {});
+/* ========== UPDATE FAVOUR ========== */
+favourRouter.post("/update", async (req, res) => {});
 
-favourRouter.post("/confirm", async (req, res) => {});
+/* ========== DELETE FAVOUR ========== */
+favourRouter.post("/delete", async (req, res) => {});
 
 export default favourRouter;
