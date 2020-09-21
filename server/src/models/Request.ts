@@ -46,17 +46,13 @@ export default mongoose.model<IRequest>(
       contributors: [
         new Schema(
           {
-            userId: String,
-            displayName: String,
-            photoURL: String,
+            user: EmbeddedUserSchema,
             rewards: {
               type: Map,
               of: Number,
             },
           },
-          {
-            _id: false,
-          }
+          { _id: false }
         ),
       ],
       description: {
@@ -66,13 +62,7 @@ export default mongoose.model<IRequest>(
       evidence: {
         type: Buffer,
       },
-      recipient: {
-        type: new Schema({
-          _id: String,
-          displayName: String,
-          photoURL: String,
-        }),
-      },
+      recipient: EmbeddedUserSchema,
     },
     { timestamps: true }
   )
