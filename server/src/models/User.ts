@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { Timestamp } from ".";
+import { Timestamp } from "./types";
+
+// ==================== User Model ====================
 
 export interface IUser extends Document, Timestamp {
   _id: string;
@@ -8,7 +10,7 @@ export interface IUser extends Document, Timestamp {
   photoURL?: string;
 }
 
-export default mongoose.model<IUser>(
+const User = mongoose.model<IUser>(
   "User",
   new Schema(
     {
@@ -34,3 +36,19 @@ export default mongoose.model<IUser>(
     { timestamps: true }
   )
 );
+
+// ==================== Embedded User ====================
+
+export type EmbeddedUser = Pick<
+  IUser,
+  "_id" | "email" | "displayName" | "photoURL"
+>;
+
+export const EmbeddedUserSchema = new Schema({
+  _id: String,
+  email: String,
+  displayName: String,
+  photoURL: String,
+});
+
+export default User;
