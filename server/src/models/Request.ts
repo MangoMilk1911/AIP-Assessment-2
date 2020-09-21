@@ -1,9 +1,4 @@
-import {
-  DocumentType,
-  getModelForClass,
-  modelOptions,
-  prop,
-} from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
 export interface Contributor {
@@ -40,4 +35,45 @@ class RequestClass extends TimeStamps {
   public recipient?: string;
 }
 
-export default getModelForClass(RequestClass);
+export default mongoose.model<IRequest>(
+  "Request",
+  new Schema(
+    {
+      title: {
+        type: String,
+        required: true,
+      },
+      contributors: [
+        new Schema(
+          {
+            userId: String,
+            displayName: String,
+            photoURL: String,
+            rewards: {
+              type: Map,
+              of: Number,
+            },
+          },
+          {
+            _id: false,
+          }
+        ),
+      ],
+      description: {
+        type: String,
+        required: true,
+      },
+      evidence: {
+        type: Buffer,
+      },
+      recipient: {
+        type: new Schema({
+          _id: String,
+          displayName: String,
+          photoURL: String,
+        }),
+      },
+    },
+    { timestamps: true }
+  )
+);

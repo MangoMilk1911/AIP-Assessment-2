@@ -11,7 +11,7 @@ const requestRouter = express.Router();
 
 interface RequestBody {
   title: string;
-  description?: string;
+  description: string;
   initRewards: Map<string, number>;
 }
 
