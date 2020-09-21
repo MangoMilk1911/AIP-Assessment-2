@@ -1,4 +1,3 @@
-//-- Imports which I copied
 import express from "express";
 import { Request, User } from "../models";
 import { authMiddleware } from "../middleware";
@@ -39,7 +38,7 @@ requestRouter.post("/create", authMiddleware, async (req, res) => {
   try {
     const newRequest = await Request.create({
       title,
-      contributors,
+      contributions,
       description,
     });
     res.status(201).json(newRequest);

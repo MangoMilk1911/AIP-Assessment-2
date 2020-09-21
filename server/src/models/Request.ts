@@ -43,7 +43,7 @@ export default mongoose.model<IRequest>(
         type: String,
         required: true,
       },
-      contributors: [
+      contributions: [
         new Schema(
           {
             user: EmbeddedUserSchema,
