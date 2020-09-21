@@ -13,7 +13,7 @@ const requestRouter = express.Router();
 
 interface RequestBody {
   title: string;
-  description?: string;
+  description: string;
   initRewards: Map<string, number>;
 }
 
@@ -49,6 +49,7 @@ requestRouter.post(
       {
         userId: user._id,
         displayName: user.displayName,
+        photoURL: user.photoURL,
         rewards: initRewards,
       },
     ];
@@ -65,6 +66,14 @@ requestRouter.post(
 
 // ==================== Read Request ====================
 // ==================== Update Request ====================
+
+/**
+ * find request by ID,
+ * get edit variables from request
+ * get new Contributor or delete rewards from existing contributors
+ *
+ */
+
 // ==================== Delete Request ====================
 
 export default requestRouter;

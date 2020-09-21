@@ -1,44 +1,61 @@
-import {
-  DocumentType,
-  getModelForClass,
-  modelOptions,
-  prop,
-} from "@typegoose/typegoose";
-import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { UserClass } from "./User";
+import mongoose, { Schema, Document } from "mongoose";
+import { IUser } from "./User";
+import { Timestamp } from ".";
 
-export class Contributor {
-  public userId!: string;
-  public displayName!: string;
-  public rewards!: Map<string, number>;
+export interface Contributor {
+  userId: string;
+  displayName: string;
+  photoURL?: string;
+  rewards: Map<string, number>;
 }
 
-interface RequestClass extends Base {}
-
-@modelOptions({
-  options: { customName: "Request" },
-  schemaOptions: { collection: "requests" },
-})
-class RequestClass extends TimeStamps {
-  @prop({
-    index: true,
-    maxlength: 90,
-  })
-  public title!: string;
-
-  @prop({ type: () => [Contributor] })
-  public contributors!: Contributor[];
-
-  @prop({
-    maxlength: 800,
-  })
-  public description?: string;
-
-  @prop()
-  public evidence?: Buffer;
-
-  @prop()
-  public recipient?: UserClass;
+export interface IRequest extends Document, Timestamp {
+  title: string;
+  contributors: Contributor[];
+  description: string;
+  evidence?: Buffer;
+  recipient?: Pick<IUser, "_id" | "displayName" | "photoURL">;
 }
 
-export default getModelForClass(RequestClass);
+export default mongoose.model<IRequest>(
+  "Request",
+  new Schema(
+    {
+      title: {
+        type: String,
+        required: true,
+      },
+      contributors: [
+        new Schema(
+          {
+            userId: String,
+            displayName: String,
+            photoURL: String,
+            rewards: {
+              type: Map,
+              of: Number,
+            },
+          },
+          {
+            _id: false,
+          }
+        ),
+      ],
+      description: {
+        type: String,
+        required: true,
+      },
+      evidence: {
+        type: Buffer,
+      },
+      recipient: {
+        type: new Schema({
+          _id: String,
+          displayName: String,
+          photoURL: String,
+        }),
+      },
+    },
+    { timestamps: true }
+  )
+);
