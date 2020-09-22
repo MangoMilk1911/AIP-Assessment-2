@@ -6,6 +6,7 @@
     "dev:debug": "nodemon src/app.ts --inspect"
   },
   "dependencies": {
+    "@typegoose/typegoose": "^7.4.0",
     "dotenv": "^8.2.0",
     "express": "^5.0.0-alpha.8",
     "express-validator": "^6.6.1",
