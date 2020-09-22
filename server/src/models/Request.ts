@@ -1,49 +1,35 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { Timestamp } from "./types";
-import { EmbeddedUser, EmbeddedUserSchema } from "./User";
+import { prop, modelOptions, getModelForClass } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { EmbeddedUserSchema } from "./User";
 
-export interface Contribution {
-  user: EmbeddedUser;
-  rewards: Map<string, number>;
+// ==================== Contribution ====================
+
+export class ContributionSchema {
+  @prop()
+  public user!: EmbeddedUserSchema;
+
+  @prop({ type: Number })
+  public rewards!: Map<string, number>;
 }
 
-export interface IRequest extends Document, Timestamp {
-  title: string;
-  contributions: Contribution[];
-  description: string;
-  evidence?: Buffer;
-  recipient?: EmbeddedUser;
+// ==================== Request ====================
+
+@modelOptions({ options: { customName: "Request" } })
+export class RequestSchema extends TimeStamps {
+  @prop()
+  public title!: string;
+
+  @prop({ type: [ContributionSchema], _id: false })
+  public contributions!: ContributionSchema[];
+
+  @prop()
+  public description!: string;
+
+  @prop()
+  public evidence?: Buffer;
+
+  @prop()
+  public recipient?: EmbeddedUserSchema;
 }
 
-export default mongoose.model<IRequest>(
-  "Request",
-  new Schema(
-    {
-      title: {
-        type: String,
-        required: true,
-      },
-      contributions: [
-        new Schema(
-          {
-            user: EmbeddedUserSchema,
-            rewards: {
-              type: Map,
-              of: Number,
-            },
-          },
-          { _id: false }
-        ),
-      ],
-      description: {
-        type: String,
-        required: true,
-      },
-      evidence: {
-        type: Buffer,
-      },
-      recipient: EmbeddedUserSchema,
-    },
-    { timestamps: true }
-  )
-);
+export default getModelForClass(RequestSchema);

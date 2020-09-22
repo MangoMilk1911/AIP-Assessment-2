@@ -2,7 +2,7 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 import { authMiddleware } from "../middleware";
 import { Request, User } from "../models";
-import { Contribution } from "../models/Request";
+import { ContributionSchema } from "../models/Request";
 import { ApiError } from "../utils/errorHandler";
 
 const requestRouter = express.Router();
@@ -48,18 +48,10 @@ requestRouter.post(
       throw new ApiError(400, "User not found in MongoDB.");
     }
 
-    // de-structuring user object from Mongo
-    const { _id, email, displayName, photoURL } = user;
-
-    // create an array of contributors for the contributors attribute on the Request object
-    const contributions: Contribution[] = [
+    // create initial contributions array with current user as first contributor
+    const contributions: ContributionSchema[] = [
       {
-        user: {
-          _id,
-          email,
-          displayName,
-          photoURL,
-        },
+        user: user.asEmbedded(),
         rewards: initRewards,
       },
     ];
