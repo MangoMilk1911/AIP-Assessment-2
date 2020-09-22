@@ -1,57 +1,57 @@
 import {
-  createSchema,
-  ExtractDoc,
-  ExtractProps,
-  Type,
-  typedModel,
-} from "ts-mongoose";
+  DocumentType,
+  getModelForClass,
+  modelOptions,
+  prop,
+} from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
 // ==================== User Model ====================
 
-const UserSchema = createSchema(
-  {
-    _id: Type.string(),
-    email: Type.string({ required: true, trim: true }),
-    displayName: Type.string({ required: true, trim: true }),
-    photoURL: Type.string({ trim: true }),
+@modelOptions({
+  options: { customName: "User" },
+})
+export class UserSchema extends TimeStamps {
+  @prop()
+  public _id!: string;
 
-    // Instance method types
-    ...({} as {
-      asEmbedded: () => EmbeddedUserProps;
-    }),
-  },
-  { timestamps: true }
-);
+  @prop({ unique: true })
+  public email!: string;
 
-// Instance method definitions
-UserSchema.method("asEmbedded", function (this: UserDoc): EmbeddedUserProps {
-  const { _id, email, displayName, photoURL } = this;
+  @prop()
+  public displayName!: string;
 
-  return {
-    _id,
-    email,
-    displayName,
-    photoURL,
-  };
-});
+  @prop()
+  public photoURL?: string;
 
-const User = typedModel("User", UserSchema);
+  public asEmbedded(this: DocumentType<UserSchema>): EmbeddedUserSchema {
+    const { _id, email, displayName, photoURL } = this;
 
-export type UserProps = ExtractProps<typeof UserSchema>;
-export type UserDoc = ExtractDoc<typeof UserSchema>;
+    return {
+      _id,
+      email,
+      displayName,
+      photoURL,
+    };
+  }
+}
+
+const User = getModelForClass(UserSchema);
 
 // ==================== Embedded User ====================
 
-export const EmbeddedUserSchema = createSchema(
-  {
-    _id: Type.string(),
-    email: Type.string({ required: true, trim: true }),
-    displayName: Type.string({ required: true, trim: true }),
-    photoURL: Type.string({ trim: true }),
-  },
-  { versionKey: false }
-);
+export class EmbeddedUserSchema {
+  @prop()
+  public _id!: string;
 
-export type EmbeddedUserProps = ExtractProps<typeof EmbeddedUserSchema>;
+  @prop()
+  public email!: string;
+
+  @prop()
+  public displayName!: string;
+
+  @prop()
+  public photoURL?: string;
+}
 
 export default User;

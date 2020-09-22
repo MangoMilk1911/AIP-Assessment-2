@@ -6,12 +6,12 @@
     "dev:debug": "nodemon src/app.ts --inspect"
   },
   "dependencies": {
+    "@typegoose/typegoose": "^7.4.0",
     "dotenv": "^8.2.0",
     "express": "^5.0.0-alpha.8",
     "express-validator": "^6.6.1",
     "firebase-admin": "^9.2.0",
     "mongoose": "^5.10.5",
-    "ts-mongoose": "0.0.21",
     "winston": "^3.3.3"
   },
   "devDependencies": {
