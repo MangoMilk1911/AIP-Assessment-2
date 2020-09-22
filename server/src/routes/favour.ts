@@ -1,8 +1,7 @@
 import express from "express";
 import { authMiddleware } from "../middleware";
 import { Favour } from "../models";
-import { Reward } from "../models/Favour";
-import User, { EmbeddedUser, IUser } from "../models/User";
+import User, { UserSchema } from "../models/User";
 import { body, validationResult } from "express-validator";
 import { ApiError } from "../utils/errorHandler";
 
@@ -11,10 +10,10 @@ const favourRouter = express.Router();
 /* ========== CREATE FAVOUR ========== */
 
 interface FavourBody {
-  debtor: IUser["_id"];
-  recipient: IUser["_id"];
-  rewards: Reward[];
-  initialEvidence?: Buffer;
+  debtor: UserSchema["_id"];
+  recipient: UserSchema["_id"];
+  rewards: Map<string, number>;
+  initialEvidence: Buffer;
 }
 
 const favourCreateValidation = [
@@ -53,37 +52,19 @@ favourRouter.post(
       throw new ApiError(400, "Recipient not found in MongoDB");
     }
 
-    const { _id, email, displayName, photoURL } = user;
+    // This goes in validation (debtor != recipient)
+    // if (debtorData._id === recipientData._id) {
+    //   throw new ApiError(400, "Yo mums a hoe");
+    // }
 
-    if (debtorData._id === recipientData._id) {
-      throw new ApiError(400, "Yo mums a hoe");
-    }
-
-    if (!initialEvidence) {
-      if (_id === recipientData._id) {
-        throw new ApiError(400, "Evidence required");
-      }
+    if (!initialEvidence && user._id === recipientData._id) {
+      throw new ApiError(400, "Evidence required");
     }
 
     const newFavour = await Favour.create({
-      creator: {
-        _id,
-        email,
-        displayName,
-        photoURL,
-      },
-      debtor: {
-        _id: debtorData._id,
-        email: debtorData.email,
-        displayName: debtorData.displayName,
-        photoURL: debtorData.photoURL,
-      },
-      recipient: {
-        _id: recipientData._id,
-        email: recipientData.email,
-        displayName: recipientData.displayName,
-        photoURL: recipientData.photoURL,
-      },
+      creator: user.asEmbedded(),
+      debtor: debtorData.asEmbedded(),
+      recipient: recipientData.asEmbedded(),
       rewards,
       initialEvidence,
     });

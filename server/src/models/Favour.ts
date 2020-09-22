@@ -1,33 +1,26 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { Timestamp } from "./types";
-import { EmbeddedUser, EmbeddedUserSchema } from "./User";
+import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { EmbeddedUserSchema } from "./User";
 
-export type Reward = Map<string, number>;
+@modelOptions({ options: { customName: "Favour" } })
+export class FavourSchema extends TimeStamps {
+  @prop()
+  public creator!: EmbeddedUserSchema;
 
-export interface IFavour extends Document, Timestamp {
-  creator: EmbeddedUser;
-  debtor: EmbeddedUser;
-  recipient: EmbeddedUser;
-  rewards: Reward[];
-  initialEvidence?: Buffer;
-  evidence?: Buffer;
+  @prop()
+  public debtor!: EmbeddedUserSchema;
+
+  @prop()
+  public recipient!: EmbeddedUserSchema;
+
+  @prop({ type: Number })
+  public rewards!: Map<string, number>;
+
+  @prop()
+  public initialEvidence?: Buffer;
+
+  @prop()
+  public evidence?: Buffer;
 }
 
-export default mongoose.model<IFavour>(
-  "Favour",
-  new Schema({
-    creator: EmbeddedUserSchema,
-    debtor: EmbeddedUserSchema,
-    recipient: EmbeddedUserSchema,
-    rewards: {
-      type: Map,
-      of: Number,
-    },
-    evidence: {
-      type: Buffer,
-    },
-    initialEvidence: {
-      type: Buffer,
-    },
-  })
-);
+export default getModelForClass(FavourSchema);
