@@ -1,54 +1,57 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { Timestamp } from "./types";
+import {
+  DocumentType,
+  getModelForClass,
+  modelOptions,
+  prop,
+} from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
 // ==================== User Model ====================
 
-export interface IUser extends Document, Timestamp {
-  _id: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
+@modelOptions({
+  options: { customName: "User" },
+})
+export class UserSchema extends TimeStamps {
+  @prop()
+  public _id!: string;
+
+  @prop({ unique: true })
+  public email!: string;
+
+  @prop()
+  public displayName!: string;
+
+  @prop()
+  public photoURL?: string;
+
+  public asEmbedded(this: DocumentType<UserSchema>): EmbeddedUserSchema {
+    const { _id, email, displayName, photoURL } = this;
+
+    return {
+      _id,
+      email,
+      displayName,
+      photoURL,
+    };
+  }
 }
 
-const User = mongoose.model<IUser>(
-  "User",
-  new Schema(
-    {
-      _id: {
-        type: String,
-        required: true,
-      },
-      email: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      displayName: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      photoURL: {
-        type: String,
-        trim: true,
-      },
-    },
-    { timestamps: true }
-  )
-);
+const User = getModelForClass(UserSchema);
 
 // ==================== Embedded User ====================
 
-export type EmbeddedUser = Pick<
-  IUser,
-  "_id" | "email" | "displayName" | "photoURL"
->;
+export class EmbeddedUserSchema {
+  @prop()
+  public _id!: string;
 
-export const EmbeddedUserSchema = new Schema({
-  _id: String,
-  email: String,
-  displayName: String,
-  photoURL: String,
-});
+  @prop()
+  public email!: string;
+
+  @prop()
+  public displayName!: string;
+
+  @prop()
+  public photoURL?: string;
+}
 
 export default User;
