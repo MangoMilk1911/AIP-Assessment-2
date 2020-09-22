@@ -1,8 +1,7 @@
 import express from "express";
 import { Request, User } from "../models";
-import { authMiddleware } from "../middleware";
-//-- My own shit imports
-import { Contributor } from "../models/Request";
+import { ContributionSchema } from "../models/Request";
+import { ApiError } from "../utils/errorHandler";
 
 const requestRouter = express.Router();
 
@@ -20,10 +19,21 @@ requestRouter.post("/create", authMiddleware, async (req, res) => {
   //find user from mongodb by their userid (needs a throw error to double check)
   const user = await User.findById(req.userId);
 
-  //if a userid is not on the request
+  // find user from mongodb by their userid
+  const user = await User.findById(req.userId);
+
+  // making sure user is not undefined
   if (!user) {
-    return res.status(400).json("No user id exists");
+    throw new ApiError(400, "User not found in MongoDB.");
   }
+
+  // create initial contributions array with current user as first contributor
+  const contributions: ContributionSchema[] = [
+    {
+      user: user.asEmbedded(),
+      rewards: initRewards,
+    },
+  ];
 
   //create an array of contributors for the contributors attribute on the Request object
   const contributors: Contributor[] = [

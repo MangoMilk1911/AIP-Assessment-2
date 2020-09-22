@@ -1,69 +1,35 @@
-import { DocumentType, getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { prop, modelOptions, getModelForClass } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { EmbeddedUserSchema } from "./User";
 
-export interface Contributor {
-  _id: string;
-  displayName: string;
-  rewards: Map<string, number>;
+// ==================== Contribution ====================
+
+export class ContributionSchema {
+  @prop()
+  public user!: EmbeddedUserSchema;
+
+  @prop({ type: Number })
+  public rewards!: Map<string, number>;
 }
 
-interface RequestClass extends Base {}
+// ==================== Request ====================
 
-@modelOptions({
-  options: { customName: "Request" },
-  schemaOptions: { collection: "requests" },
-})
-class RequestClass extends TimeStamps {
-  @prop({
-    index: true,
-    maxlength: 30,
-  })
+@modelOptions({ options: { customName: "Request" } })
+export class RequestSchema extends TimeStamps {
+  @prop()
   public title!: string;
 
-  @prop()
-  public contributors!: Contributor[]; //how to make Array brother?
+  @prop({ type: [ContributionSchema], _id: false })
+  public contributions!: ContributionSchema[];
 
-  @prop({
-    maxlength: 800,
-  })
-  public description?: string;
+  @prop()
+  public description!: string;
 
   @prop()
   public evidence?: Buffer;
 
   @prop()
-  public recipient?: string;
+  public recipient?: EmbeddedUserSchema;
 }
 
-export default mongoose.model<IRequest>(
-  "Request",
-  new Schema(
-    {
-      title: {
-        type: String,
-        required: true,
-      },
-      contributions: [
-        new Schema(
-          {
-            user: EmbeddedUserSchema,
-            rewards: {
-              type: Map,
-              of: Number,
-            },
-          },
-          { _id: false }
-        ),
-      ],
-      description: {
-        type: String,
-        required: true,
-      },
-      evidence: {
-        type: Buffer,
-      },
-      recipient: EmbeddedUserSchema,
-    },
-    { timestamps: true }
-  )
-);
+export default getModelForClass(RequestSchema);
