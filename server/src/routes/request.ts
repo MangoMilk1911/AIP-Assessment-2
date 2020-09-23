@@ -13,8 +13,22 @@ interface RequestBody {
   initRewards: Map<string, number>;
 }
 
-requestRouter.post("/create", authMiddleware, async (req, res) => {
-  const { title, description, initRewards } = req.body as RequestBody;
+// prettier-ignore
+const requestCreateValidation = [
+  body("title")
+    .exists({ checkFalsy: true }).withMessage("Title must not be empty.").bail()
+    .isLength({ min: 10, max: 90 }).withMessage("Title must be between 10 to 90 characters.").bail()
+    .trim()
+    .escape(),
+  body("description")
+    .exists({ checkFalsy: true }).withMessage("Please provide a short explanation of the Request.").bail()
+    .isLength({ min: 20, max: 500 }).withMessage("Description must be between 20 to 500 characters.").bail()
+    .trim()
+    .escape(),
+  body("initRewards")
+    .exists().withMessage("Incorrect Reward Format.").bail()
+    // need to add if check for specific reward
+];
 
   //find user from mongodb by their userid (needs a throw error to double check)
   const user = await User.findById(req.userId);
@@ -57,6 +71,112 @@ requestRouter.post("/create", authMiddleware, async (req, res) => {
       res.status(503).json(error.message);
     }
   }
-});
+);
+
+// ==================== Read an existing Request ====================
+
+requestRouter.post("/search", authMiddleware);
+
+// ==================== Update Request ====================
+
+interface editRequest {
+  requestId?: Request;
+  title?: string;
+  description?: string;
+  rewards?: Map<string, number>;
+}
+
+// prettier-ignore
+const requestUpdateValidation = [
+  body("requestId").isMongoId().withMessage("Lol thats not a mongoId").bail(),
+  body("title")
+    .exists({ checkFalsy: true }).withMessage("Title must not be empty.").bail()
+    .isLength({ min: 10, max: 90 }).withMessage("Title must be between 10 to 90 characters.").bail()
+    .trim()
+    .escape(),
+  body("description")
+    .exists({ checkFalsy: true }).withMessage("Please provide a short explanation of the Request.").bail()
+    .isLength({ min: 20, max: 500 }).withMessage("Description must be between 20 to 500 characters.").bail()
+    .trim()
+    .escape(),
+];
+
+requestRouter.put(
+  "/update",
+  authMiddleware,
+  ...requestUpdateValidation,
+  async (req, res) => {
+    validationResult(req).throw();
+    const { requestId, title, description } = req.body as editRequest;
+
+    const request = await Request.findById(requestId);
+    if (!request) {
+      throw new ApiError(400, "Request Object not found.");
+    }
+
+    const isCreator = req.userId === request.contributions[0].user._id;
+    if (!isCreator) {
+      throw new ApiError(403, "You are not the Father!");
+    }
+
+    try {
+      request.set({
+        title,
+        description,
+      });
+      const updatedRequest = await request.save();
+      res.json(updatedRequest);
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+// ==================== Update Request Rewards by Contribution ====================
+
+interface updateContributionBody {
+  requestId: string;
+  newRewards: Map<string, number>;
+}
+
+const updateContributionValidation = [
+  body("requestId").isMongoId().withMessage("Lol thats not a mongoId").bail(),
+];
+
+requestRouter.put(
+  "/updateContribution",
+  authMiddleware,
+  ...updateContributionValidation,
+  async (req, res) => {
+    const { requestId, newRewards } = req.body as updateContributionBody;
+
+    const request = await Request.findById(requestId);
+    if (!request) {
+      throw new ApiError(400, "Request Object not found.");
+    }
+
+    //get the contribution of the logged in user by going through Contributions[] in the Request Object
+    const usersContribution = request.contributions.filter((contribution) => {
+      return contribution.user._id === req.userId;
+    })[0];
+    if (!usersContribution) {
+      throw new ApiError(403, "You are not an existing contributor.");
+    }
+
+    //Save the index of the user by passing in the contribution object
+    const userContributionIndex = request.contributions.indexOf(
+      usersContribution
+    );
+
+    //save the newRewards from the request to the correct index
+    request.contributions[userContributionIndex].rewards = newRewards;
+    const result = await request.save();
+    res.json(result);
+  }
+);
+
+// ==================== Add Rewards to existing Request ====================
+
+// ==================== Delete Request ====================
 
 export default requestRouter;
