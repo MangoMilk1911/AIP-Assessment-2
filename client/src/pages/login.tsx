@@ -1,25 +1,20 @@
 import React from "react";
 import Head from "next/head";
+import Link from "next/link";
+import { auth } from "../utils/firebase";
 import {
-  Box,
   Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Text,
-  Heading,
-  Stack,
-  useColorMode,
   Container,
   Divider,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Stack,
 } from "@chakra-ui/core";
-import { auth } from "../utils/firebase";
-import Link from "next/link";
 
 const Login: React.FC = () => {
-  const { colorMode, toggleColorMode } = useColorMode();
-
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const onSubmit: React.FormEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
 
     const email = e.currentTarget["username"].value;
@@ -41,14 +36,8 @@ const Login: React.FC = () => {
         <a>Home</a>
       </Link>
 
-      <p>
-        <Button onClick={toggleColorMode} variant="outline">
-          mode: {colorMode}
-        </Button>
-      </p>
-
-      <Box as="form" onSubmit={onSubmit} maxW="30rem" mt={32}>
-        <Stack spacing={8}>
+      <Container maxW="30rem" mt={32}>
+        <Stack as="form" onSubmit={onSubmit} spacing={8}>
           <Heading fontSize="6xl" textAlign="center">
             Login
           </Heading>
@@ -70,7 +59,7 @@ const Login: React.FC = () => {
             Login with Google
           </Button>
         </Stack>
-      </Box>
+      </Container>
     </>
   );
 };
