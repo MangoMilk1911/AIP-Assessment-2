@@ -1,7 +1,7 @@
 import { auth } from "../utils/firebase";
 import type { Request, Response, NextFunction } from "express";
 
-// For custom req.auth on express requests
+// Typings for custom req.userId on express requests
 declare global {
   namespace Express {
     interface Request {
