@@ -2,14 +2,14 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD5y4j7UT8lGiHA_CD85gKEClsjooh1cNc",
+  apiKey: process.env.FIREBASE_APIKEY!,
   authDomain: "aip-assessment-2.firebaseapp.com",
   databaseURL: "https://aip-assessment-2.firebaseio.com",
   projectId: "aip-assessment-2",
   storageBucket: "aip-assessment-2.appspot.com",
-  messagingSenderId: "562901182872",
-  appId: "1:562901182872:web:acf829424a7883a4d2a3ed",
-  measurementId: "G-ZCF2WBN3M6",
+  messagingSenderId: process.env.MSG_SENDER_ID!,
+  appId: process.env.FIREBASE_APP_ID!,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID!,
 };
 
 // Ensure only one firebase instance is created

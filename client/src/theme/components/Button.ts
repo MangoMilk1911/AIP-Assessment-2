@@ -1,12 +1,15 @@
-const Button = {
-  baseStyle: {
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    letterSpacing: 3,
-  },
-  defaultProps: {
-    colorScheme: "primary",
-  },
+const baseStyle = {
+  fontFamily: "button",
+  fontWeight: "button",
+  textTransform: "capitalize",
+  letterSpacing: 2,
 };
 
-export default Button;
+const defaultProps = {
+  colorScheme: "primary",
+};
+
+export default {
+  baseStyle,
+  defaultProps,
+};

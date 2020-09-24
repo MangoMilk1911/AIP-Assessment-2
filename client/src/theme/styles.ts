@@ -3,8 +3,11 @@ import { mode, Styles } from "@chakra-ui/theme-tools";
 const styles: Styles = {
   global: (props) => ({
     body: {
-      background: mode("primary.50", "primary.900")(props),
-      color: mode("primary.700", "primary.50")(props),
+      bg: mode("white", "gray.800")(props),
+      color: mode("primary.900", "primary.50")(props),
+      fontFamily: "body",
+      lineHeight: "base",
+      transition: "background 0.2s ease",
     },
   }),
 };

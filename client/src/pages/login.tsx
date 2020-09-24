@@ -10,6 +10,8 @@ import {
   Heading,
   Stack,
   useColorMode,
+  Container,
+  Divider,
 } from "@chakra-ui/core";
 import { auth } from "../utils/firebase";
 import Link from "next/link";
@@ -45,13 +47,13 @@ const Login: React.FC = () => {
         </Button>
       </p>
 
-      <Box as="form" onSubmit={onSubmit}>
-        <Stack maxW="30rem" spacing={8} px={4} mt={32} mx="auto">
-          <Heading fontSize="6xl" fontWeight="extrabold" textAlign="center">
+      <Box as="form" onSubmit={onSubmit} maxW="30rem" mt={32}>
+        <Stack spacing={8}>
+          <Heading fontSize="6xl" textAlign="center">
             Login
           </Heading>
           <FormControl isRequired>
-            <FormLabel htmlFor="username">First name</FormLabel>
+            <FormLabel htmlFor="username">Email</FormLabel>
             <Input id="username" variant="filled" />
           </FormControl>
           <FormControl isRequired>
@@ -60,6 +62,12 @@ const Login: React.FC = () => {
           </FormControl>
           <Button type="submit" w="full" size="lg">
             Submit
+          </Button>
+
+          <Divider />
+
+          <Button colorScheme="gray" size="lg">
+            Login with Google
           </Button>
         </Stack>
       </Box>
