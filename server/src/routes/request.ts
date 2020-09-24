@@ -1,4 +1,6 @@
-import express from "express";
+import express, { request } from "express";
+import { body, validationResult } from "express-validator";
+import { authMiddleware } from "../middleware";
 import { Request, User } from "../models";
 import { ContributionSchema } from "../models/Request";
 import { ApiError } from "../utils/errorHandler";
@@ -175,8 +177,45 @@ requestRouter.put(
   }
 );
 
-// ==================== Add Rewards to existing Request ====================
+// ==================== Add NEW Rewards to existing Request ====================
+interface additionalRewardsBody {
+  requestId: string;
+  additionalRewards: Map<string, number>;
+}
+requestRouter.put("/addReward", authMiddleware, async (req, res) => {
+  const { requestId, additionalRewards } = req.body as additionalRewardsBody;
+
+  const user = await User.findById(req.userId);
+  if (!user) {
+    throw new ApiError(400, "User not found in Mongodb.");
+  }
+
+  const request = await Request.findById(requestId);
+  if (!request) {
+    throw new ApiError(400, "Request Object not found.");
+  }
+
+  //try to find a contribution that already has the logged in user
+  const usersContribution = request.contributions.filter((contribution) => {
+    return contribution.user._id === req.userId;
+  })[0];
+  if (usersContribution) {
+    throw new ApiError(403, "You are already an existing contributor.");
+  }
+
+  // create new contribution object
+  const newContribution: ContributionSchema = {
+    user: user.asEmbedded(),
+    rewards: additionalRewards,
+  };
+
+  //add the contribution to the array of contributions
+  request.contributions.push(newContribution);
+  const result = await request.save();
+  res.json(result);
+});
 
 // ==================== Delete Request ====================
+requestRouter.delete("/delete", authMiddleware);
 
 export default requestRouter;
