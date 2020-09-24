@@ -1,6 +1,7 @@
 require("dotenv").config();
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import routes from "./routes";
 import { errorHandler, logger } from "./utils";
 
@@ -11,6 +12,7 @@ const app = express();
 
 // Apply middleware
 app.use(express.json());
+app.use(cors());
 
 // Establish MongoDB connection
 mongoose

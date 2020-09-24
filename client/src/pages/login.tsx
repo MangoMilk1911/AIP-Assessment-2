@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { auth } from "../utils/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useCreateProfile } from "services/profile";
+import { auth, authProviders } from "../utils/firebase";
 import {
   Button,
   Container,
@@ -11,22 +13,67 @@ import {
   Heading,
   Input,
   Stack,
+  useToast,
 } from "@chakra-ui/core";
-import { useAuthState } from "react-firebase-hooks/auth";
 
 const Login: React.FC = () => {
-  const [user, loading, error] = useAuthState(auth);
+  const [loading, setLoading] = useState(false);
+  const createProfile = useCreateProfile();
 
-  const onSubmit: React.FormEventHandler<HTMLDivElement> = (e) => {
+  // ==================== Toast 🍞 ====================
+
+  const toast = useToast();
+  const successToast = (user: firebase.User) =>
+    toast({
+      title: `Welcome, ${user.displayName.split(" ")[0]}! 🥳`,
+      description: "Successfully logged in!",
+      status: "success",
+    });
+  const errorToast = (description: string, title = "Uh Oh...") =>
+    toast({
+      title,
+      description,
+      status: "error",
+      duration: 10000,
+      isClosable: true,
+    });
+
+  // ==================== Standard Login ====================
+
+  const emailPassLogin: React.FormEventHandler<HTMLDivElement> = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const email = e.currentTarget["username"].value;
     const password = e.currentTarget["password"].value;
 
-    auth
-      .signInWithEmailAndPassword(email, password)
-      .then(console.log)
-      .catch(console.error);
+    try {
+      const result = await auth.signInWithEmailAndPassword(email, password);
+      successToast(result.user);
+    } catch (error) {
+      errorToast(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================== Social Login ====================
+
+  const providerLogin = async (provider: string) => {
+    try {
+      const result = await auth.signInWithPopup(authProviders[provider]);
+      successToast(result.user);
+
+      // Create profile in DB if first time logging in with social
+      if (result.additionalUserInfo.isNewUser) {
+        const { status, message } = await createProfile();
+        if (status === "error") {
+          errorToast(message, "Failed to create new profile 😢");
+        }
+      }
+    } catch (error) {
+      errorToast(error.message);
+    }
   };
 
   return (
@@ -39,10 +86,8 @@ const Login: React.FC = () => {
         <a>Home</a>
       </Link>
 
-      {user?.uid || "none"}
-
       <Container maxW="30rem" mt={32}>
-        <Stack as="form" onSubmit={onSubmit} spacing={8}>
+        <Stack as="form" onSubmit={emailPassLogin} spacing={8}>
           <Heading fontSize="6xl" textAlign="center">
             Login
           </Heading>
@@ -54,13 +99,17 @@ const Login: React.FC = () => {
             <FormLabel htmlFor="password">Password</FormLabel>
             <Input id="password" type="password" />
           </FormControl>
-          <Button type="submit" w="full" size="lg">
+          <Button type="submit" w="full" size="lg" isLoading={loading}>
             Submit
           </Button>
 
           <Divider />
 
-          <Button colorScheme="gray" size="lg">
+          <Button
+            colorScheme="gray"
+            size="lg"
+            onClick={() => providerLogin("google")}
+          >
             Login with Google
           </Button>
         </Stack>
