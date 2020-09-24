@@ -12,8 +12,11 @@ import {
   Input,
   Stack,
 } from "@chakra-ui/core";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const Login: React.FC = () => {
+  const [user, loading, error] = useAuthState(auth);
+
   const onSubmit: React.FormEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
 
@@ -35,6 +38,8 @@ const Login: React.FC = () => {
       <Link href="/">
         <a>Home</a>
       </Link>
+
+      {user?.uid || "none"}
 
       <Container maxW="30rem" mt={32}>
         <Stack as="form" onSubmit={onSubmit} spacing={8}>
