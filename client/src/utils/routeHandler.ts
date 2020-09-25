@@ -3,7 +3,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 import errorHandler from "./errorHandler";
 
-const createHandler = () => {
+/**
+ * Wrapper for `next-connect`s handler that has a error handler
+ * and global middleware pre applied.
+ */
+export default function createHandler() {
+  // Create a new route handler with the custom error handler attached
   const handler = nextConnect<NextApiRequest, NextApiResponse>({
     onError: errorHandler,
   });
@@ -12,6 +17,4 @@ const createHandler = () => {
   handler.use(withDatabase);
 
   return handler;
-};
-
-export default createHandler;
+}

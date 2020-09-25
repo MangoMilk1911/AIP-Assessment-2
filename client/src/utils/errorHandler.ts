@@ -1,7 +1,7 @@
-import type { ErrorHandler } from "next-connect";
-import { Result as ValidationResult, ValidationError } from "express-validator";
 import { NextApiRequest, NextApiResponse } from "next";
+import { ValidationError } from "yup";
 import logger from "./logger";
+import type { ErrorHandler } from "next-connect";
 
 /**
  * Custom Error for handling any expected api errors
@@ -20,15 +20,19 @@ export class ApiError extends Error {
   }
 }
 
+interface IError {
+  field?: string;
+  message: string;
+}
+
 /**
- * Custom format for errors returned from the server
+ * Format of errors returned from the server
  */
 export interface ErrorResponse {
   type: "api" | "validation";
   status: "error";
   statusCode: number;
-  message?: string;
-  errors?: ValidationError[];
+  errors: IError[];
 }
 
 /**
@@ -44,29 +48,38 @@ const errorHandler: ErrorHandler<
    */
   if (err instanceof ApiError) {
     const { statusCode, message } = err;
+
+    const errors: IError[] = [{ message }];
+
     return res.status(statusCode).json({
       type: "api",
       status: "error",
       statusCode,
-      message,
+      errors,
     } as ErrorResponse);
   }
 
   /**
    * Validation Errors
    */
-  if ((err as Object).hasOwnProperty("throw")) {
+  if (err instanceof ValidationError) {
+    const errors = err.inner.map((error) => ({
+      field: error.path,
+      message: error.message,
+    }));
     return res.status(400).json({
       type: "validation",
       status: "error",
       statusCode: 400,
-      errors: ((err as unknown) as ValidationResult<ValidationError>).array(),
+      errors,
     } as ErrorResponse);
   }
 
-  // If Unkown Error
-  logger.error(err.stack);
+  /**
+   * Unexpected errors
+   */
   res.status(500).send("Something went wrong.");
+  logger.error(err.stack);
 };
 
 export default errorHandler;
