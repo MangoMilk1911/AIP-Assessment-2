@@ -1,4 +1,4 @@
-import admin from "firebase/admin";
+import { admin } from "firebase/admin";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { RequestHandler } from "next-connect";
 

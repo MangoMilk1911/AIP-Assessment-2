@@ -22,10 +22,4 @@ export const authProviders = {
   github: new firebase.auth.GithubAuthProvider(),
 };
 
-// If on client, assign auth object for debugging
-if (process.browser) {
-  (window as any).auth = firebase.auth();
-  (window as any).providers = authProviders;
-}
-
 export const auth = firebase.auth();

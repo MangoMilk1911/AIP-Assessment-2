@@ -65,10 +65,10 @@ const Login: React.FC = () => {
 
       // Create profile in DB if first time logging in with social
       if (result.additionalUserInfo.isNewUser) {
-        const { status, message } = await createProfile();
-        if (status === "error") {
-          errorToast(message, "Failed to create new profile 😢");
-        }
+        const { errors } = await createProfile();
+        errors.map((err) =>
+          errorToast(err.message, "Failed to create new profile 😢")
+        );
       }
     } catch (error) {
       errorToast(error.message);
