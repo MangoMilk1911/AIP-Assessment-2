@@ -1,17 +1,27 @@
+import { Button, useColorMode } from "@chakra-ui/core";
+import Link from "next/link";
 import React from "react";
-import Head from "next/head";
 
-const Home: React.FC = () => (
-  <div>
-    <Head>
-      <title>I Owe... Who?</title>
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
+const Home: React.FC = () => {
+  const { colorMode, toggleColorMode } = useColorMode();
 
-    <main>Main content here</main>
+  return (
+    <div>
+      <main>Main content here</main>
 
-    <footer>Footer content here</footer>
-  </div>
-);
+      <p>
+        <Button color="orange.300" variant="outline" onClick={toggleColorMode}>
+          mode: {colorMode}
+        </Button>
+      </p>
+
+      <Link href="/login">
+        <a>login</a>
+      </Link>
+
+      <footer>Footer content here</footer>
+    </div>
+  );
+};
 
 export default Home;

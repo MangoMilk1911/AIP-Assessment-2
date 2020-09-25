@@ -21,7 +21,7 @@ profileRouter.get("/me", authMiddleware, async (req, res) => {
  * user first signs up on the website to finish creating their
  * account!
  */
-profileRouter.post("/create", authMiddleware, async (req, res) => {
+profileRouter.post("/", authMiddleware, async (req, res) => {
   validationResult(req).throw();
 
   let user = await auth.getUser(req.userId);
