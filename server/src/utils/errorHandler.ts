@@ -19,6 +19,13 @@ export class ApiError extends Error {
   }
 }
 
+export class NoUserError extends ApiError {
+  constructor() {
+    super(400, "No User with that ID exists.");
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
 /**
  * Custom format for errors returned from the server
  */
