@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { useAuthState } from "react-firebase-hooks/auth";
 import { useCreateProfile } from "services/profile";
-import { auth, authProviders } from "../utils/firebase";
+import { auth, authProviders } from "firebase/client";
 import {
   Button,
   Container,

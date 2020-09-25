@@ -9,18 +9,27 @@
   },
   "dependencies": {
     "@chakra-ui/core": "^1.0.0-rc.3",
+    "@typegoose/typegoose": "^7.4.1",
     "firebase": "^7.21.0",
+    "firebase-admin": "^9.2.0",
+    "mongoose": "^5.10.7",
     "next": "9.5.3",
+    "next-connect": "^0.9.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-firebase-hooks": "^2.2.0",
     "react-hook-form": "^6.8.2",
-    "swr": "^0.3.4"
+    "swr": "^0.3.4",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.10.5",
     "@types/express-validator": "^3.0.0",
+    "@types/mongoose": "^5.7.36",
     "@types/node": "^14.6.4",
     "@types/react": "^16.9.49",
+    "babel-plugin-parameter-decorator": "^1.0.16",
+    "babel-plugin-transform-typescript-metadata": "^0.3.0",
     "cross-env": "^7.0.2",
     "typescript": "^4.0.2"
   }
