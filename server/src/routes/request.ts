@@ -1,9 +1,9 @@
-import express, { request } from "express";
+import express from "express";
 import { body, param, validationResult } from "express-validator";
 import { authMiddleware } from "../middleware";
 import { Request, User } from "../models";
 import { ContributionSchema } from "../models/Request";
-import { ApiError } from "../utils/errorHandler";
+import { ApiError, NoUserError } from "../utils/errorHandler";
 
 const requestRouter = express.Router();
 
@@ -42,11 +42,7 @@ requestRouter.post(
 
     // find user from mongodb by their userid
     const user = await User.findById(req.userId);
-
-    // making sure user is not undefined
-    if (!user) {
-      throw new ApiError(400, "User not found in MongoDB.");
-    }
+    if (!user) throw new NoUserError();
 
     // create initial contributions array with current user as first contributor
     const contributions: ContributionSchema[] = [
@@ -73,7 +69,6 @@ requestRouter.get("/:id", authMiddleware);
 // ==================== Update Request ====================
 
 interface updateRequestBody {
-  requestId?: string;
   title?: string;
   description?: string;
   rewards?: Map<string, number>;
@@ -182,9 +177,7 @@ requestRouter.post("/:id/contributions", authMiddleware, async (req, res) => {
   const { additionalRewards } = req.body as additionalRewardsBody;
 
   const user = await User.findById(req.userId);
-  if (!user) {
-    throw new ApiError(400, "User not found in Mongodb.");
-  }
+  if (!user) throw new NoUserError();
 
   const request = await Request.findById(id);
   if (!request) {
