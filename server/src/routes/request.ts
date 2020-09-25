@@ -1,5 +1,5 @@
 import express, { request } from "express";
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import { authMiddleware } from "../middleware";
 import { Request, User } from "../models";
 import { ContributionSchema } from "../models/Request";
@@ -33,7 +33,7 @@ const requestCreateValidation = [
 ];
 
 requestRouter.post(
-  "/create",
+  "/",
   authMiddleware,
   ...requestCreateValidation,
   async (req, res) => {
@@ -68,12 +68,12 @@ requestRouter.post(
 
 // ==================== Read an existing Request ====================
 
-requestRouter.post("/search", authMiddleware);
+requestRouter.get("/:id", authMiddleware);
 
 // ==================== Update Request ====================
 
-interface editRequest {
-  requestId?: Request;
+interface updateRequestBody {
+  requestId?: string;
   title?: string;
   description?: string;
   rewards?: Map<string, number>;
@@ -81,7 +81,7 @@ interface editRequest {
 
 // prettier-ignore
 const requestUpdateValidation = [
-  body("requestId").isMongoId().withMessage("Lol thats not a mongoId").bail(),
+  param("id").isMongoId().withMessage("Lol thats not a mongoId").bail(),
   body("title")
     .exists({ checkFalsy: true }).withMessage("Title must not be empty.").bail()
     .isLength({ min: 10, max: 90 }).withMessage("Title must be between 10 to 90 characters.").bail()
@@ -95,14 +95,15 @@ const requestUpdateValidation = [
 ];
 
 requestRouter.put(
-  "/update",
+  "/:id",
   authMiddleware,
   ...requestUpdateValidation,
   async (req, res) => {
     validationResult(req).throw();
-    const { requestId, title, description } = req.body as editRequest;
+    const { id } = req.params;
+    const { title, description } = req.body as updateRequestBody;
 
-    const request = await Request.findById(requestId);
+    const request = await Request.findById(id);
     if (!request) {
       throw new ApiError(400, "Request Object not found.");
     }
@@ -128,22 +129,22 @@ requestRouter.put(
 // ==================== Update Request Rewards by Contribution ====================
 
 interface updateContributionBody {
-  requestId: string;
   newRewards: Map<string, number>;
 }
 
 const updateContributionValidation = [
-  body("requestId").isMongoId().withMessage("Lol thats not a mongoId").bail(),
+  param("id").isMongoId().withMessage("Lol thats not a mongoId").bail(),
 ];
 
 requestRouter.put(
-  "/updateContribution",
+  "/:id/contributions",
   authMiddleware,
   ...updateContributionValidation,
   async (req, res) => {
-    const { requestId, newRewards } = req.body as updateContributionBody;
+    const { id } = req.params;
+    const { newRewards } = req.body as updateContributionBody;
 
-    const request = await Request.findById(requestId);
+    const request = await Request.findById(id);
     if (!request) {
       throw new ApiError(400, "Request Object not found.");
     }
@@ -161,6 +162,9 @@ requestRouter.put(
       usersContribution
     );
 
+    // check if new rewards is empty before adding it to contriubtion
+    // if empty then delete whole contribution
+
     //save the newRewards from the request to the correct index
     request.contributions[userContributionIndex].rewards = newRewards;
     const result = await request.save();
@@ -170,18 +174,19 @@ requestRouter.put(
 
 // ==================== Add NEW Rewards to existing Request ====================
 interface additionalRewardsBody {
-  requestId: string;
   additionalRewards: Map<string, number>;
 }
-requestRouter.put("/addReward", authMiddleware, async (req, res) => {
-  const { requestId, additionalRewards } = req.body as additionalRewardsBody;
+
+requestRouter.post("/:id/contributions", authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { additionalRewards } = req.body as additionalRewardsBody;
 
   const user = await User.findById(req.userId);
   if (!user) {
     throw new ApiError(400, "User not found in Mongodb.");
   }
 
-  const request = await Request.findById(requestId);
+  const request = await Request.findById(id);
   if (!request) {
     throw new ApiError(400, "Request Object not found.");
   }
@@ -207,6 +212,27 @@ requestRouter.put("/addReward", authMiddleware, async (req, res) => {
 });
 
 // ==================== Delete Request ====================
-requestRouter.delete("/delete", authMiddleware);
+requestRouter.delete("/:id", authMiddleware, async (req, res) => {
+  const { id } = req.params;
+
+  const request = await Request.findById(id);
+  if (!request) {
+    throw new ApiError(400, "Request Object not found.");
+  }
+
+  if (!(req.userId === request.contributions[0].user._id)) {
+    throw new ApiError(403, "You are not the father!");
+  }
+
+  request.remove();
+  request.save();
+  res.json("Request was successfully removed!");
+});
+
+// ==================== GET all Requests ====================
+requestRouter.get("/", async (req, res) => {
+  const allRequests = await Request.find({});
+  res.json(allRequests);
+});
 
 export default requestRouter;
