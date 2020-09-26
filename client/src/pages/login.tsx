@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useCreateProfile } from "services/profile";
-import { auth, authProviders } from "firebase/client";
+import { auth, authProviders } from "lib/firebase/client";
 import {
   Button,
   Container,

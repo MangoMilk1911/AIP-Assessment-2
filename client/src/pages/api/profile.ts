@@ -1,4 +1,4 @@
-import { admin } from "firebase/admin";
+import { admin } from "lib/firebase/admin";
 import { authMiddleware } from "middleware";
 import { User } from "models";
 import { updateUserValidation } from "models/User";
