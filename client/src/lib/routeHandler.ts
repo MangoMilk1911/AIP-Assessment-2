@@ -1,7 +1,7 @@
 import withDatabase from "middleware/database";
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
-import errorHandler from "./errorHandler";
+import errorHandler from "lib/errorHandler";
 
 /**
  * Wrapper for `next-connect`s handler that has a error handler

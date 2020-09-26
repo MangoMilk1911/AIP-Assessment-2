@@ -1,6 +1,6 @@
 import { auth } from "firebase/client";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { ErrorResponse } from "utils/errorHandler";
+import { ErrorResponse } from "lib/errorHandler";
 import { fetchFromApi } from ".";
 
 /**

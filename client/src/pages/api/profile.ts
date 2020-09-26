@@ -1,9 +1,9 @@
-import admin from "firebase/admin";
+import { admin } from "firebase/admin";
 import { authMiddleware } from "middleware";
 import { User } from "models";
 import { updateUserValidation } from "models/User";
-import { ApiError } from "utils/errorHandler";
-import createHandler from "utils/routeHandler";
+import { ApiError } from "lib/errorHandler";
+import createHandler from "lib/routeHandler";
 
 const handler = createHandler();
 
