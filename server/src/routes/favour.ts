@@ -1,5 +1,5 @@
 import express from "express";
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import { authMiddleware } from "../middleware";
 import { Favour } from "../models";
 import User, { UserSchema } from "../models/User";
@@ -101,10 +101,7 @@ interface editFavourRewards {
 }
 
 const editRewardsValidation = [
-  body("favourId")
-    .isMongoId()
-    .withMessage("Favour not found in MongoDB")
-    .bail(),
+  param("id").isMongoId().withMessage("Not in correct Mandingo format").bail(),
 ];
 
 favourRouter.put(
@@ -113,10 +110,10 @@ favourRouter.put(
   ...editRewardsValidation,
   async (req, res) => {
     validationResult(req).throw();
-    const { favourId } = req.params;
+    const { id } = req.params;
     const { rewards } = req.body as editFavourRewards;
 
-    const favour = await Favour.findById(favourId);
+    const favour = await Favour.findById(id);
     if (!favour) {
       throw new ApiError(400, "Favour not found.");
     }
@@ -125,7 +122,7 @@ favourRouter.put(
     if (!isCreator) {
       throw new ApiError(
         400,
-        "You must be the creator to edit a favour, niggerino"
+        "You must be the creator to edit a favour, neighbourino"
       );
     }
 
@@ -163,11 +160,11 @@ favourRouter.post(
       throw new ApiError(400, "Favour not found.");
     }
 
-    const isCreator = req.userId === favour.creator._id;
+    const isCreator = req.userId === favour.creator._id; //Debtor must validate creator, not creator
     if (!isCreator) {
       throw new ApiError(
         400,
-        "You must be the creator to edit a favour, niggerino"
+        "You must be the creator to edit a favour, neighbourino"
       );
     }
 
@@ -199,7 +196,7 @@ favourRouter.post("/:id", async (req, res) => {
 
   favour.remove();
   favour.save();
-  res.json("POOF!! I just gobbled your cock");
+  res.json("POOF!! I just gobbled you");
 });
 
 export default favourRouter;
