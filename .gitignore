@@ -1,7 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# secret configs
+service-account.json
+
 # local config
-.vscode
+.vscode/*
+!.vscode/launch.json
 
 # dependencies
 node_modules
@@ -27,6 +31,9 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# logs
+*.log
 
 # local env files
 .env
