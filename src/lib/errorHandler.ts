@@ -3,6 +3,8 @@ import { ValidationError } from "yup";
 import logger from "utils/logger";
 import type { ErrorHandler } from "next-connect";
 
+// =================== Custom Errors =====================
+
 /**
  * Custom Error for handling any expected api errors
  */
@@ -19,6 +21,18 @@ export class ApiError extends Error {
     this.statusCode = statusCode;
   }
 }
+
+/**
+ * Custom Error for non existent users
+ */
+export class NoUserError extends ApiError {
+  constructor() {
+    super(400, "No User with that ID exists.");
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+// =================== Error Handler =====================
 
 interface IError {
   field?: string;

@@ -1,4 +1,4 @@
-import withDatabase from "middleware/database";
+import { withDatabase } from "lib/middleware";
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 import errorHandler from "lib/errorHandler";

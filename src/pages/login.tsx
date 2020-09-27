@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { useCreateProfile } from "services/profile";
-import { auth, authProviders } from "lib/firebase/client";
 import {
   Button,
   Container,
@@ -14,21 +12,30 @@ import {
   Stack,
   useToast,
 } from "@chakra-ui/core";
+import { auth, authProviders } from "lib/firebase/client";
+import { ErrorResponse } from "lib/errorHandler";
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const createProfile = useCreateProfile();
+
+  async function createProfile() {
+    const accessToken = await auth.currentUser.getIdToken();
+
+    const response = await fetch("/api/profile", {
+      method: "POST",
+      headers: {
+        authorization: "Bearer " + accessToken,
+      },
+    });
+
+    return (await response.json()) as ErrorResponse;
+  }
 
   // ==================== Toast 🍞 ====================
 
   const toast = useToast();
-  const successToast = (user: firebase.User) =>
-    toast({
-      title: `Welcome, ${user.displayName.split(" ")[0]}! 🥳`,
-      description: "Successfully logged in!",
-      status: "success",
-    });
-  const errorToast = (description: string, title = "Uh Oh...") =>
+
+  function errorToast(description: string, title = "Uh Oh...") {
     toast({
       title,
       description,
@@ -36,6 +43,7 @@ const Login: React.FC = () => {
       duration: 10000,
       isClosable: true,
     });
+  }
 
   // ==================== Standard Login ====================
 
@@ -47,8 +55,7 @@ const Login: React.FC = () => {
     const password = e.currentTarget["password"].value;
 
     try {
-      const result = await auth.signInWithEmailAndPassword(email, password);
-      successToast(result.user);
+      await auth.signInWithEmailAndPassword(email, password);
     } catch (error) {
       errorToast(error.message);
     } finally {
@@ -61,7 +68,6 @@ const Login: React.FC = () => {
   const providerLogin = async (provider: string) => {
     try {
       const result = await auth.signInWithPopup(authProviders[provider]);
-      successToast(result.user);
 
       // Create profile in DB if first time logging in with social
       if (result.additionalUserInfo.isNewUser) {

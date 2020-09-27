@@ -1,5 +1,5 @@
 import { admin } from "lib/firebase/admin";
-import { authMiddleware } from "middleware";
+import { authMiddleware } from "lib/middleware";
 import { User } from "models";
 import { updateUserValidation } from "models/User";
 import { ApiError } from "lib/errorHandler";
@@ -31,11 +31,10 @@ handler.post(authMiddleware, async (req, res) => {
     throw new ApiError(400, "This account has already been created.");
   }
 
-  // `email` & `displayName` will always be defined
   const newUser = await User.create({
     _id: uid,
-    email: email,
-    displayName: displayName,
+    email,
+    displayName,
     photoURL,
   });
 
