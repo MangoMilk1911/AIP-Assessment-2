@@ -8,7 +8,17 @@ const handler = createHandler();
 
 // ==================== Read a single existing Request ====================
 
-handler.get(authMiddleware);
+handler.get(async (req, res) => {
+  const data = await checkIdValidation.validate(req.query, {
+    abortEarly: false,
+  });
+  const { id } = data;
+  const request = await Request.findById(id);
+  if (!request) {
+    throw new ApiError(400, "Request Object not found.");
+  }
+  res.json(request);
+});
 
 // ==================== Update Request ====================
 

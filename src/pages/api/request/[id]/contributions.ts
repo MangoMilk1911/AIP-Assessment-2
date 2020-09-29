@@ -18,7 +18,7 @@ handler.put(authMiddleware, async (req, res) => {
       ...req.query,
       ...req.body,
     },
-    { abortEarly: true }
+    { abortEarly: false }
   );
 
   const { id, newRewards } = data;
@@ -41,12 +41,13 @@ handler.put(authMiddleware, async (req, res) => {
     usersContribution
   );
 
-  // check if new rewards is empty before adding it to contriubtion
-  // if empty then delete whole contribution
+  request.contributions[userContributionIndex].rewards.clear();
+  console.log(request.contributions[1].rewards);
 
-  //save the newRewards from the request to the correct index
   // prettier-ignore
   request.contributions[userContributionIndex].rewards = newRewards as Map<string,number>;
+  console.log(request.contributions[1].rewards);
+
   const result = await request.save();
 
   res.json(result);

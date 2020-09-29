@@ -1,5 +1,5 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { isValidObjectId } from "mongoose";
 import * as yup from "yup";
 import { EmbeddedUserSchema } from "./User";
@@ -15,6 +15,8 @@ export class ContributionSchema {
 }
 
 // ==================== Request ====================
+
+export interface RequestSchema extends Base {}
 
 @modelOptions({ options: { customName: "Request" } })
 export class RequestSchema extends TimeStamps {
@@ -41,7 +43,10 @@ export default getModelForClass(RequestSchema);
 // const isMongoId = yup
 //   .string()
 //   .test("isMongoId", "${path} is not a valid Mongo ObjectId", isValidObjectId);
-const isMongoId = yup.string().required();
+const isMongoId = yup
+  .string()
+  .required()
+  .matches(new RegExp("^[0-9a-fA-F]{24}$"));
 
 export const createRequestValidation = yup.object({
   title: yup.string().min(10).max(90).required().trim(),
