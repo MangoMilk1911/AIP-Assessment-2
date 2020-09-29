@@ -1,22 +1,21 @@
 import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
-import { Request } from "models";
-import { checkIdValidation, updateRequestValidation } from "models/Request";
+import Request, { requestValidation } from "models/Request";
 
 const handler = createHandler();
 
 // ==================== Read a single existing Request ====================
 
 handler.get(async (req, res) => {
-  const data = await checkIdValidation.validate(req.query, {
+  const { id } = await requestValidation.validate(req.query, {
     abortEarly: false,
+    strict: true,
   });
-  const { id } = data;
+
   const request = await Request.findById(id);
-  if (!request) {
-    throw new ApiError(400, "Request Object not found.");
-  }
+  if (!request) throw new ApiError(400, "No Request with that ID exists.");
+
   res.json(request);
 });
 
@@ -24,51 +23,43 @@ handler.get(async (req, res) => {
 
 handler.put(authMiddleware, async (req, res) => {
   // validates req.body and req.query as one object
-  const data = await updateRequestValidation.validate(
-    {
-      ...req.query,
-      ...req.body,
-    },
-    { abortEarly: false }
+  const { id, title, description } = await requestValidation.validate(
+    { ...req.query, ...req.body },
+    { abortEarly: false, strict: true }
   );
 
-  const { id, title, description } = data;
-
   const request = await Request.findById(id);
-  if (!request) {
-    throw new ApiError(400, "Request Object not found.");
-  }
+  if (!request) throw new ApiError(400, "No Request with that ID exists.");
 
-  const isCreator = req.userId === request.contributions[0].user._id;
-  if (!isCreator) {
-    throw new ApiError(403, "You are not the Father!");
-  }
+  // User is not the owner
+  if (request.contributions[0].user._id !== req.userId)
+    throw new ApiError(403, "You do not have permission to perform this action.");
 
-  request.set({
-    title,
-    description,
-  });
-  const updatedRequest = await request.save();
-  res.json(updatedRequest);
+  // Set the local object and then write to db
+  request.set({ title, description });
+  await request.save();
+
+  res.json(request);
 });
 
 // ==================== Delete Request ====================
 
 handler.delete(authMiddleware, async (req, res) => {
-  const { id } = await checkIdValidation.validate(req.query);
+  const { id } = await requestValidation.validate(req.query, {
+    abortEarly: false,
+    strict: true,
+  });
 
   const request = await Request.findById(id);
-  if (!request) {
-    throw new ApiError(400, "Request Object not found.");
-  }
+  if (!request) throw new ApiError(400, "No Request with that ID exists.");
 
-  if (req.userId !== request.contributions[0].user._id) {
-    throw new ApiError(403, "You are not the father!");
-  }
+  // User is not the owner
+  if (request.contributions[0].user._id !== req.userId)
+    throw new ApiError(403, "You do not have permission to perform this action.");
 
-  request.remove();
-  request.save();
-  res.json("Request was successfully removed!");
+  await request.deleteOne();
+
+  res.status(204).end();
 });
 
 export default handler;

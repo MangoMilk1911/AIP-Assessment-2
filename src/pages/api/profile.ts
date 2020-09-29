@@ -26,9 +26,7 @@ handler.post(authMiddleware, async (req, res) => {
 
   // Don't create user account data twice
   const userData = await User.findById(uid);
-  if (userData) {
-    throw new ApiError(400, "This account has already been created.");
-  }
+  if (userData) throw new ApiError(400, "This account has already been created.");
 
   // Email and Display Name are defined at this point so cast to NonNullable
   const newUser = await User.create({

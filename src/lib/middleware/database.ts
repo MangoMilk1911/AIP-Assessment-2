@@ -14,11 +14,7 @@ const initDatabase = () =>
       console.info("Connected to DB! 😊");
     });
 
-const withDatabase: RequestHandler<NextApiRequest, NextApiResponse> = async (
-  req,
-  res,
-  next
-) => {
+const withDatabase: RequestHandler<NextApiRequest, NextApiResponse> = async (req, res, next) => {
   if (!mongoose.connection.readyState) await initDatabase();
 
   return next();

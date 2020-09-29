@@ -13,11 +13,7 @@ export interface FetcherError {
  * @param accessToken Current user's access token if any
  * @param init Additional fetch options
  */
-export default async function fetcher(
-  path: string,
-  accessToken?: string,
-  init: RequestInit = {}
-) {
+export default async function fetcher(path: string, accessToken?: string, init: RequestInit = {}) {
   // Assign auth header to each request
   init.headers = {
     authorization: accessToken ? `Bearer ${accessToken}` : "",

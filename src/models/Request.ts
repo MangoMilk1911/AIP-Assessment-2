@@ -1,17 +1,19 @@
-import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { isValidObjectId } from "mongoose";
-import * as yup from "yup";
+import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
 import { EmbeddedUserSchema } from "./User";
+import { yup } from "utils/validator";
+
+export type Rewards = { [key: string]: number };
 
 // ==================== Contribution ====================
 
+@modelOptions({ options: { allowMixed: Severity.ALLOW } })
 export class ContributionSchema {
   @prop()
   public user!: EmbeddedUserSchema;
 
-  @prop({ type: Number })
-  public rewards!: Map<string, number>;
+  @prop()
+  public rewards!: Rewards;
 }
 
 // ==================== Request ====================
@@ -40,36 +42,13 @@ export default getModelForClass(RequestSchema);
 
 // ==================== Validation ====================
 
-// const isMongoId = yup
-//   .string()
-//   .test("isMongoId", "${path} is not a valid Mongo ObjectId", isValidObjectId);
-const isMongoId = yup
-  .string()
-  .required()
-  .matches(new RegExp("^[0-9a-fA-F]{24}$"));
-
-export const createRequestValidation = yup.object({
-  title: yup.string().min(10).max(90).required().trim(),
-  description: yup.string().min(20).max(500).required().trim(),
-  initRewards: yup.object().required(),
-});
-
-export const updateRequestValidation = yup.object({
-  id: isMongoId,
-  title: yup.string().min(10).max(90).optional().trim(),
-  description: yup.string().min(20).max(500).optional().trim(),
-});
-
-export const checkIdValidation = yup.object({
-  id: isMongoId,
-});
-
-export const updateContributionValidation = yup.object({
-  id: isMongoId,
-  newRewards: yup.object().required(),
-});
-
-export const addContributionValidation = yup.object({
-  id: isMongoId,
-  additionalRewards: yup.object().required(),
+export const requestValidation = yup.object({
+  id: yup.string().isMongoID().requireOnUpdate().trim(),
+  title: yup.string().requireOnCreate().trim().min(10).max(90),
+  description: yup.string().requireOnCreate().trim().min(20).max(500),
+  rewards: yup.object().isRewards().when("$create", {
+    is: true,
+    then: yup.object().required(),
+    otherwise: yup.object().optional(),
+  }),
 });
