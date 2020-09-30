@@ -12,11 +12,12 @@ declare module "yup" {
   interface StringSchema<T> {
     isMongoID(): yup.StringSchema<T>;
     requiredWhen(conext: string): yup.StringSchema<T>;
+    optionalWhen(conext: string): yup.StringSchema<T>;
   }
 }
 
 yup.addMethod(yup.object, "isRewards", function (this: yup.ObjectSchema) {
-  return this.test("isReward", "${path} must be a map of numbers", (val) => {
+  return this.strict(true).test("isReward", "${path} must be a map of numbers", (val) => {
     if (!val) return true; // Allow for omitted rewards
 
     const quantities = Object.values(val);
@@ -26,7 +27,7 @@ yup.addMethod(yup.object, "isRewards", function (this: yup.ObjectSchema) {
 });
 
 yup.addMethod(yup.string, "isMongoID", function (this: yup.StringSchema) {
-  return this.test("isMongoID", "${path} is not a valid Object ID", function (val) {
+  return this.strict(true).test("isMongoID", "${path} is not a valid Object ID", function (val) {
     return isValidObjectId(val);
   });
 });
@@ -36,6 +37,14 @@ yup.addMethod(yup.string, "requiredWhen", function (this: yup.StringSchema, cont
     is: true,
     then: this.required(),
     otherwise: this.optional(),
+  });
+});
+
+yup.addMethod(yup.string, "optionalWhen", function (this: yup.StringSchema, context: string) {
+  return this.when(context, {
+    is: true,
+    then: this.optional(),
+    otherwise: this.required(),
   });
 });
 

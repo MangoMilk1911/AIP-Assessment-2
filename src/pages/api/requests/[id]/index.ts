@@ -8,10 +8,7 @@ const handler = createHandler();
 // ==================== Read a single existing Request ====================
 
 handler.get(async (req, res) => {
-  const { id } = await requestValidation.validate(req.query, {
-    abortEarly: false,
-    strict: true,
-  });
+  const { id } = await requestValidation.validate(req.query, { abortEarly: false });
 
   const request = await Request.findById(id);
   if (!request) throw new ApiError(400, "No Request with that ID exists.");
@@ -19,13 +16,13 @@ handler.get(async (req, res) => {
   res.json(request);
 });
 
-// ==================== Update Request ====================
+// ==================== Update Request Details ====================
 
 handler.put(authMiddleware, async (req, res) => {
   // validates req.body and req.query as one object
-  const { id, title, description } = await requestValidation.validate(
+  const { id, ...updateBody } = await requestValidation.validate(
     { ...req.query, ...req.body },
-    { abortEarly: false, strict: true }
+    { abortEarly: false, stripUnknown: true } // strip additional key-values from body so that we can set the request directly
   );
 
   const request = await Request.findById(id);
@@ -36,7 +33,7 @@ handler.put(authMiddleware, async (req, res) => {
     throw new ApiError(403, "You do not have permission to perform this action.");
 
   // Set the local object and then write to db
-  request.set({ title, description });
+  request.set(updateBody);
   await request.save();
 
   res.json(request);
@@ -45,10 +42,7 @@ handler.put(authMiddleware, async (req, res) => {
 // ==================== Delete Request ====================
 
 handler.delete(authMiddleware, async (req, res) => {
-  const { id } = await requestValidation.validate(req.query, {
-    abortEarly: false,
-    strict: true,
-  });
+  const { id } = await requestValidation.validate(req.query, { abortEarly: false });
 
   const request = await Request.findById(id);
   if (!request) throw new ApiError(400, "No Request with that ID exists.");
