@@ -43,9 +43,9 @@ export default getModelForClass(RequestSchema);
 // ==================== Validation ====================
 
 export const requestValidation = yup.object({
-  id: yup.string().isMongoID().requireOnUpdate().trim(),
-  title: yup.string().requireOnCreate().trim().min(10).max(90),
-  description: yup.string().requireOnCreate().trim().min(20).max(500),
+  id: yup.string().isMongoID().requiredWhen("$update").trim(),
+  title: yup.string().requiredWhen("$create").trim().min(10).max(90),
+  description: yup.string().requiredWhen("$create").trim().min(20).max(500),
   rewards: yup.object().isRewards().when("$create", {
     is: true,
     then: yup.object().required(),
