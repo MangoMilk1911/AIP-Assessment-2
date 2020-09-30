@@ -11,8 +11,7 @@ declare module "yup" {
 
   interface StringSchema<T> {
     isMongoID(): yup.StringSchema<T>;
-    requireOnCreate(): yup.StringSchema<T>;
-    requireOnUpdate(): yup.StringSchema<T>;
+    requiredWhen(conext: string): yup.StringSchema<T>;
   }
 }
 
@@ -32,19 +31,11 @@ yup.addMethod(yup.string, "isMongoID", function (this: yup.StringSchema) {
   });
 });
 
-yup.addMethod(yup.string, "requireOnCreate", function (this: yup.StringSchema) {
-  return this.when("$create", {
+yup.addMethod(yup.string, "requiredWhen", function (this: yup.StringSchema, context: string) {
+  return this.when(context, {
     is: true,
     then: this.required(),
     otherwise: this.optional(),
-  });
-});
-
-yup.addMethod(yup.string, "requireOnUpdate", function (this: yup.StringSchema) {
-  return this.when("$create", {
-    is: true,
-    then: this.optional(),
-    otherwise: this.required(),
   });
 });
 
