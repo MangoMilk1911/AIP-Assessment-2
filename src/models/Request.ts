@@ -1,11 +1,11 @@
-import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
-import { EmbeddedUserSchema } from "./User";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { yup } from "utils/validator";
+import { EmbeddedUserSchema } from "./User";
 
 export type Rewards = { [key: string]: number };
 
-// ==================== Contribution ====================
+// // ==================== Contribution ====================
 
 @modelOptions({ options: { allowMixed: Severity.ALLOW } })
 export class ContributionSchema {
@@ -17,8 +17,6 @@ export class ContributionSchema {
 }
 
 // ==================== Request ====================
-
-export interface RequestSchema extends Base {}
 
 @modelOptions({ options: { customName: "Request" } })
 export class RequestSchema extends TimeStamps {
@@ -38,12 +36,12 @@ export class RequestSchema extends TimeStamps {
   public recipient?: EmbeddedUserSchema;
 }
 
-export default getModelForClass(RequestSchema);
+const Request = getModelForClass(RequestSchema);
 
 // ==================== Validation ====================
 
 export const requestValidation = yup.object({
-  id: yup.string().isMongoID().requiredWhen("$update").trim(),
+  id: yup.string().isMongoID().optionalWhen("$create").trim(),
   title: yup.string().requiredWhen("$create").trim().min(10).max(90),
   description: yup.string().requiredWhen("$create").trim().min(20).max(500),
   rewards: yup.object().isRewards().when("$create", {
@@ -52,3 +50,5 @@ export const requestValidation = yup.object({
     otherwise: yup.object().optional(),
   }),
 });
+
+export default Request;
