@@ -1,6 +1,7 @@
 import * as yup from "yup";
 import { isValidObjectId } from "mongoose";
 import { Rewards } from "models/Request";
+import { NextApiRequest } from "next";
 
 // =================== Assign custom validators =====================
 
@@ -50,3 +51,14 @@ yup.addMethod(yup.string, "optionalWhen", function (this: yup.StringSchema, cont
 
 // Re-export yup and use this reference to ensure custom validators are assigned
 export { yup };
+
+type ValidatorActions = "create";
+
+export default function createValidator<T>(schema: yup.Schema<T>) {
+  return function (req: NextApiRequest, action?: ValidatorActions) {
+    return schema.validate(
+      { ...req.query, ...req.body },
+      { abortEarly: false, stripUnknown: true, context: { [action]: true } }
+    );
+  };
+}

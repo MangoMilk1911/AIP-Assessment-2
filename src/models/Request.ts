@@ -1,7 +1,7 @@
 import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { yup } from "utils/validator";
 import { EmbeddedUserSchema } from "./User";
+import { yup } from "lib/validator";
 
 export type Rewards = { [key: string]: number };
 
@@ -23,14 +23,17 @@ export class RequestSchema extends TimeStamps {
   @prop()
   public title!: string;
 
-  @prop({ type: [ContributionSchema], _id: false })
-  public contributions!: ContributionSchema[];
+  @prop({ type: ContributionSchema, _id: false })
+  public contributions!: Map<string, ContributionSchema>;
 
   @prop()
   public description!: string;
 
   @prop()
   public evidence?: Buffer;
+
+  @prop()
+  public owner!: EmbeddedUserSchema;
 
   @prop()
   public recipient?: EmbeddedUserSchema;
