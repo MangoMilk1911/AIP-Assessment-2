@@ -1,11 +1,11 @@
-import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { EmbeddedUserSchema } from "./User";
-import { yup } from "utils/validator";
+import { yup } from "lib/validator";
 
 export type Rewards = { [key: string]: number };
 
-// ==================== Contribution ====================
+// // ==================== Contribution ====================
 
 @modelOptions({ options: { allowMixed: Severity.ALLOW } })
 export class ContributionSchema {
@@ -18,15 +18,13 @@ export class ContributionSchema {
 
 // ==================== Request ====================
 
-export interface RequestSchema extends Base {}
-
 @modelOptions({ options: { customName: "Request" } })
 export class RequestSchema extends TimeStamps {
   @prop()
   public title!: string;
 
-  @prop({ type: [ContributionSchema], _id: false })
-  public contributions!: ContributionSchema[];
+  @prop({ type: ContributionSchema, _id: false })
+  public contributions!: Map<string, ContributionSchema>;
 
   @prop()
   public description!: string;
@@ -35,20 +33,25 @@ export class RequestSchema extends TimeStamps {
   public evidence?: Buffer;
 
   @prop()
+  public owner!: EmbeddedUserSchema;
+
+  @prop()
   public recipient?: EmbeddedUserSchema;
 }
 
-export default getModelForClass(RequestSchema);
+const Request = getModelForClass(RequestSchema);
 
 // ==================== Validation ====================
 
 export const requestValidation = yup.object({
-  id: yup.string().isMongoID().requiredWhen("$update").trim(),
-  title: yup.string().requiredWhen("$create").trim().min(10).max(90),
-  description: yup.string().requiredWhen("$create").trim().min(20).max(500),
+  id: yup.string().isMongoID().optionalWhen("$create").trim(),
+  title: yup.string().strict(true).requiredWhen("$create").trim().min(10).max(90),
+  description: yup.string().strict(true).requiredWhen("$create").trim().min(20).max(500),
   rewards: yup.object().isRewards().when("$create", {
     is: true,
     then: yup.object().required(),
     otherwise: yup.object().optional(),
   }),
 });
+
+export default Request;
