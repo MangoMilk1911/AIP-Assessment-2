@@ -1,11 +1,21 @@
-import React from "react";
+import RewardList from "@/components/reward/RewardList";
+import {
+  Box,
+  Container,
+  FormControl,
+  FormLabel,
+  Grid,
+  Heading,
+  Input,
+  Textarea,
+} from "@chakra-ui/core";
 import Head from "next/head";
 import Link from "next/link";
-import { Heading, Input, Container, Textarea, Grid, Button } from "@chakra-ui/core";
-import RewardRow from "components/RewardRow";
-import AddRewardModal from "components/AddRewardModal";
+import React from "react";
+import { useState } from "react";
 
 const CreateRequest: React.FC = () => {
+  const [arrayOfRewards, setArrayOfRewards] = useState<string[]>([]);
   return (
     <>
       <Head>
@@ -19,25 +29,30 @@ const CreateRequest: React.FC = () => {
         <Heading as="h1" size="lg" my={5}>
           Create Request
         </Heading>
-        <Heading as="h2" size="md" my={5}>
-          Title
-        </Heading>
-        <Input placeholder="PURP" />
+        <Box>
+          <FormControl>
+            <FormLabel as="h2" size="md" my={5}>
+              Title
+            </FormLabel>
+            <Input placeholder="PURP" />
+          </FormControl>
 
-        <Heading as="h2" size="md" my={5}>
-          Description
-        </Heading>
-        <Textarea placeholder="IM SO TURNT" />
+          <FormControl>
+            <FormLabel as="h2" size="md" my={5}>
+              Description
+            </FormLabel>
+            <Textarea placeholder="IM SO TURNT" />
+          </FormControl>
 
-        <Heading as="h2" size="md" my={5}>
-          Rewards
-        </Heading>
-        <Grid>
-          <RewardRow emoji="😎" />
-          <RewardRow emoji="😤" />
-          <RewardRow emoji="🤗" />
-          <AddRewardModal />
-        </Grid>
+          <FormControl>
+            <FormLabel as="h2" size="md" my={5}>
+              Rewards
+            </FormLabel>
+            <Grid>
+              <RewardList setArrayOfRewards={setArrayOfRewards} arrayOfRewards={arrayOfRewards} />
+            </Grid>
+          </FormControl>
+        </Box>
       </Container>
     </>
   );
