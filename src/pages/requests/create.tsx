@@ -1,4 +1,8 @@
+import React, { useReducer } from "react";
+import Head from "next/head";
+import Link from "next/link";
 import RewardList from "@/components/reward/RewardList";
+import { Rewards } from "models/Contribution";
 import {
   Box,
   Container,
@@ -9,13 +13,34 @@ import {
   Input,
   Textarea,
 } from "@chakra-ui/core";
-import Head from "next/head";
-import Link from "next/link";
-import React from "react";
-import { useState } from "react";
+
+export type RewardsReducerState = {
+  rewards: Rewards;
+};
+
+export type RewardsReducerAction =
+  | { type: "set"; payload: { reward: string; quantity: number } }
+  | { type: "remove"; reward: string }
+  | { type: "clear" };
+
+function rewardsReducer(state: RewardsReducerState, action: RewardsReducerAction) {
+  switch (action.type) {
+    case "set":
+      state.rewards[action.payload.reward] = action.payload.quantity;
+      return { rewards: state.rewards };
+    case "remove":
+      delete state.rewards[action.reward];
+      return { rewards: state.rewards };
+    case "clear":
+      return { rewards: {} };
+    default:
+      throw new Error("No action provided for rewards reducer.");
+  }
+}
 
 const CreateRequest: React.FC = () => {
-  const [arrayOfRewards, setArrayOfRewards] = useState<string[]>([]);
+  const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
+
   return (
     <>
       <Head>
@@ -49,7 +74,7 @@ const CreateRequest: React.FC = () => {
               Rewards
             </FormLabel>
             <Grid>
-              <RewardList setArrayOfRewards={setArrayOfRewards} arrayOfRewards={arrayOfRewards} />
+              <RewardList rewards={state.rewards} dispatch={dispatch} />
             </Grid>
           </FormControl>
         </Box>

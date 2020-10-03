@@ -1,51 +1,53 @@
 import React from "react";
-import { Box, Center, Heading, CloseButton, Input, IconButton, Grid } from "@chakra-ui/core";
+import { RewardsReducerAction } from "pages/requests/create";
+import { availableRewards } from "utils/availableRewards";
+import { CloseButton, Grid, Heading, IconButton, Input } from "@chakra-ui/core";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
-import getEmojiName from "utils/getEmojiName";
-import { useState } from "react";
 
 interface RewardRowProps {
-  emoji: string;
+  reward: string;
+  quantity: number;
+  dispatch: React.Dispatch<RewardsReducerAction>;
 }
 
-const RewardRow: React.FC<RewardRowProps> = ({ emoji }) => {
-  const [visible, setVisible] = useState(true);
-  const [count, setCount] = useState(0);
-
+const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity, dispatch }) => {
   return (
     <>
-      {visible && (
-        <Grid templateColumns="15% 40% 35% 10%" py="2rem">
-          <Heading textAlign="center">{emoji}</Heading>
-          <Heading textAlign="center" isTruncated>
-            {getEmojiName(emoji)}
-          </Heading>
-          <Grid px="1rem" templateColumns="repeat(3,1fr)">
-            <IconButton
-              onClick={() => {
-                if (count > 0) {
-                  setCount(count - 1);
-                }
-              }}
-              aria-label="Decrement reward"
-              icon={<MinusIcon />}
-            />
-            <Input value={count} />
-            <IconButton
-              onClick={() => {
-                setCount(count + 1);
-              }}
-              aria-label="Increment reward"
-              icon={<AddIcon />}
-            />
-          </Grid>
-          <CloseButton
-            onClick={() => {
-              setVisible(false);
-            }}
+      <Grid templateColumns="15% 40% 35% 10%" py="2rem">
+        <Heading textAlign="center">{reward}</Heading>
+        <Heading textAlign="center" isTruncated>
+          {availableRewards[reward]}
+        </Heading>
+        <Grid px="1rem" templateColumns="repeat(3,1fr)">
+          <IconButton
+            aria-label="Decrement reward"
+            icon={<MinusIcon />}
+            onClick={() =>
+              dispatch({
+                type: "set",
+                payload: { reward, quantity: quantity === 0 ? 0 : quantity - 1 },
+              })
+            }
+          />
+          <Input
+            value={quantity}
+            type="number"
+            min="0"
+            onChange={(e) =>
+              dispatch({
+                type: "set",
+                payload: { reward, quantity: Number(e.target.value) },
+              })
+            }
+          />
+          <IconButton
+            aria-label="Increment reward"
+            icon={<AddIcon />}
+            onClick={() => dispatch({ type: "set", payload: { reward, quantity: quantity + 1 } })}
           />
         </Grid>
-      )}
+        <CloseButton onClick={() => dispatch({ type: "remove", reward })} />
+      </Grid>
     </>
   );
 };
