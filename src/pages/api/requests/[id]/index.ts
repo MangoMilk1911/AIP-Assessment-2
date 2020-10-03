@@ -2,6 +2,7 @@ import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
+import Contribution from "models/Contribution";
 import Request, { requestValidation } from "models/Request";
 
 const handler = createHandler();
@@ -15,7 +16,12 @@ handler.get(async (req, res) => {
   const request = await Request.findById(id);
   if (!request) throw new ApiError(400, "No Request with that ID exists.");
 
-  res.json(request);
+  const contrBucket = await Contribution.findById(request._id);
+
+  res.json({
+    ...request.toJSON(),
+    contributions: contrBucket.contributions,
+  });
 });
 
 // ==================== Update Request Details ====================
@@ -49,8 +55,16 @@ handler.delete(authMiddleware, async (req, res) => {
   if (request.owner._id !== req.userId)
     throw new ApiError(403, "You do not have permission to perform this action.");
 
-  await request.deleteOne();
+  // Create new session for the transaction
+  const session = await Request.db.startSession();
 
+  // Delete request and it's contributions bucket
+  await session.withTransaction(async () => {
+    await request.deleteOne();
+    await Contribution.findByIdAndDelete(request._id);
+  });
+
+  session.endSession();
   res.status(204).end();
 });
 
