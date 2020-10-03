@@ -1,20 +1,7 @@
-import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
+import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { EmbeddedUserSchema } from "./User";
 import { yup } from "lib/validator";
-
-export type Rewards = { [key: string]: number };
-
-// // ==================== Contribution ====================
-
-@modelOptions({ options: { allowMixed: Severity.ALLOW } })
-export class ContributionSchema {
-  @prop()
-  public user!: EmbeddedUserSchema;
-
-  @prop()
-  public rewards!: Rewards;
-}
 
 // ==================== Request ====================
 
@@ -22,9 +9,6 @@ export class ContributionSchema {
 export class RequestSchema extends TimeStamps {
   @prop()
   public title!: string;
-
-  @prop({ type: ContributionSchema, _id: false })
-  public contributions!: Map<string, ContributionSchema>;
 
   @prop()
   public description!: string;
@@ -37,6 +21,9 @@ export class RequestSchema extends TimeStamps {
 
   @prop()
   public recipient?: EmbeddedUserSchema;
+
+  @prop()
+  public noOfContributors!: number;
 }
 
 const Request = getModelForClass(RequestSchema);

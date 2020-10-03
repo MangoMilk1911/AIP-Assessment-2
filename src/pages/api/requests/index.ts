@@ -2,7 +2,7 @@ import { NoUserError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
-import { Request, User } from "models";
+import { Contribution, Request, User } from "models";
 import { requestValidation } from "models/Request";
 
 const handler = createHandler();
@@ -32,15 +32,31 @@ handler.post(authMiddleware, async (req, res) => {
     },
   };
 
-  // Write new request to DB
-  const newRequest = await Request.create({
-    title,
-    description,
-    contributions,
-    owner: user.asEmbedded(),
+  // Create a new session for the transaction
+  const session = await Request.db.startSession();
+
+  let newRequest, contrBucket;
+  await session.withTransaction(async () => {
+    // Create new request document
+    newRequest = await Request.create({
+      title,
+      description,
+      owner: user.asEmbedded(),
+      noOfContributors: 1,
+    });
+
+    // Then create contributions bucket
+    contrBucket = await Contribution.create({
+      _id: newRequest._id,
+      contributions,
+    });
   });
 
-  res.status(201).json(newRequest);
+  session.endSession();
+  res.status(201).json({
+    ...newRequest.toJSON(),
+    contributions: contrBucket.contributions,
+  });
 });
 
 export default handler;

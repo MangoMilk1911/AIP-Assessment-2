@@ -1,14 +1,14 @@
-import { ApiError, NoUserError } from "lib/errorHandler";
+import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
-import { Request, User } from "models";
+import { Contribution, Request, User } from "models";
 import { requestValidation } from "models/Request";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);
 
-// ==================== Update Request Rewards by Contribution ====================
+// ==================== Update Request contribution ====================
 
 handler.put(authMiddleware, async (req, res) => {
   const { id, rewards } = await validate(req);
@@ -16,21 +16,40 @@ handler.put(authMiddleware, async (req, res) => {
   const request = await Request.findById(id);
   if (!request) throw new ApiError(400, "No Request with that ID exists.");
 
+  // Don't let owners remove their contribution, they must delete the request altogether
   if (request.owner._id === req.userId && !rewards)
     throw new ApiError(400, "Request owner cannot remove their contribution.");
 
-  const user = await User.findById(req.userId);
-  const { contributions } = request;
+  // Use `findOrCreate` to ensure a contributions bucket always exists
+  const { doc: contrBucket } = await Contribution.findOrCreate({ _id: request._id });
 
+  // Find the current user data to embed
+  const user = await User.findById(req.userId);
+
+  // Update the new rewards if any otherwise remove the contribution
   if (rewards) {
-    contributions.set(user._id, { user: user.asEmbedded(), rewards });
+    contrBucket.contributions.set(user._id, { user: user.asEmbedded(), rewards });
   } else {
-    contributions.delete(user._id);
+    contrBucket.contributions.delete(user._id);
   }
 
-  // Write the update to the DB
-  await request.save();
-  res.status(200).json(request);
+  // Sync contribution count on reqeust doc
+  request.noOfContributors = contrBucket.contributions.size;
+
+  // Create new session for the transaction
+  const session = await Contribution.db.startSession();
+
+  // Write the updates to the DB in a transaction
+  await session.withTransaction(async () => {
+    await contrBucket.save();
+    await request.save();
+  });
+
+  session.endSession();
+  res.status(200).json({
+    ...request.toJSON(),
+    contributions: contrBucket.contributions,
+  });
 });
 
 export default handler;

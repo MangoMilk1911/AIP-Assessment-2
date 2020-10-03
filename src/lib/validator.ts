@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import { isValidObjectId } from "mongoose";
-import { Rewards } from "models/Request";
 import { NextApiRequest } from "next";
+import { Rewards } from "models/Contribution";
 
 // =================== Assign custom validators =====================
 
