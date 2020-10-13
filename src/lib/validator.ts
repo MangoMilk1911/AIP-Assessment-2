@@ -57,3 +57,12 @@ export default function createValidator<T>(schema: yup.Schema<T>) {
     );
   };
 }
+
+// =================== Schemas =====================
+
+export const userValidation = yup.object({
+  displayName: yup.string().requiredWhen("$create").trim().min(4).max(30),
+  email: yup.string().email().required().trim(),
+  password: yup.string().trim().required().min(4),
+  photoURL: yup.string().url().optional().trim(),
+});

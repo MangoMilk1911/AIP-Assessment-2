@@ -7,6 +7,7 @@ import {
   Container,
   Divider,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
@@ -15,10 +16,21 @@ import {
 } from "@chakra-ui/core";
 import { useAuth } from "lib/auth";
 import { FetcherError } from "utils/fetcher";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { userValidation } from "lib/validator";
+
+interface ILoginForm {
+  email: string;
+  password: string;
+}
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
+  const { register, handleSubmit, errors: formErrors } = useForm<ILoginForm>({
+    resolver: yupResolver(userValidation),
+  });
 
   // ==================== Toast 🍞 ====================
 
@@ -36,12 +48,8 @@ const Login: React.FC = () => {
 
   // ==================== Standard Login ====================
 
-  const emailPassLogin: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const emailPassLogin = async ({ email, password }: ILoginForm) => {
     setLoading(true);
-
-    const email = e.currentTarget["username"].value;
-    const password = e.currentTarget["password"].value;
 
     try {
       await signIn(email, password);
@@ -74,30 +82,35 @@ const Login: React.FC = () => {
       </Link>
 
       <Container maxW="30rem" mt={32}>
-        <Box as="form" onSubmit={emailPassLogin}>
-          <Stack spacing={8}>
-            <Heading fontSize="6xl" textAlign="center">
-              Login
-            </Heading>
-            <FormControl isRequired>
-              <FormLabel htmlFor="username">Email</FormLabel>
-              <Input id="username" variant="filled" />
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel htmlFor="password">Password</FormLabel>
-              <Input id="password" type="password" />
-            </FormControl>
-            <Button type="submit" w="full" size="lg" isLoading={loading}>
-              Submit
-            </Button>
+        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8}>
+          <Heading fontSize="6xl" textAlign="center">
+            Login
+          </Heading>
+          <FormControl isInvalid={!!formErrors.email}>
+            <FormLabel htmlFor="email">Email</FormLabel>
+            <Input id="email" name="email" ref={register} />
+            <FormErrorMessage>{formErrors.email?.message}</FormErrorMessage>
+          </FormControl>
+          <FormControl isInvalid={!!formErrors.password}>
+            <FormLabel htmlFor="password">Password</FormLabel>
+            <Input
+              id="password"
+              name="password"
+              ref={register}
+              type="password"
+            />
+            <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
+          </FormControl>
+          <Button type="submit" w="full" size="lg" isLoading={loading}>
+            Submit
+          </Button>
 
-            <Divider />
+          <Divider />
 
-            <Button colorScheme="gray" size="lg" onClick={providerLogin}>
-              Login with Google
-            </Button>
-          </Stack>
-        </Box>
+          <Button colorScheme="gray" size="lg" onClick={providerLogin}>
+            Login with Google
+          </Button>
+        </Stack>
       </Container>
     </>
   );
