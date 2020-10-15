@@ -4,6 +4,7 @@ import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
 import { Contribution, Request, User } from "models";
 import { requestValidation } from "models/Request";
+import { ApiError } from "next/dist/next-server/server/api-utils";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);
@@ -12,6 +13,7 @@ const validate = createValidator(requestValidation);
 
 handler.get(async (req, res) => {
   const allRequests = await Request.find();
+  if (!allRequests) throw new ApiError(503, "Requests couldn't be loaded!");
   res.json(allRequests);
 });
 
