@@ -77,10 +77,6 @@ const Login: React.FC = () => {
         <title>Pinki | Login</title>
       </Head>
 
-      <Link href="/">
-        <a>Home</a>
-      </Link>
-
       <Container maxW="30rem" mt={32}>
         <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8}>
           <Heading fontSize="6xl" textAlign="center">
@@ -101,7 +97,13 @@ const Login: React.FC = () => {
             />
             <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
-          <Button type="submit" w="full" size="lg" isLoading={loading}>
+          <Button
+            type="submit"
+            isLoading={loading}
+            w="full"
+            size="lg"
+            colorScheme="primary"
+          >
             Submit
           </Button>
 
