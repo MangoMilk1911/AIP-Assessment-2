@@ -1,9 +1,11 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { EmbeddedUserSchema } from "./User";
 import { yup } from "lib/validator";
 
 // ==================== Request ====================
+
+export interface RequestSchema extends Base {}
 
 @modelOptions({ options: { customName: "Request" } })
 export class RequestSchema extends TimeStamps {
