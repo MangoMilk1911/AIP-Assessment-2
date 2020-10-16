@@ -1,4 +1,5 @@
 const baseStyle = {
+  borderRadius: "lg",
   fontFamily: "button",
   fontWeight: "button",
   textTransform: "capitalize",
