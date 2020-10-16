@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import NextLink, { LinkProps } from "next/link";
 import {
-  Box,
   Button,
   Container,
   Flex,
-  Spacer,
   Heading,
   ButtonProps,
   Menu,
@@ -14,6 +12,9 @@ import {
   MenuList,
   useColorModeValue,
   MenuDivider,
+  IconButton,
+  Box,
+  Divider,
 } from "@chakra-ui/core";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { useAuth } from "lib/auth";
@@ -43,20 +44,20 @@ const NavItem: React.FC<NavItemProps> = ({ children, href, ...restProps }) => (
 /**
  * Navbar Drop Down Menu
  */
-const NavDropDown = () => {
+const NavDropDown: React.FC = () => {
   const { user, signOut } = useAuth();
 
   if (!user) return <NavItem href="/login">Sign In</NavItem>;
 
   return (
-    <Menu>
+    <Menu placement="bottom">
       <MenuButton
         as={Button}
         rightIcon={<ChevronDownIcon boxSize={6} />}
         variant="ghost"
         color={useColorModeValue("primary.900", "primary.50")}
       >
-        {user.displayName}
+        {user.displayName.split(" ")[0]}
       </MenuButton>
       <MenuList>
         <MenuItem>Profile</MenuItem>
@@ -68,25 +69,81 @@ const NavDropDown = () => {
   );
 };
 
+const MenuIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    className="feather feather-menu"
+  >
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
 /**
  * Header
  */
 const Header: React.FC = () => {
+  const [show, setShow] = useState(false);
+
   return (
-    <Container maxW="lg">
-      <Flex as="nav" justifyContent="space-between" alignItems="center" py={4}>
-        <NavItem href="/">
-          <Heading size="md">Pinky</Heading>
-        </NavItem>
-        <NavItem href="/requests">Requests</NavItem>
-        <NavItem href="/favours">Favours</NavItem>
-        <NavItem href="/leaderboard">Leaderboard</NavItem>
+    <Box as="header">
+      <Container maxW="lg">
+        <Flex
+          as="nav"
+          wrap="wrap"
+          justify="space-between"
+          align="center"
+          py={4}
+        >
+          <NavItem href="/">
+            <Heading size="md">Pinki</Heading>
+          </NavItem>
 
-        <Spacer />
+          <IconButton
+            onClick={() => setShow(!show)}
+            display={{ base: "inherit", md: "none" }}
+            variant="ghost"
+            aria-label="Menu Icon"
+            rounded="full"
+            color="primary.50"
+            icon={MenuIcon}
+          />
 
-        <NavDropDown />
-      </Flex>
-    </Container>
+          {/* Content */}
+
+          <Flex
+            display={{ base: show ? "flex" : "none", md: "flex" }}
+            w={{ base: "full", md: "auto" }}
+            flexGrow={{ base: "unset", md: 1 }}
+            flexDir={{ base: "column", md: "row" }}
+            alignItems="start"
+            mt={{ base: 4, md: 0 }}
+          >
+            <NavItem href="/requests">Requests</NavItem>
+            <NavItem href="/favours">Favours</NavItem>
+            <NavItem href="/leaderboard">Leaderboard</NavItem>
+          </Flex>
+
+          <Box
+            display={{ base: show ? "block" : "none", md: "block" }}
+            w={{ base: "full", md: "auto" }}
+          >
+            <NavDropDown />
+          </Box>
+        </Flex>
+      </Container>
+
+      <Divider display={{ base: show ? "block" : "none", md: "none" }} mb={4} />
+    </Box>
   );
 };
 
