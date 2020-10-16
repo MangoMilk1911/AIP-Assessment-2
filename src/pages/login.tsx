@@ -2,34 +2,35 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import {
+  Box,
   Button,
   Container,
   Divider,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
   Stack,
   useToast,
 } from "@chakra-ui/core";
-import { auth, authProviders } from "lib/firebase/client";
-import { ErrorResponse } from "lib/errorHandler";
+import { useAuth } from "lib/auth";
+import { FetcherError } from "utils/fetcher";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { userValidation } from "lib/validator";
+
+interface ILoginForm {
+  email: string;
+  password: string;
+}
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
-
-  async function createProfile() {
-    const accessToken = await auth.currentUser.getIdToken();
-
-    const response = await fetch("/api/profile", {
-      method: "POST",
-      headers: {
-        authorization: "Bearer " + accessToken,
-      },
-    });
-
-    return (await response.json()) as ErrorResponse;
-  }
+  const { signIn, signInWithGoogle } = useAuth();
+  const { register, handleSubmit, errors: formErrors } = useForm<ILoginForm>({
+    resolver: yupResolver(userValidation),
+  });
 
   // ==================== Toast 🍞 ====================
 
@@ -47,15 +48,11 @@ const Login: React.FC = () => {
 
   // ==================== Standard Login ====================
 
-  const emailPassLogin: React.FormEventHandler<HTMLDivElement> = async (e) => {
-    e.preventDefault();
+  const emailPassLogin = async ({ email, password }: ILoginForm) => {
     setLoading(true);
 
-    const email = e.currentTarget["username"].value;
-    const password = e.currentTarget["password"].value;
-
     try {
-      await auth.signInWithEmailAndPassword(email, password);
+      await signIn(email, password);
     } catch (error) {
       errorToast(error.message);
     } finally {
@@ -65,19 +62,12 @@ const Login: React.FC = () => {
 
   // ==================== Social Login ====================
 
-  const providerLogin = async (provider: string) => {
+  const providerLogin = async () => {
     try {
-      const result = await auth.signInWithPopup(authProviders[provider]);
-
-      // Create profile in DB if first time logging in with social
-      if (result.additionalUserInfo.isNewUser) {
-        const { errors } = await createProfile();
-        errors.map((err) =>
-          errorToast(err.message, "Failed to create new profile 😢")
-        );
-      }
+      await signInWithGoogle();
     } catch (error) {
-      errorToast(error.message);
+      const { details } = error as FetcherError;
+      errorToast(details?.errors[0].message || "Something went wrong.");
     }
   };
 
@@ -87,34 +77,39 @@ const Login: React.FC = () => {
         <title>Pinki | Login</title>
       </Head>
 
-      <Link href="/">
-        <a>Home</a>
-      </Link>
-
       <Container maxW="30rem" mt={32}>
-        <Stack as="form" onSubmit={emailPassLogin} spacing={8}>
+        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8}>
           <Heading fontSize="6xl" textAlign="center">
             Login
           </Heading>
-          <FormControl isRequired>
-            <FormLabel htmlFor="username">Email</FormLabel>
-            <Input id="username" variant="filled" />
+          <FormControl isInvalid={!!formErrors.email}>
+            <FormLabel htmlFor="email">Email</FormLabel>
+            <Input id="email" name="email" ref={register} />
+            <FormErrorMessage>{formErrors.email?.message}</FormErrorMessage>
           </FormControl>
-          <FormControl isRequired>
+          <FormControl isInvalid={!!formErrors.password}>
             <FormLabel htmlFor="password">Password</FormLabel>
-            <Input id="password" type="password" />
+            <Input
+              id="password"
+              name="password"
+              ref={register}
+              type="password"
+            />
+            <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
-          <Button type="submit" w="full" size="lg" isLoading={loading}>
+          <Button
+            type="submit"
+            isLoading={loading}
+            w="full"
+            size="lg"
+            colorScheme="primary"
+          >
             Submit
           </Button>
 
           <Divider />
 
-          <Button
-            colorScheme="gray"
-            size="lg"
-            onClick={() => providerLogin("google")}
-          >
+          <Button colorScheme="gray" size="lg" onClick={providerLogin}>
             Login with Google
           </Button>
         </Stack>

@@ -1,15 +1,10 @@
 const baseStyle = {
+  borderRadius: "lg",
   fontFamily: "button",
   fontWeight: "button",
   textTransform: "capitalize",
-  letterSpacing: 2,
-};
-
-const defaultProps = {
-  colorScheme: "primary",
 };
 
 export default {
   baseStyle,
-  defaultProps,
 };
