@@ -21,7 +21,7 @@ const RequestList: React.FC = () => {
         <title> Pinki | Requests</title>
       </Head>
       <Container maxW="4xl" centerContent>
-        <Heading as="h1" size="lg" m="8">
+        <Heading size="xl" m="8">
           Requests
         </Heading>
 
