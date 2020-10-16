@@ -14,6 +14,7 @@ import {
 import { RequestSchema } from "models/Request";
 import React from "react";
 import ReactTimeAgo from "react-time-ago";
+import Plaque from "../contributor/Plaque";
 
 interface ReqModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
             <ModalBody maxW="4xl">
               <Box>
                 <Heading size="md">Contributors</Heading>
-                <Box w="10" h="10" bg="whiteAlpha.200"></Box>
+                <Plaque contributor={owner.displayName}></Plaque>
               </Box>
               <Box>
                 <Heading size="md">Reward Pool</Heading>
