@@ -38,7 +38,7 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
             <ModalBody maxW="4xl">
               <Box>
                 <Heading size="md">Contributors</Heading>
-                <Plaque contributor={owner.displayName}></Plaque>
+                <Plaque contributor={owner}></Plaque>
               </Box>
               <Box>
                 <Heading size="md">Reward Pool</Heading>
