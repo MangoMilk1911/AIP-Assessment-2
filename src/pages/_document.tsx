@@ -11,7 +11,12 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <Head />
+        <Head>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Sora:wght@300;400;500;700;800&display=swap"
+            rel="stylesheet"
+          ></link>
+        </Head>
         <body>
           {/* 👇 Color mode script for SSR */}
           {/* See https://next.chakra-ui.com/docs/features/color-mode#with-nextjs */}

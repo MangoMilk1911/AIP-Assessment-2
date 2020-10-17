@@ -44,6 +44,21 @@ function authContextHook() {
 
   // =================== Auth Actions =====================
 
+  async function signUp(email: string, pass: string, displayName: string) {
+    // Create new fb Auth user
+    const { user } = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+
+    // Add their display name
+    await user.updateProfile({
+      displayName,
+    });
+
+    // Push to main page once complete
+    Router.push("/");
+
+    return user;
+  }
+
   async function signIn(email: string, pass: string) {
     await firebase.auth().signInWithEmailAndPassword(email, pass);
     Router.push("/");
@@ -66,6 +81,7 @@ function authContextHook() {
   return {
     user,
     accessToken,
+    signUp,
     signIn,
     signInWithGoogle,
     signOut,

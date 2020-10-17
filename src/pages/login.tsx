@@ -1,24 +1,38 @@
 import React, { useState } from "react";
 import Head from "next/head";
-import Link from "next/link";
+import NextLink from "next/link";
 import {
   Box,
   Button,
   Container,
   Divider,
+  Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
+  Link,
   Stack,
   useToast,
 } from "@chakra-ui/core";
 import { useAuth } from "lib/auth";
 import { FetcherError } from "utils/fetcher";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { userValidation } from "lib/validator";
+
+interface LoginForm {
+  email: string;
+  password: string;
+}
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
+  const { register, handleSubmit, errors: formErrors } = useForm<LoginForm>({
+    resolver: yupResolver(userValidation),
+  });
 
   // ==================== Toast 🍞 ====================
 
@@ -36,12 +50,8 @@ const Login: React.FC = () => {
 
   // ==================== Standard Login ====================
 
-  const emailPassLogin: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const emailPassLogin = async ({ email, password }: LoginForm) => {
     setLoading(true);
-
-    const email = e.currentTarget["username"].value;
-    const password = e.currentTarget["password"].value;
 
     try {
       await signIn(email, password);
@@ -69,35 +79,47 @@ const Login: React.FC = () => {
         <title>Pinki | Login</title>
       </Head>
 
-      <Link href="/">
-        <a>Home</a>
-      </Link>
-
       <Container maxW="30rem" mt={32}>
-        <Box as="form" onSubmit={emailPassLogin}>
-          <Stack spacing={8}>
-            <Heading fontSize="6xl" textAlign="center">
-              Login
-            </Heading>
-            <FormControl isRequired>
-              <FormLabel htmlFor="username">Email</FormLabel>
-              <Input id="username" variant="filled" />
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel htmlFor="password">Password</FormLabel>
-              <Input id="password" type="password" />
-            </FormControl>
-            <Button type="submit" w="full" size="lg" isLoading={loading}>
+        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8} align="center">
+          <Heading fontSize="6xl" textAlign="center">
+            Login
+          </Heading>
+
+          <FormControl isInvalid={!!formErrors.email}>
+            <FormLabel htmlFor="email">Email</FormLabel>
+            <Input id="email" name="email" ref={register} />
+            <FormErrorMessage>{formErrors.email?.message}</FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!formErrors.password}>
+            <FormLabel htmlFor="password">Password</FormLabel>
+            <Input id="password" name="password" ref={register} type="password" />
+            <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
+          </FormControl>
+
+          <Flex w="full" flexDir="column" align="center">
+            <Button
+              type="submit"
+              isLoading={loading}
+              w="full"
+              size="lg"
+              colorScheme="primary"
+              mb={4}
+            >
               Submit
             </Button>
 
-            <Divider />
+            <Link as="span" color="blue.300">
+              <NextLink href="/register">Register</NextLink>
+            </Link>
+          </Flex>
 
-            <Button colorScheme="gray" size="lg" onClick={providerLogin}>
-              Login with Google
-            </Button>
-          </Stack>
-        </Box>
+          <Divider />
+
+          <Button colorScheme="gray" size="lg" w="full" onClick={providerLogin}>
+            Login with Google
+          </Button>
+        </Stack>
       </Container>
     </>
   );
