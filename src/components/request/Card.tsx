@@ -13,13 +13,15 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const contributors = useMemo(() => {
-    const restCount = contributions.size - 1;
+    const restCount = Object.keys(contributions).length - 1;
 
     let contrString = `From ${owner.displayName}`;
     if (restCount > 0) contrString += ` & ${restCount} other` + (restCount > 1 ? "s" : "");
 
     return contrString;
   }, [contributions.size, owner.displayName]);
+
+  console.log(contributions instanceof Map);
 
   return (
     <>
@@ -38,7 +40,11 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         </Text>
 
         <Text>{contributors}</Text>
-        <Text>{contributions.values()}</Text>
+        {/* <Text>
+          {Array.from(contributions.values()).map((contribution) =>
+            Object.values(contribution.rewards).map((reward) => Object.keys(reward).map((name)=>{name.}))
+          )}
+        </Text> */}
 
         <Spacer />
 
@@ -47,7 +53,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         </Flex>
       </Flex>
 
-      <ReqModal request={request} onOpen={onOpen} onClose={onClose} isOpen={isOpen}></ReqModal>
+      <ReqModal request={request} onOpen={onOpen} onClose={onClose} isOpen={isOpen} />
     </>
   );
 };

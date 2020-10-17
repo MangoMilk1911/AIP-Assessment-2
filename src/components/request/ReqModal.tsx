@@ -24,7 +24,7 @@ interface ReqModalProps {
 }
 
 const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request }) => {
-  const { noOfContributors, owner, title, createdAt, description } = request;
+  const { owner, title, createdAt, description } = request;
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
