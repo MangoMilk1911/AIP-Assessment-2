@@ -1,10 +1,6 @@
-import React, { useState } from "react";
-import Head from "next/head";
-import NextLink from "next/link";
 import {
   Button,
   Container,
-  Divider,
   Flex,
   FormControl,
   FormErrorMessage,
@@ -15,21 +11,25 @@ import {
   Stack,
   useToast,
 } from "@chakra-ui/core";
-import { useAuth } from "lib/auth";
-import { FetcherError } from "utils/fetcher";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useAuth } from "lib/auth";
 import { userValidation } from "lib/validator";
+import Head from "next/head";
+import NextLink from "next/link";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 
-interface LoginForm {
+interface RegisterForm {
+  displayName: string;
   email: string;
   password: string;
+  passwordRepeat: string;
 }
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
-  const { register, handleSubmit, errors: formErrors } = useForm<LoginForm>({
+  const { signUp } = useAuth();
+  const { register, handleSubmit, errors: formErrors } = useForm<RegisterForm>({
     resolver: yupResolver(userValidation),
   });
 
@@ -47,13 +47,13 @@ const Login: React.FC = () => {
     });
   }
 
-  // ==================== Standard Login ====================
+  // ==================== Register ====================
 
-  const emailPassLogin = async ({ email, password }: LoginForm) => {
+  const createUser = async ({ displayName, email, password }: RegisterForm) => {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      await signUp(email, password, displayName);
     } catch (error) {
       errorToast(error.message);
     } finally {
@@ -61,38 +61,35 @@ const Login: React.FC = () => {
     }
   };
 
-  // ==================== Social Login ====================
-
-  const providerLogin = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      const { details } = error as FetcherError;
-      errorToast(details?.errors[0].message || "Something went wrong.");
-    }
-  };
-
   return (
     <>
       <Head>
-        <title>Pinki | Login</title>
+        <title>Pinki | Register</title>
       </Head>
 
       <Container maxW="30rem" mt={32}>
         <Stack
           as="form"
-          onSubmit={handleSubmit(emailPassLogin)}
+          onSubmit={handleSubmit(createUser)}
           spacing={8}
           align="center"
         >
           <Heading fontSize="6xl" textAlign="center">
-            Login
+            Register
           </Heading>
 
           <FormControl isInvalid={!!formErrors.email}>
             <FormLabel htmlFor="email">Email</FormLabel>
             <Input id="email" name="email" ref={register} />
             <FormErrorMessage>{formErrors.email?.message}</FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!formErrors.displayName}>
+            <FormLabel htmlFor="displayName">Display Name</FormLabel>
+            <Input id="displayName" name="displayName" ref={register} />
+            <FormErrorMessage>
+              {formErrors.displayName?.message}
+            </FormErrorMessage>
           </FormControl>
 
           <FormControl isInvalid={!!formErrors.password}>
@@ -106,6 +103,19 @@ const Login: React.FC = () => {
             <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
 
+          <FormControl isInvalid={!!formErrors.passwordRepeat}>
+            <FormLabel htmlFor="passwordRepeat">Password Again</FormLabel>
+            <Input
+              id="passwordRepeat"
+              name="passwordRepeat"
+              ref={register}
+              type="password"
+            />
+            <FormErrorMessage>
+              {formErrors.passwordRepeat?.message}
+            </FormErrorMessage>
+          </FormControl>
+
           <Flex w="full" flexDir="column" align="center">
             <Button
               type="submit"
@@ -113,25 +123,18 @@ const Login: React.FC = () => {
               w="full"
               size="lg"
               colorScheme="primary"
-              mb={4}
+              my={4}
             >
               Submit
             </Button>
 
-            <Link as="span" color="blue.300">
-              <NextLink href="/register">Register</NextLink>
+            <Link as="span" color="red.300">
+              <NextLink href="/">Cancel</NextLink>
             </Link>
           </Flex>
-
-          <Divider />
-
-          <Button colorScheme="gray" size="lg" w="full" onClick={providerLogin}>
-            Login with Google
-          </Button>
         </Stack>
       </Container>
     </>
   );
 };
-
-export default Login;
+export default Register;
