@@ -24,13 +24,13 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   return (
     <>
       <Flex
-        as={Button}
         h={48}
         direction="column"
         bg="whiteAlpha.200"
         borderRadius="lg"
         p="5"
         width="sm"
+        _hover={{ cursor: "pointer" }}
         onClick={onOpen}
       >
         <Text fontSize="xl" fontWeight="bold" isTruncated>
