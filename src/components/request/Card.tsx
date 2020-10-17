@@ -1,4 +1,4 @@
-import { Flex, Spacer, Text, useDisclosure } from "@chakra-ui/core";
+import { Button, Flex, Spacer, Text, useDisclosure } from "@chakra-ui/core";
 import { RequestSchema } from "models/Request";
 import React, { useMemo } from "react";
 import ReactTimeAgo from "react-time-ago";
@@ -24,7 +24,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   return (
     <>
       <Flex
-        as="Button"
+        as={Button}
         h={48}
         direction="column"
         bg="whiteAlpha.200"
@@ -42,7 +42,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         <Spacer />
 
         <Flex>
-          <ReactTimeAgo date={createdAt} locale="en-US" timeStyle="round-minute" />
+          <ReactTimeAgo date={new Date(createdAt)} locale="en-US" timeStyle="round-minute" />
         </Flex>
       </Flex>
 
