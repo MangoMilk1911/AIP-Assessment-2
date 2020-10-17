@@ -1,16 +1,16 @@
-import constate from "constate";
-import { useRouter } from "next/dist/client/router";
-import nookies from "nookies";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { firebase } from "lib/firebase/client";
+import constate from "constate";
+import nookies from "nookies";
 import fetcher from "utils/fetcher";
-import { firebase } from "./firebase/client";
 
 async function createProfile(accessToken: string) {
   return await fetcher("/api/profile", accessToken, { method: "POST" });
 }
 
 function authContextHook() {
-  const [user, setUser] = useState<firebase.User | null>();
+  const [user, setUser] = useState<firebase.User>();
   const [accessToken, setAccessToken] = useState<string>();
 
   const Router = useRouter();
@@ -46,9 +46,7 @@ function authContextHook() {
 
   async function signUp(email: string, pass: string, displayName: string) {
     // Create new fb Auth user
-    const { user } = await firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, pass);
+    const { user } = await firebase.auth().createUserWithEmailAndPassword(email, pass);
 
     // Add their display name
     await user.updateProfile({
@@ -67,13 +65,10 @@ function authContextHook() {
   }
 
   async function signInWithGoogle() {
-    const response = await firebase
-      .auth()
-      .signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    const { additionalUserInfo } = await firebase.auth().signInWithPopup(googleProvider);
 
-    if (response.additionalUserInfo?.isNewUser) {
-      await createProfile(accessToken!); // Access Token is defined at this point
-    }
+    if (additionalUserInfo?.isNewUser) await createProfile(accessToken);
 
     Router.push("/");
   }

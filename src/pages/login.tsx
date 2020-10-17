@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import NextLink from "next/link";
 import {
+  Box,
   Button,
   Container,
   Divider,
@@ -79,12 +80,7 @@ const Login: React.FC = () => {
       </Head>
 
       <Container maxW="30rem" mt={32}>
-        <Stack
-          as="form"
-          onSubmit={handleSubmit(emailPassLogin)}
-          spacing={8}
-          align="center"
-        >
+        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8} align="center">
           <Heading fontSize="6xl" textAlign="center">
             Login
           </Heading>
@@ -97,12 +93,7 @@ const Login: React.FC = () => {
 
           <FormControl isInvalid={!!formErrors.password}>
             <FormLabel htmlFor="password">Password</FormLabel>
-            <Input
-              id="password"
-              name="password"
-              ref={register}
-              type="password"
-            />
+            <Input id="password" name="password" ref={register} type="password" />
             <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
 

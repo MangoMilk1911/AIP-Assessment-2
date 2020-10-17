@@ -1,4 +1,8 @@
-import RewardRow from "@/components/reward/RewardRow";
+import React from "react";
+import { Rewards } from "models/Contribution";
+import { RewardsReducerAction } from "pages/requests/create";
+import { availableRewards } from "utils/availableRewards";
+import RewardRow from "./RewardRow";
 import {
   Button,
   Grid,
@@ -11,18 +15,17 @@ import {
   ModalOverlay,
   useDisclosure,
 } from "@chakra-ui/core";
-import React from "react";
 
 interface RewardModalProps {
-  arrayOfRewards: Array<string>;
-  setArrayOfRewards: React.Dispatch<React.SetStateAction<string[]>>;
+  currentRewards: Rewards;
+  dispatch: React.Dispatch<RewardsReducerAction>;
 }
 
-const RewardModal: React.FC<RewardModalProps> = ({ arrayOfRewards, setArrayOfRewards }) => {
+const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   function addReward(emoji: string) {
-    setArrayOfRewards([...arrayOfRewards, emoji]); //spreading my cheeks
+    dispatch({ type: "set", payload: { reward: emoji, quantity: 1 } });
     onClose();
   }
 
@@ -37,24 +40,16 @@ const RewardModal: React.FC<RewardModalProps> = ({ arrayOfRewards, setArrayOfRew
             <ModalCloseButton />
             <ModalBody>
               <Grid templateColumns="repeat(3,2fr)">
-                <Button onClick={() => addReward("😎")} size="lg">
-                  😎
-                </Button>
-                <Button onClick={() => addReward("😁")} size="lg">
-                  😁
-                </Button>
-                <Button onClick={() => addReward("😂")} size="lg">
-                  😂
-                </Button>
-                <Button onClick={() => addReward("🤣")} size="lg">
-                  🤣
-                </Button>
-                <Button onClick={() => addReward("😃")} size="lg">
-                  😃
-                </Button>
-                <Button onClick={() => addReward("😄")} size="lg">
-                  😄
-                </Button>
+                {Object.keys(availableRewards).map((reward) => (
+                  <Button
+                    onClick={() => addReward(reward)}
+                    size="lg"
+                    key={reward}
+                    disabled={Object.keys(currentRewards).includes(reward)}
+                  >
+                    {reward}
+                  </Button>
+                ))}
               </Grid>
             </ModalBody>
             <ModalFooter>
@@ -68,18 +63,17 @@ const RewardModal: React.FC<RewardModalProps> = ({ arrayOfRewards, setArrayOfRew
 };
 
 interface RewardListProps {
-  arrayOfRewards: Array<string>;
-  setArrayOfRewards: React.Dispatch<React.SetStateAction<string[]>>;
+  rewards: Rewards;
+  dispatch: React.Dispatch<RewardsReducerAction>;
 }
 
-const RewardList: React.FC<RewardListProps> = ({ arrayOfRewards, setArrayOfRewards }) => {
-  const rewardList = arrayOfRewards.map((item) => <RewardRow emoji={item} />);
-  return (
-    <>
-      {rewardList}
-      <RewardModal setArrayOfRewards={setArrayOfRewards} arrayOfRewards={arrayOfRewards} />
-    </>
-  );
-};
+const RewardList: React.FC<RewardListProps> = ({ rewards, dispatch }) => (
+  <div id="reward-list">
+    {Object.keys(rewards).map((emoji) => (
+      <RewardRow reward={emoji} quantity={rewards[emoji]} dispatch={dispatch} key={emoji} />
+    ))}
+    <RewardModal currentRewards={rewards} dispatch={dispatch} />
+  </div>
+);
 
 export default RewardList;
