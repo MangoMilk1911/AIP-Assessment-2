@@ -1,6 +1,6 @@
-import { Button, useColorMode } from "@chakra-ui/core";
-import Link from "next/link";
 import React from "react";
+import Link from "next/link";
+import { Button, useColorMode } from "@chakra-ui/core";
 
 const Home: React.FC = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -22,6 +22,9 @@ const Home: React.FC = () => {
 
       <Link href="/favour/create">
         <a>Create Favour</a>
+      </Link>
+      <Link href="/test">
+        <a>Test</a>
       </Link>
 
       <footer>Footer content here</footer>
