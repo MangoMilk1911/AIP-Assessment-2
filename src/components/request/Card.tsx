@@ -9,17 +9,17 @@ interface RequestCardProps {
 }
 
 const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
-  const { noOfContributors, owner, title, createdAt, description } = request;
+  const { owner, title, createdAt, contributions } = request;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const contributors = useMemo(() => {
-    const restCount = noOfContributors - 1;
+    const restCount = contributions.size - 1;
 
     let contrString = `From ${owner.displayName}`;
     if (restCount > 0) contrString += ` & ${restCount} other` + (restCount > 1 ? "s" : "");
 
     return contrString;
-  }, [noOfContributors, owner.displayName]);
+  }, [contributions.size, owner.displayName]);
 
   return (
     <>
@@ -38,6 +38,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         </Text>
 
         <Text>{contributors}</Text>
+        <Text>{contributions.values()}</Text>
 
         <Spacer />
 
