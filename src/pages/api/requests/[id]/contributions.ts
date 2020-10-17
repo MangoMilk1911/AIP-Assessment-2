@@ -2,7 +2,7 @@ import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
-import { Contribution, Request, User } from "models";
+import { Request, User } from "models";
 import { requestValidation } from "models/Request";
 
 const handler = createHandler();
@@ -20,36 +20,21 @@ handler.put(authMiddleware, async (req, res) => {
   if (request.owner._id === req.userId && !rewards)
     throw new ApiError(400, "Request owner cannot remove their contribution.");
 
-  // Use `findOrCreate` to ensure a contributions bucket always exists
-  const { doc: contrBucket } = await Contribution.findOrCreate({ _id: request._id });
-
   // Find the current user data to embed
   const user = await User.findById(req.userId);
+  const { contributions } = request;
 
   // Update the new rewards if any otherwise remove the contribution
   if (rewards) {
-    contrBucket.contributions.set(user._id, { user: user.asEmbedded(), rewards });
+    contributions.set(user._id, { user: user.asEmbedded(), rewards });
   } else {
-    contrBucket.contributions.delete(user._id);
+    contributions.delete(user._id);
   }
 
-  // Sync contribution count on reqeust doc
-  request.noOfContributors = contrBucket.contributions.size;
+  // Write the updates to the DB
+  await request.save();
 
-  // Create new session for the transaction
-  const session = await Contribution.db.startSession();
-
-  // Write the updates to the DB in a transaction
-  await session.withTransaction(async () => {
-    await contrBucket.save();
-    await request.save();
-  });
-
-  session.endSession();
-  res.status(200).json({
-    ...request.toJSON(),
-    contributions: contrBucket.contributions,
-  });
+  res.status(200).json(request);
 });
 
 export default handler;
