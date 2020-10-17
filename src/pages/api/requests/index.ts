@@ -12,9 +12,17 @@ const validate = createValidator(requestValidation);
 // ==================== Get all Requests ====================
 
 handler.get(async (req, res) => {
-  const allRequests = await Request.find();
-  if (!allRequests) throw new ApiError(503, "Requests couldn't be loaded!");
-  res.json(allRequests);
+  const { page = 1, limit = 2 } = req.query;
+  const requests = await Request.find()
+    .limit(Number(limit))
+    .skip((Number(page) - 1) * Number(limit));
+  const numberOfRequests = await Request.countDocuments();
+  if (!requests) throw new ApiError(503, "Requests couldn't be loaded!");
+  res.json({
+    requests,
+    currentPage: page,
+    totalPages: Math.ceil(numberOfRequests / Number(limit)),
+  });
 });
 
 // ==================== Create Request ====================
