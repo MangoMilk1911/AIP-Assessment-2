@@ -48,10 +48,11 @@ handler.post(authMiddleware, async (req, res) => {
 
 /* ========== READ FAVOUR ========== */
 
-/* Get All Requests */
-// handler.get("/", async (req, res) => {
-//   const allRequests = await Favour.find();
-//   res.json(allRequests);
-// });
+/* Get All User Requests -- Not completed */
+handler.get("/", async (req, res) => {
+  const allUserFavours = await Favour.find();
+  if (!allUserFavours) throw new ApiError(503, "Favours could not be loaded.")
+  res.json(allUserFavours);
+});
 
 export default handler;

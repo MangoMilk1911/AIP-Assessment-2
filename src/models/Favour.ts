@@ -1,8 +1,10 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { isValidObjectId } from "mongoose";
 import * as yup from "yup";
 import { EmbeddedUserSchema } from "./User";
+
+export interface FavourSchema extends Base{}
 
 @modelOptions({ options: { customName: "Favour" } })
 export class FavourSchema extends TimeStamps {

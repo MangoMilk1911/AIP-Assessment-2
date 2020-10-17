@@ -20,7 +20,7 @@ const Home: React.FC = () => {
         </Link>
       </p>
 
-      <Link href="/favour/create.tsx">
+      <Link href="/favour/create">
         <a>Create Favour</a>
       </Link>
 
