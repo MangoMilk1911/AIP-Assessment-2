@@ -9,13 +9,14 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  SimpleGrid,
   Text,
 } from "@chakra-ui/core";
 import { RequestSchema } from "models/Request";
 import React from "react";
 import ReactTimeAgo from "react-time-ago";
 import Plaque from "../contributor/Plaque";
-import RewardList from "../reward/RewardList";
+import RewardCube from "../reward/RewardCube";
 
 interface ReqModalProps {
   isOpen: boolean;
@@ -48,9 +49,7 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
                 <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="50%">
                   {Object.values(contributions).map((contribution) =>
                     Object.keys(contribution.rewards).map((reward) => (
-                      <Text>
-                        {reward} {contribution.rewards[reward]}
-                      </Text>
+                      <RewardCube rewardName={reward} rewardNumber={contribution.rewards[reward]} />
                     ))
                   )}
                 </Box>
