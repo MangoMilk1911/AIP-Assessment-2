@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   Container,
   Flex,
   Heading,
@@ -10,13 +11,14 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/core";
-import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import Card from "components/request/Card";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import { ApiError } from "lib/errorHandler";
 import { RequestSchema } from "models/Request";
 import Head from "next/head";
+import Link from "next/link";
 import React, { useState } from "react";
 import useSWR from "swr";
 
@@ -42,10 +44,17 @@ const RequestList: React.FC = () => {
       <Head>
         <title> Pinki | Requests</title>
       </Head>
+
       <Container maxW="4xl" centerContent>
-        <Heading size="xl" m="8">
-          Requests
-        </Heading>
+        <Flex align="center" w="4xl" px={16}>
+          <Heading size="xl" my="8">
+            Requests
+          </Heading>
+          <Spacer />
+          <Link href="http://localhost:3000/requests/create">
+            <IconButton aria-label="Add" icon={<AddIcon />} />
+          </Link>
+        </Flex>
 
         {!data ? (
           <SimpleGrid columns={2} spacing="5">

@@ -31,7 +31,9 @@ const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) =
 
   return (
     <>
-      <Button onClick={onOpen}>Add</Button>
+      <Button w="100%" onClick={onOpen}>
+        Add Reward
+      </Button>
 
       <Modal onClose={onClose} isOpen={isOpen}>
         <ModalOverlay>

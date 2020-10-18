@@ -15,6 +15,7 @@ import { RequestSchema } from "models/Request";
 import React from "react";
 import ReactTimeAgo from "react-time-ago";
 import Plaque from "../contributor/Plaque";
+import RewardList from "../reward/RewardList";
 
 interface ReqModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ interface ReqModalProps {
 }
 
 const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request }) => {
-  const { owner, title, createdAt, description } = request;
+  const { owner, title, createdAt, description, contributions } = request;
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -38,15 +39,27 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
             <ModalBody maxW="4xl">
               <Box>
                 <Heading size="md">Contributors</Heading>
-                <Plaque contributor={owner}></Plaque>
+                <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="50%">
+                  <Plaque contributor={owner}></Plaque>
+                </Box>
               </Box>
               <Box>
                 <Heading size="md">Reward Pool</Heading>
-                <Box w="10" h="10" bg="whiteAlpha.200"></Box>
+                <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="50%">
+                  {Object.values(contributions).map((contribution) =>
+                    Object.keys(contribution.rewards).map((reward) => (
+                      <Text>
+                        {reward} {contribution.rewards[reward]}
+                      </Text>
+                    ))
+                  )}
+                </Box>
               </Box>
               <Box>
                 <Heading size="md">Description</Heading>
-                <Text>{description}</Text>
+                <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="70%">
+                  <Text>{description}</Text>
+                </Box>
               </Box>
               <Button>Upload Evidence</Button>
             </ModalBody>

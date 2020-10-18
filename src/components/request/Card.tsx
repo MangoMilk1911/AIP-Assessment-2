@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Spacer, Text, useDisclosure } from "@chakra-ui/core";
+import { Box, Button, Flex, Spacer, Stack, Text, useDisclosure } from "@chakra-ui/core";
 import { RequestSchema } from "models/Request";
 import React, { useMemo } from "react";
 import ReactTimeAgo from "react-time-ago";
@@ -21,8 +21,6 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
     return contrString;
   }, [contributions.size, owner.displayName]);
 
-  console.log(contributions instanceof Map);
-
   return (
     <>
       <Flex
@@ -41,9 +39,11 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
 
         <Text>{contributors}</Text>
 
-        {Array.from(new Map(Object.entries(contributions)).values()).map((contribution) =>
-          Object.keys(contribution.rewards).map((reward) => <Text>{reward}</Text>)
-        )}
+        <Stack direction="row" spacing={5} my={4}>
+          {Object.values(contributions).map((contribution) =>
+            Object.keys(contribution.rewards).map((reward) => <Text>{reward}</Text>)
+          )}
+        </Stack>
 
         <Spacer />
 
