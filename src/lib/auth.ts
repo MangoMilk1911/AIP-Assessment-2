@@ -55,6 +55,10 @@ function authContextHook() {
       displayName,
     });
 
+    // Create profile in database
+    const accessToken = await user.getIdToken();
+    await createProfile(accessToken);
+
     // Push to main page once complete
     Router.push("/");
 
@@ -72,7 +76,8 @@ function authContextHook() {
       .signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
     if (response.additionalUserInfo?.isNewUser) {
-      await createProfile(accessToken!); // Access Token is defined at this point
+      const accessToken = await response.user.getIdToken();
+      await createProfile(accessToken);
     }
 
     Router.push("/");
