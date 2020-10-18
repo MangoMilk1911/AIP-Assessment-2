@@ -1,6 +1,6 @@
 import React from "react";
 import { RewardsReducerAction } from "pages/requests/create";
-import { availableRewards } from "utils/availableRewards";
+import { availableRewards } from "lib/availableRewards";
 import { CloseButton, Grid, Heading, IconButton, Input } from "@chakra-ui/core";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 
