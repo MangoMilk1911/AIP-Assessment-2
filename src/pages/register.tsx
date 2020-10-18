@@ -68,12 +68,7 @@ const Register: React.FC = () => {
       </Head>
 
       <Container maxW="30rem" mt={32}>
-        <Stack
-          as="form"
-          onSubmit={handleSubmit(createUser)}
-          spacing={8}
-          align="center"
-        >
+        <Stack as="form" onSubmit={handleSubmit(createUser)} spacing={8} align="center">
           <Heading fontSize="6xl" textAlign="center">
             Register
           </Heading>
@@ -87,33 +82,19 @@ const Register: React.FC = () => {
           <FormControl isInvalid={!!formErrors.displayName}>
             <FormLabel htmlFor="displayName">Display Name</FormLabel>
             <Input id="displayName" name="displayName" ref={register} />
-            <FormErrorMessage>
-              {formErrors.displayName?.message}
-            </FormErrorMessage>
+            <FormErrorMessage>{formErrors.displayName?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl isInvalid={!!formErrors.password}>
             <FormLabel htmlFor="password">Password</FormLabel>
-            <Input
-              id="password"
-              name="password"
-              ref={register}
-              type="password"
-            />
+            <Input id="password" name="password" ref={register} type="password" />
             <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl isInvalid={!!formErrors.passwordRepeat}>
             <FormLabel htmlFor="passwordRepeat">Password Again</FormLabel>
-            <Input
-              id="passwordRepeat"
-              name="passwordRepeat"
-              ref={register}
-              type="password"
-            />
-            <FormErrorMessage>
-              {formErrors.passwordRepeat?.message}
-            </FormErrorMessage>
+            <Input id="passwordRepeat" name="passwordRepeat" ref={register} type="password" />
+            <FormErrorMessage>{formErrors.passwordRepeat?.message}</FormErrorMessage>
           </FormControl>
 
           <Flex w="full" flexDir="column" align="center">

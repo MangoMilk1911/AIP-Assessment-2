@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useAuth } from "lib/auth";
 import { UserSchema } from "models/User";
 import useSWR from "swr";
-import { FetcherError } from "utils/fetcher";
+import { FetcherError } from "lib/fetcher";
 import { Button } from "@chakra-ui/core";
 
 const Test: React.FC = () => {

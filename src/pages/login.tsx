@@ -17,7 +17,7 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import { useAuth } from "lib/auth";
-import { FetcherError } from "utils/fetcher";
+import { FetcherError } from "lib/fetcher";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { userValidation } from "lib/validator";

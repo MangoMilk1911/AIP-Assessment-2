@@ -101,13 +101,7 @@ const Header: React.FC = () => {
   return (
     <Box as="header">
       <Container maxW="lg">
-        <Flex
-          as="nav"
-          wrap="wrap"
-          justify="space-between"
-          align="center"
-          py={4}
-        >
+        <Flex as="nav" wrap="wrap" justify="space-between" align="center" py={4}>
           <NavItem href="/">
             <Heading size="md">Pinki</Heading>
           </NavItem>

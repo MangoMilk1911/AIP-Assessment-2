@@ -23,24 +23,24 @@ interface FavModalProps {
   favour: FavourSchema;
 }
 
-const FavModal: React.FC<FavModalProps> = ({ isOpen, onOpen, onClose, favour}) => {
-  const {creator, debtor, recipient, rewards, createdAt, evidence, updatedAt} = favour;
-  let favourMessage = `${debtor.displayName} promised ${recipient.displayName}`
+const FavModal: React.FC<FavModalProps> = ({ isOpen, onOpen, onClose, favour }) => {
+  const { creator, debtor, recipient, rewards, createdAt, evidence, updatedAt } = favour;
+  let favourMessage = `${debtor.displayName} promised ${recipient.displayName}`;
 
   return (
     <>
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay>
-        <ModalContent minW="4x1" p="5">
-          <ModalHeader>
-            <Heading size="x1">favourMessage</Heading>
-            <ReactTimeAgo date={createdAt} locale="en-US" timestyle="round-minute" />
-          </ModalHeader>
-        </ModalContent>
-      </ModalOverlay>
-    </Modal>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay>
+          <ModalContent minW="4x1" p="5">
+            <ModalHeader>
+              <Heading size="x1">favourMessage</Heading>
+              <ReactTimeAgo date={createdAt} locale="en-US" timestyle="round-minute" />
+            </ModalHeader>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </>
-  )
-}
+  );
+};
 
 export default FavModal;

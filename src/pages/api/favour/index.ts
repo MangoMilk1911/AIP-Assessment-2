@@ -51,7 +51,7 @@ handler.post(authMiddleware, async (req, res) => {
 /* Get All User Requests -- Not completed */
 handler.get("/", async (req, res) => {
   const allUserFavours = await Favour.find();
-  if (!allUserFavours) throw new ApiError(503, "Favours could not be loaded.")
+  if (!allUserFavours) throw new ApiError(503, "Favours could not be loaded.");
   res.json(allUserFavours);
 });
 

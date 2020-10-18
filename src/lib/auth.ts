@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { firebase } from "lib/firebase/client";
 import constate from "constate";
 import nookies from "nookies";
-import fetcher from "utils/fetcher";
+import fetcher from "lib/fetcher";
 
 async function createProfile(accessToken: string) {
   return await fetcher("/api/profile", accessToken, { method: "POST" });
@@ -52,6 +52,10 @@ function authContextHook() {
     await user.updateProfile({
       displayName,
     });
+
+    // Create profile in database
+    const accessToken = await user.getIdToken();
+    await createProfile(accessToken);
 
     // Push to main page once complete
     Router.push("/");

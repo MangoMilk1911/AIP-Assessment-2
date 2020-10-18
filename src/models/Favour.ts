@@ -4,7 +4,7 @@ import { isValidObjectId } from "mongoose";
 import * as yup from "yup";
 import { EmbeddedUserSchema } from "./User";
 
-export interface FavourSchema extends Base{}
+export interface FavourSchema extends Base {}
 
 @modelOptions({ options: { customName: "Favour" } })
 export class FavourSchema extends TimeStamps {
@@ -31,10 +31,7 @@ export default getModelForClass(FavourSchema);
 
 // ========== Validation ========== //
 
-const isMongoId = yup
-  .string()
-  .required()
-  .matches(new RegExp("^[0-9a-fA-F]{24}$"));
+const isMongoId = yup.string().required().matches(new RegExp("^[0-9a-fA-F]{24}$"));
 
 export const checkIdValidation = yup.object({
   id: isMongoId,
