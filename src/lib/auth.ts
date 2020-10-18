@@ -46,9 +46,7 @@ function authContextHook() {
 
   async function signUp(email: string, pass: string, displayName: string) {
     // Create new fb Auth user
-    const { user } = await firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, pass);
+    const { user } = await firebase.auth().createUserWithEmailAndPassword(email, pass);
 
     // Add their display name
     await user.updateProfile({
@@ -71,14 +69,10 @@ function authContextHook() {
   }
 
   async function signInWithGoogle() {
-    const response = await firebase
-      .auth()
-      .signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    const { additionalUserInfo } = await firebase.auth().signInWithPopup(googleProvider);
 
-    if (response.additionalUserInfo?.isNewUser) {
-      const accessToken = await response.user.getIdToken();
-      await createProfile(accessToken);
-    }
+    if (additionalUserInfo?.isNewUser) await createProfile(accessToken);
 
     Router.push("/");
   }

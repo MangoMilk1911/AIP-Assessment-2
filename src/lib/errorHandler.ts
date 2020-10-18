@@ -53,10 +53,12 @@ export interface ErrorResponse {
  * Custom error handling middleware to catch expected errors or
  * return a default 500 error message if unknown
  */
-const errorHandler: ErrorHandler<
-  NextApiRequest | any,
-  NextApiResponse | any
-> = (err, req, res, next) => {
+const errorHandler: ErrorHandler<NextApiRequest | any, NextApiResponse | any> = (
+  err,
+  req,
+  res,
+  next
+) => {
   /**
    * Expected Api Errors
    */

@@ -6,10 +6,11 @@ export type AuthenticatedRequest = NextApiRequest & {
   userId: string;
 };
 
-const authMiddleware: RequestHandler<
-  AuthenticatedRequest,
-  NextApiResponse
-> = async (req, res, next) => {
+const authMiddleware: RequestHandler<AuthenticatedRequest, NextApiResponse> = async (
+  req,
+  res,
+  next
+) => {
   const accessToken = req.headers.authorization?.split(" ")[1];
 
   if (!accessToken) {

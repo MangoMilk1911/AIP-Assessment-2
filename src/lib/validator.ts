@@ -13,19 +13,12 @@ declare module "yup" {
 }
 
 yup.addMethod(yup.string, "isMongoID", function (this: yup.StringSchema) {
-  return this.strict(true).test(
-    "isMongoID",
-    "${path} is not a valid Object ID",
-    function (val) {
-      return isValidObjectId(val);
-    }
-  );
+  return this.strict(true).test("isMongoID", "${path} is not a valid Object ID", function (val) {
+    return isValidObjectId(val);
+  });
 });
 
-yup.addMethod(yup.string, "requiredWhen", function (
-  this: yup.StringSchema,
-  context: string
-) {
+yup.addMethod(yup.string, "requiredWhen", function (this: yup.StringSchema, context: string) {
   return this.when(context, {
     is: true,
     then: this.required(),
@@ -33,10 +26,7 @@ yup.addMethod(yup.string, "requiredWhen", function (
   });
 });
 
-yup.addMethod(yup.string, "optionalWhen", function (
-  this: yup.StringSchema,
-  context: string
-) {
+yup.addMethod(yup.string, "optionalWhen", function (this: yup.StringSchema, context: string) {
   return this.when(context, {
     is: true,
     then: this.optional(),
