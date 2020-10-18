@@ -15,11 +15,11 @@ import {
   Stack,
   useToast,
 } from "@chakra-ui/core";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuth } from "lib/auth";
 import { FetcherError } from "lib/fetcher";
+import { userValidation } from "lib/validator/schemas";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { userValidation } from "lib/validator";
 
 interface LoginForm {
   email: string;

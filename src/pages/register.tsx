@@ -1,3 +1,6 @@
+import React, { useState } from "react";
+import Head from "next/head";
+import NextLink from "next/link";
 import {
   Button,
   Container,
@@ -13,10 +16,7 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuth } from "lib/auth";
-import { userValidation } from "lib/validator";
-import Head from "next/head";
-import NextLink from "next/link";
-import React, { useState } from "react";
+import { userValidation } from "lib/validator/schemas";
 import { useForm } from "react-hook-form";
 
 interface RegisterForm {
