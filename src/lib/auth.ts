@@ -2,7 +2,7 @@ import constate from "constate";
 import { useRouter } from "next/dist/client/router";
 import nookies from "nookies";
 import { useEffect, useState } from "react";
-import fetcher from "utils/fetcher";
+import fetcher from "lib/fetcher";
 import { firebase } from "./firebase/client";
 
 async function createProfile(accessToken: string) {

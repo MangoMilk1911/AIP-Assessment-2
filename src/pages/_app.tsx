@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import { AuthProvider } from "lib/auth";
 import { SWRConfig } from "swr";
-import fetcher from "utils/fetcher";
+import fetcher from "lib/fetcher";
 import { ChakraProvider } from "@chakra-ui/core";
 import theme from "../theme";
 import type { AppProps } from "next/app";
