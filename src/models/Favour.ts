@@ -27,7 +27,7 @@ export class FavourSchema extends TimeStamps {
   public evidence?: Buffer;
 }
 
-export default getModelForClass(FavourSchema);
+const Favour = getModelForClass(FavourSchema);
 
 // ========== Validation ========== //
 
@@ -65,3 +65,5 @@ export const deleteFavourValidation = yup.object({
   id: isMongoId,
   favour: yup.object().required(),
 });
+
+export default Favour;
