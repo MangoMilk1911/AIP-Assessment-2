@@ -1,4 +1,13 @@
-import { Container, Heading, SimpleGrid, Skeleton, Stack, Wrap } from "@chakra-ui/core";
+import {
+  Container,
+  Heading,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Wrap,
+  Button,
+  Link,
+} from "@chakra-ui/core";
 import Card from "components/favour/Card";
 import { ApiError } from "lib/errorHandler";
 import { FavourSchema } from "models/Favour";
@@ -7,12 +16,17 @@ import React from "react";
 import useSWR from "swr";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
-import { request } from "http";
+import { useAuth } from "lib/auth";
 
 TimeAgo.addLocale(en);
 
-const RequestList: React.FC = () => {
-  const { data: allFavours } = useSWR<FavourSchema[], ApiError>("http://localhost:3000/api/favour");
+const FavourList: React.FC = () => {
+  const { user, accessToken } = useAuth();
+  const { data: allUserFavours } = useSWR<FavourSchema[], ApiError>(
+    accessToken ? ["/api/favour", accessToken] : null
+  );
+
+  console.log(allUserFavours); // Delete when finish :)
 
   return (
     <>
@@ -24,7 +38,13 @@ const RequestList: React.FC = () => {
           Favours
         </Heading>
 
-        {!allFavours ? (
+        <Button type="submit" w="4x1" size="lg" colorScheme="primary" mb={4}>
+          <Link href="favours/create">
+            <a>Create</a>
+          </Link>
+        </Button>
+
+        {!allUserFavours ? (
           <SimpleGrid columns={2} spacing="5">
             <Skeleton width="sm" height="40" />
             <Skeleton width="sm" height="40" />
@@ -37,7 +57,7 @@ const RequestList: React.FC = () => {
           </SimpleGrid>
         ) : (
           <SimpleGrid columns={2} spacing="5">
-            {allFavours.map((favour: FavourSchema) => (
+            {allUserFavours.map((favour: FavourSchema) => (
               <Card key={favour._id.toString()} favour={favour}></Card>
             ))}
           </SimpleGrid>
@@ -47,4 +67,4 @@ const RequestList: React.FC = () => {
   );
 };
 
-export default RequestList;
+export default FavourList;
