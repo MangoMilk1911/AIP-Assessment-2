@@ -1,10 +1,7 @@
-import React, { useReducer } from "react";
-import Head from "next/head";
-import Link from "next/link";
 import RewardList from "@/components/reward/RewardList";
-import { Rewards } from "models/Contribution";
 import {
   Box,
+  Button,
   Container,
   FormControl,
   FormLabel,
@@ -13,6 +10,13 @@ import {
   Input,
   Textarea,
 } from "@chakra-ui/core";
+import { Rewards } from "models/Request";
+import Head from "next/head";
+import React, { useReducer } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { requestValidation } from "models/Request";
+import createValidator from "lib/validator";
 
 export type RewardsReducerState = {
   rewards: Rewards;
@@ -38,45 +42,76 @@ function rewardsReducer(state: RewardsReducerState, action: RewardsReducerAction
   }
 }
 
+interface RequestFormData {
+  title: string;
+  description: string;
+  rewards: Rewards;
+}
+
 const CreateRequest: React.FC = () => {
   const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
+  const { register, handleSubmit } = useForm<RequestFormData>();
 
+  const createRequest = ({ title, description, rewards }: RequestFormData) => {
+    console.log(rewards);
+  };
   return (
     <>
       <Head>
         <title>Pinki | Create Request</title>
       </Head>
-      <Link href="/">
-        <a>Home</a>
-      </Link>
 
-      <Container maxW="40rem">
+      <Container maxW="4xl">
         <Heading as="h1" size="lg" my={5}>
           Create Request
         </Heading>
-        <Box>
+
+        <Box as="form" onSubmit={handleSubmit(createRequest)}>
           <FormControl>
-            <FormLabel as="h2" size="md" my={5}>
+            <FormLabel htmlFor="title" as="h2" size="md" my={5}>
               Title
             </FormLabel>
-            <Input placeholder="PURP" />
+            <Input type="text" name="title" id="name" placeholder="What to do" ref={register()} />
           </FormControl>
 
           <FormControl>
-            <FormLabel as="h2" size="md" my={5}>
+            <FormLabel htmlFor="description" as="h2" size="md" my={5}>
               Description
             </FormLabel>
-            <Textarea placeholder="IM SO TURNT" />
+            <Textarea
+              name="description"
+              id="description"
+              placeholder="Add Additional Information"
+              ref={register()}
+            />
           </FormControl>
 
           <FormControl>
-            <FormLabel as="h2" size="md" my={5}>
+            <FormLabel htmlFor="rewards" as="h2" size="md" my={5}>
               Rewards
             </FormLabel>
+            <Box>
+              {Object.keys(state.rewards).map((reward) => (
+                <Box>
+                  {reward} {state.rewards[reward]}
+                </Box>
+              ))}
+            </Box>
             <Grid>
               <RewardList rewards={state.rewards} dispatch={dispatch} />
             </Grid>
+
+            <Input
+              type="text"
+              name="rewards"
+              id="rewards"
+              value={JSON.stringify(state.rewards)}
+              ref={register()}
+            ></Input>
           </FormControl>
+          <Box>
+            <Button type="submit">Create</Button>
+          </Box>
         </Box>
       </Container>
     </>

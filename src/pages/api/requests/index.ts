@@ -12,7 +12,7 @@ const validate = createValidator(requestValidation);
 // ==================== Get all Requests ====================
 
 handler.get(async (req, res) => {
-  const { page = 1, limit = 2 } = req.query;
+  const { page = 1, limit = 4 } = req.query;
   const requests = await Request.find()
     .limit(Number(limit))
     .skip((Number(page) - 1) * Number(limit));
