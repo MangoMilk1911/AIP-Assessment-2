@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import Head from "next/head";
 import NextLink from "next/link";
 import {
   Button,
   Container,
   Divider,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -27,10 +26,10 @@ interface LoginForm {
 }
 
 const Login: React.FC = () => {
-  const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
-  const { register, handleSubmit, errors: formErrors } = useForm<LoginForm>({
+  const { register, handleSubmit, errors: formErrors, formState } = useForm<LoginForm>({
     resolver: yupResolver(userValidation),
+    context: { form: true },
   });
 
   // ==================== Toast 🍞 ====================
@@ -49,28 +48,24 @@ const Login: React.FC = () => {
 
   // ==================== Standard Login ====================
 
-  const emailPassLogin = async ({ email, password }: LoginForm) => {
-    setLoading(true);
-
+  async function emailPassLogin({ email, password }: LoginForm) {
     try {
       await signIn(email, password);
     } catch (error) {
       errorToast(error.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  }
 
   // ==================== Social Login ====================
 
-  const providerLogin = async () => {
+  async function providerLogin() {
     try {
       await signInWithGoogle();
     } catch (error) {
       const { details } = error as FetcherError;
       errorToast(details?.errors[0].message || "Something went wrong.");
     }
-  };
+  }
 
   return (
     <>
@@ -79,11 +74,11 @@ const Login: React.FC = () => {
       </Head>
 
       <Container maxW="30rem" mt={32}>
-        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8} align="center">
-          <Heading fontSize="6xl" textAlign="center">
-            Login
-          </Heading>
+        <Heading fontSize="6xl" textAlign="center" mb={8}>
+          Login
+        </Heading>
 
+        <Stack as="form" onSubmit={handleSubmit(emailPassLogin)} spacing={8}>
           <FormControl isInvalid={!!formErrors.email}>
             <FormLabel htmlFor="email">Email</FormLabel>
             <Input id="email" name="email" ref={register} />
@@ -96,14 +91,13 @@ const Login: React.FC = () => {
             <FormErrorMessage>{formErrors.password?.message}</FormErrorMessage>
           </FormControl>
 
-          <Flex w="full" flexDir="column" align="center">
+          <Stack align="center" spacing={4}>
             <Button
               type="submit"
-              isLoading={loading}
+              isLoading={formState.isSubmitting}
               w="full"
               size="lg"
               colorScheme="primary"
-              mb={4}
             >
               Submit
             </Button>
@@ -111,11 +105,11 @@ const Login: React.FC = () => {
             <Link as="span" color="blue.300">
               <NextLink href="/register">Register</NextLink>
             </Link>
-          </Flex>
+          </Stack>
 
           <Divider />
 
-          <Button colorScheme="gray" size="lg" w="full" onClick={providerLogin}>
+          <Button colorScheme="gray" size="lg" onClick={providerLogin}>
             Login with Google
           </Button>
         </Stack>
