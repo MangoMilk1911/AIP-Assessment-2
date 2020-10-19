@@ -1,4 +1,9 @@
+import React, { useReducer } from "react";
+import { string } from "yup";
+import Head from "next/head";
+import Link from "next/link";
 import RewardList from "@/components/reward/RewardList";
+// import { Rewards } from "models/Contribution";
 import {
   Box,
   Container,
@@ -8,22 +13,40 @@ import {
   Heading,
   Input,
   Textarea,
+  Button,
 } from "@chakra-ui/core";
-import Head from "next/head";
-import Link from "next/link";
-import React from "react";
-import { useState } from "react";
+
+export type RewardsReducerState = {
+  rewards: Map<string, number>;
+};
+
+export type RewardsReducerAction =
+  | { type: "set"; payload: { reward: string; quantity: number } }
+  | { type: "remove"; reward: string }
+  | { type: "clear" };
+
+function rewardsReducer(state: RewardsReducerState, action: RewardsReducerAction) {
+  switch (action.type) {
+    case "set":
+      state.rewards[action.payload.reward] = action.payload.quantity;
+      return { rewards: state.rewards };
+    case "remove":
+      delete state.rewards[action.reward];
+      return { rewards: state.rewards };
+    case "clear":
+      return { rewards: {} };
+    default:
+      throw new Error("No action provided for rewards reducer");
+  }
+}
 
 const CreateFavour: React.FC = () => {
-  const [arrayOfRewards, setArrayOfRewards] = useState<string[]>([]);
+  const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
   return (
     <>
       <Head>
         <title>Pinki | Create Favour</title>
       </Head>
-      <Link href="/">
-        <a>Home</a>
-      </Link>
 
       <Container maxW="40rem">
         <Heading as="h1" size="lg" my={5}>
@@ -49,8 +72,12 @@ const CreateFavour: React.FC = () => {
               Rewards
             </FormLabel>
             <Grid>
-              <RewardList setArrayOfRewards={setArrayOfRewards} arrayOfRewards={arrayOfRewards} />
+              <RewardList rewards={state.rewards} dispatch={dispatch} />{" "}
             </Grid>
+
+            <Button type="submit" w="full" size="lg" colorScheme="primary" mb={4} onClick={}>
+              <a>Create Favour</a>
+            </Button>
           </FormControl>
         </Box>
       </Container>
