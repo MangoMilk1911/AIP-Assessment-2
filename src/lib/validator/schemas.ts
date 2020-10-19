@@ -25,12 +25,12 @@ export const userValidation = yup.object({
   photoURL: yup.string().url().optional().trim(),
 });
 
-// ==================== Validation ====================
+// ==================== Request ====================
 
 export const requestValidation = yup.object({
-  id: yup.string().isMongoID().trim().when("$create", {
-    is: true,
-    then: yup.string().optional(),
+  id: yup.string().when("$create", {
+    is: false,
+    then: yup.string().required().trim().isMongoID(),
   }),
   title: yup.string().strict(true).trim().min(10).max(90).when("$create", {
     is: true,
@@ -43,6 +43,5 @@ export const requestValidation = yup.object({
   rewards: yup.object().isRewards().when("$create", {
     is: true,
     then: yup.object().required(),
-    otherwise: yup.object().optional(),
   }),
 });
