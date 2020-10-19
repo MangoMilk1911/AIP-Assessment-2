@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/dist/client/router";
-import { firebase } from "./firebase/client";
+import { useRouter } from "next/router";
+import { firebase } from "lib/firebase/client";
 import constate from "constate";
 import nookies from "nookies";
 import fetcher from "lib/fetcher";
