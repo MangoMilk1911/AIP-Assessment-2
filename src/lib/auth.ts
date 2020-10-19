@@ -1,16 +1,16 @@
-import constate from "constate";
-import { useRouter } from "next/dist/client/router";
-import nookies from "nookies";
 import { useEffect, useState } from "react";
-import fetcher from "lib/fetcher";
+import { useRouter } from "next/dist/client/router";
 import { firebase } from "./firebase/client";
+import constate from "constate";
+import nookies from "nookies";
+import fetcher from "lib/fetcher";
 
 async function createProfile(accessToken: string) {
   return await fetcher("/api/profile", accessToken, { method: "POST" });
 }
 
 function authContextHook() {
-  const [user, setUser] = useState<firebase.User | null>();
+  const [user, setUser] = useState<firebase.User>();
   const [accessToken, setAccessToken] = useState<string>();
 
   const Router = useRouter();
