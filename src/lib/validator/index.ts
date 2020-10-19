@@ -1,12 +1,17 @@
 import * as yup from "yup";
 import { isValidObjectId } from "mongoose";
 import { NextApiRequest } from "next";
+import { Rewards } from "models/Request";
 
 // =================== Assign custom validators =====================
 
 declare module "yup" {
   interface Schema<T> {
     formLabel(label: string): this;
+  }
+
+  interface ObjectSchema<T> {
+    isRewards(): yup.ObjectSchema<Rewards>;
   }
 
   interface StringSchema<T> {
@@ -17,6 +22,16 @@ declare module "yup" {
 yup.addMethod(yup.mixed, "formLabel", function (this: yup.Schema<any>, label: string) {
   return this.when("$form", (form: boolean, schema: yup.Schema<any>) => {
     return form ? schema.label(label) : schema;
+  });
+});
+
+yup.addMethod(yup.object, "isRewards", function (this: yup.ObjectSchema) {
+  return this.strict(true).test("isReward", "${path} must be a map of numbers", (val) => {
+    if (!val) return true; // Allow for omitted rewards
+
+    const quantities = Object.values(val);
+    if (quantities.length === 0) return false;
+    return !quantities.some((quantity) => typeof quantity !== "number");
   });
 });
 

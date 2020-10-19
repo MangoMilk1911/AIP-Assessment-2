@@ -4,19 +4,19 @@ import {
   Button,
   Container,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Grid,
   Heading,
   Input,
   Textarea,
 } from "@chakra-ui/core";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import Head from "next/head";
 import React, { useReducer } from "react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { requestValidation } from "models/Request";
-import createValidator from "lib/validator";
 
 export type RewardsReducerState = {
   rewards: Rewards;
@@ -50,7 +50,10 @@ interface RequestFormData {
 
 const CreateRequest: React.FC = () => {
   const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
-  const { register, handleSubmit } = useForm<RequestFormData>();
+  const { register, handleSubmit, errors: formErrors } = useForm<RequestFormData>({
+    resolver: yupResolver(requestValidation),
+    context: { form: true, create: true },
+  });
 
   const createRequest = ({ title, description, rewards }: RequestFormData) => {
     console.log(rewards);
@@ -67,14 +70,15 @@ const CreateRequest: React.FC = () => {
         </Heading>
 
         <Box as="form" onSubmit={handleSubmit(createRequest)}>
-          <FormControl>
+          <FormControl isInvalid={!!formErrors.title}>
             <FormLabel htmlFor="title" as="h2" size="md" my={5}>
               Title
             </FormLabel>
             <Input type="text" name="title" id="name" placeholder="What to do" ref={register()} />
+            <FormErrorMessage>{formErrors.title?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl>
+          <FormControl isInvalid={!!formErrors.description}>
             <FormLabel htmlFor="description" as="h2" size="md" my={5}>
               Description
             </FormLabel>
@@ -84,9 +88,10 @@ const CreateRequest: React.FC = () => {
               placeholder="Add Additional Information"
               ref={register()}
             />
+            <FormErrorMessage>{formErrors.description?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl>
+          <FormControl isInvalid={!!formErrors.rewards}>
             <FormLabel htmlFor="rewards" as="h2" size="md" my={5}>
               Rewards
             </FormLabel>
@@ -102,13 +107,16 @@ const CreateRequest: React.FC = () => {
             </Grid>
 
             <Input
+              readOnly
               type="text"
               name="rewards"
               id="rewards"
               value={JSON.stringify(state.rewards)}
               ref={register()}
             ></Input>
+            <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
           </FormControl>
+
           <Box>
             <Button type="submit">Create</Button>
           </Box>
