@@ -31,6 +31,7 @@ const Register: React.FC = () => {
   const { signUp } = useAuth();
   const { register, handleSubmit, errors: formErrors } = useForm<RegisterForm>({
     resolver: yupResolver(userValidation),
+    context: { form: true, create: true },
   });
 
   // ==================== Toast 🍞 ====================
@@ -92,7 +93,7 @@ const Register: React.FC = () => {
           </FormControl>
 
           <FormControl isInvalid={!!formErrors.passwordRepeat}>
-            <FormLabel htmlFor="passwordRepeat">Password Again</FormLabel>
+            <FormLabel htmlFor="passwordRepeat">Password Repeat</FormLabel>
             <Input id="passwordRepeat" name="passwordRepeat" ref={register} type="password" />
             <FormErrorMessage>{formErrors.passwordRepeat?.message}</FormErrorMessage>
           </FormControl>
