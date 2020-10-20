@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { NextApiRequest, NextApiResponse } from "next";
 import { RequestHandler } from "next-connect";
-import logger from "utils/logger";
 
 const initDatabase = () =>
   mongoose

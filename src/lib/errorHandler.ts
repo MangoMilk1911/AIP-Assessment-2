@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ValidationError } from "yup";
-import logger from "utils/logger";
 import type { ErrorHandler } from "next-connect";
 
 // =================== Custom Errors =====================
