@@ -50,7 +50,7 @@ interface RequestFormData {
 
 const CreateRequest: React.FC = () => {
   const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
-  const { register, handleSubmit, errors: formErrors } = useForm<RequestFormData>({
+  const { register, handleSubmit, errors: formErrors, formState } = useForm<RequestFormData>({
     resolver: yupResolver(requestValidation),
     context: { form: true, create: true },
   });
@@ -89,10 +89,6 @@ const CreateRequest: React.FC = () => {
 
           <FormControl isInvalid={!!formErrors.rewards}>
             <FormLabel htmlFor="rewards">Rewards</FormLabel>
-            <Grid>
-              <RewardList rewards={state.rewards} dispatch={dispatch} />
-            </Grid>
-
             <Input
               hidden
               name="rewards"
@@ -102,8 +98,13 @@ const CreateRequest: React.FC = () => {
             ></Input>
             <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
           </FormControl>
+          <Grid>
+            <RewardList rewards={state.rewards} dispatch={dispatch} />
+          </Grid>
 
-          <Button type="submit">Create</Button>
+          <Button type="submit" isLoading={formState.isSubmitting}>
+            Create
+          </Button>
         </Stack>
       </Container>
     </>
