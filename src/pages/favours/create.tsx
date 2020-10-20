@@ -3,6 +3,7 @@ import { string } from "yup";
 import Head from "next/head";
 import Link from "next/link";
 import RewardList from "@/components/reward/RewardList";
+import fetcher from "lib/fetcher";
 // import { Rewards } from "models/Contribution";
 import {
   Box,
@@ -40,6 +41,12 @@ function rewardsReducer(state: RewardsReducerState, action: RewardsReducerAction
   }
 }
 
+const createFavour = async (accessToken: string) => {
+  return await fetcher("/api/favours", accessToken,  { method: "POST", body: JSON.stringify(data) })
+
+
+}
+
 const CreateFavour: React.FC = () => {
   const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
   return (
@@ -72,10 +79,10 @@ const CreateFavour: React.FC = () => {
               Rewards
             </FormLabel>
             <Grid>
-              <RewardList rewards={state.rewards} dispatch={dispatch} />{" "}
+              <RewardList rewards={state.rewards} dispatch={dispatch} />
             </Grid>
 
-            <Button type="submit" w="full" size="lg" colorScheme="primary" mb={4} onClick={}>
+            <Button type="submit" w="full" size="lg" colorScheme="primary" mb={4} onClick={createFavour}>
               <a>Create Favour</a>
             </Button>
           </FormControl>
