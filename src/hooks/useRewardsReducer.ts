@@ -1,7 +1,7 @@
 import { Rewards } from "models/Favour";
 import { useReducer } from "react";
 
-type RewardsReducerAction =
+export type RewardsReducerAction =
   | { type: "set"; payload: { reward: string; quantity: number } }
   | { type: "remove"; payload: string }
   | { type: "clear" };

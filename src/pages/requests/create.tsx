@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React from "react";
 import Head from "next/head";
 import {
   Button,
@@ -17,30 +17,7 @@ import RewardList from "components/reward/RewardList";
 import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
-
-export type RewardsReducerState = {
-  rewards: Rewards;
-};
-
-export type RewardsReducerAction =
-  | { type: "set"; payload: { reward: string; quantity: number } }
-  | { type: "remove"; reward: string }
-  | { type: "clear" };
-
-function rewardsReducer(state: RewardsReducerState, action: RewardsReducerAction) {
-  switch (action.type) {
-    case "set":
-      state.rewards[action.payload.reward] = action.payload.quantity;
-      return { rewards: state.rewards };
-    case "remove":
-      delete state.rewards[action.reward];
-      return { rewards: state.rewards };
-    case "clear":
-      return { rewards: {} };
-    default:
-      throw new Error("No action provided for rewards reducer.");
-  }
-}
+import useRewardList from "hooks/useRewardsReducer";
 
 interface RequestFormData {
   title: string;
@@ -49,7 +26,7 @@ interface RequestFormData {
 }
 
 const CreateRequest: React.FC = () => {
-  const [state, dispatch] = useReducer(rewardsReducer, { rewards: {} });
+  const { rewards, dispatch } = useRewardList();
   const { register, handleSubmit, errors: formErrors, formState } = useForm<RequestFormData>({
     resolver: yupResolver(requestValidation),
     context: { form: true, create: true },
@@ -89,17 +66,20 @@ const CreateRequest: React.FC = () => {
 
           <FormControl isInvalid={!!formErrors.rewards}>
             <FormLabel htmlFor="rewards">Rewards</FormLabel>
-            <Input
-              hidden
-              name="rewards"
-              id="rewards"
-              value={JSON.stringify(state.rewards)}
-              ref={register}
-            ></Input>
+            {Object.keys(rewards).map((reward) => (
+              <Input
+                key={reward}
+                readOnly
+                name={`rewards.${reward}`}
+                id={`rewards.${reward}`}
+                value={rewards[reward]}
+                ref={register}
+              />
+            ))}
             <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
           </FormControl>
           <Grid>
-            <RewardList rewards={state.rewards} dispatch={dispatch} />
+            <RewardList rewards={rewards} dispatch={dispatch} />
           </Grid>
 
           <Button type="submit" isLoading={formState.isSubmitting}>

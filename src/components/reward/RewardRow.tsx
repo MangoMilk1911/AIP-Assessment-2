@@ -1,8 +1,8 @@
 import React from "react";
-import { RewardsReducerAction } from "pages/requests/create";
 import { availableRewards } from "lib/availableRewards";
 import { CloseButton, Grid, Heading, IconButton, Input } from "@chakra-ui/core";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
+import { RewardsReducerAction } from "hooks/useRewardsReducer";
 
 interface RewardRowProps {
   reward: string;
@@ -46,7 +46,7 @@ const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity, dispatch }) => 
             onClick={() => dispatch({ type: "set", payload: { reward, quantity: quantity + 1 } })}
           />
         </Grid>
-        <CloseButton onClick={() => dispatch({ type: "remove", reward })} />
+        <CloseButton onClick={() => dispatch({ type: "remove", payload: reward })} />
       </Grid>
     </>
   );

@@ -26,12 +26,19 @@ yup.addMethod(yup.mixed, "formLabel", function (this: yup.Schema<any>, label: st
 });
 
 yup.addMethod(yup.object, "isRewards", function (this: yup.ObjectSchema) {
-  return this.strict(true).test("isReward", "${path} must be a map of numbers", (val) => {
+  return this.transform((rewards) => {
+    for (const key in rewards) {
+      rewards[key] = Number(rewards[key]);
+    }
+
+    return rewards;
+  }).test("isReward", "${path} must be a map of numbers", (val) => {
     if (!val) return true; // Allow for omitted rewards
 
     const quantities = Object.values(val);
     if (quantities.length === 0) return false;
-    return !quantities.some((quantity) => typeof quantity !== "number");
+
+    return !quantities.some((quantity) => quantity === NaN);
   });
 });
 
