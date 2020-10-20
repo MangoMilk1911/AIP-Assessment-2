@@ -50,9 +50,17 @@ handler.post(authMiddleware, async (req, res) => {
 
 /* Get All User Requests -- Not completed */
 handler.get(authMiddleware, async (req, res) => {
-  const allUserFavours = await Favour.find({ "creator._id": req.userId });
+  const { page = 1, limit = 6 } = req.query;
+  const allUserFavours = await Favour.find({ "creator._id": req.userId })
+  .limit(Number(limit))
+  .skip((Number(page) - 1) * Number(limit));
+  const numberOfFavours = await Favour.countDocuments();
   if (!allUserFavours) throw new ApiError(503, "Favours could not be loaded.");
-  res.json(allUserFavours);
+  res.json({
+    allUserFavours,
+    currentPage: page,
+    totalPages: Math.ceil(numberOfFavours / Number(limit))
+  });
 });
 
 export default handler;
