@@ -1,7 +1,9 @@
+import React from "react";
+import Head from "next/head";
+import NextLink from "next/link";
 import {
   Button,
   Container,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -13,10 +15,7 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuth } from "lib/auth";
-import { userValidation } from "lib/validator";
-import Head from "next/head";
-import NextLink from "next/link";
-import React, { useState } from "react";
+import { userValidation } from "lib/validator/schemas";
 import { useForm } from "react-hook-form";
 
 interface RegisterForm {
@@ -27,10 +26,10 @@ interface RegisterForm {
 }
 
 const Register: React.FC = () => {
-  const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
-  const { register, handleSubmit, errors: formErrors } = useForm<RegisterForm>({
+  const { register, handleSubmit, errors: formErrors, formState } = useForm<RegisterForm>({
     resolver: yupResolver(userValidation),
+    context: { form: true, create: true },
   });
 
   // ==================== Toast 🍞 ====================
@@ -49,17 +48,13 @@ const Register: React.FC = () => {
 
   // ==================== Register ====================
 
-  const createUser = async ({ displayName, email, password }: RegisterForm) => {
-    setLoading(true);
-
+  async function createUser({ displayName, email, password }: RegisterForm) {
     try {
       await signUp(email, password, displayName);
     } catch (error) {
       errorToast(error.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  }
 
   return (
     <>
@@ -68,11 +63,11 @@ const Register: React.FC = () => {
       </Head>
 
       <Container maxW="30rem" mt={32}>
-        <Stack as="form" onSubmit={handleSubmit(createUser)} spacing={8} align="center">
-          <Heading fontSize="6xl" textAlign="center">
-            Register
-          </Heading>
+        <Heading fontSize="6xl" textAlign="center" mb={8}>
+          Register
+        </Heading>
 
+        <Stack as="form" onSubmit={handleSubmit(createUser)} spacing={8}>
           <FormControl isInvalid={!!formErrors.email}>
             <FormLabel htmlFor="email">Email</FormLabel>
             <Input id="email" name="email" ref={register} />
@@ -92,19 +87,18 @@ const Register: React.FC = () => {
           </FormControl>
 
           <FormControl isInvalid={!!formErrors.passwordRepeat}>
-            <FormLabel htmlFor="passwordRepeat">Password Again</FormLabel>
+            <FormLabel htmlFor="passwordRepeat">Password Repeat</FormLabel>
             <Input id="passwordRepeat" name="passwordRepeat" ref={register} type="password" />
             <FormErrorMessage>{formErrors.passwordRepeat?.message}</FormErrorMessage>
           </FormControl>
 
-          <Flex w="full" flexDir="column" align="center">
+          <Stack align="center" spacing={4}>
             <Button
               type="submit"
-              isLoading={loading}
+              isLoading={formState.isSubmitting}
               w="full"
               size="lg"
               colorScheme="primary"
-              my={4}
             >
               Submit
             </Button>
@@ -112,10 +106,11 @@ const Register: React.FC = () => {
             <Link as="span" color="red.300">
               <NextLink href="/">Cancel</NextLink>
             </Link>
-          </Flex>
+          </Stack>
         </Stack>
       </Container>
     </>
   );
 };
+
 export default Register;
