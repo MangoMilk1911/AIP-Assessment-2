@@ -1,4 +1,6 @@
 import {
+  Avatar,
+  AvatarGroup,
   Box,
   Button,
   Heading,
@@ -9,13 +11,12 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  SimpleGrid,
+  Stack,
   Text,
 } from "@chakra-ui/core";
 import { RequestSchema } from "models/Request";
 import React from "react";
 import ReactTimeAgo from "react-time-ago";
-import Plaque from "../contributor/Plaque";
 import RewardCube from "../reward/RewardCube";
 
 interface ReqModalProps {
@@ -35,23 +36,38 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
             <ModalCloseButton />
             <ModalHeader>
               <Heading size="xl">{title}</Heading>
-              <ReactTimeAgo date={createdAt} locale="en-US" timeStyle="round-minute" />
+              <ReactTimeAgo date={new Date(createdAt)} locale="en-US" timeStyle="round-minute" />
             </ModalHeader>
             <ModalBody maxW="4xl">
               <Box>
                 <Heading size="md">Contributors</Heading>
                 <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="50%">
-                  <Plaque contributor={owner}></Plaque>
+                  <AvatarGroup max={3}>
+                    {Object.values(contributions).map((contribution) => (
+                      <Avatar
+                        borderColor="primary.50"
+                        name={contribution.user.displayName}
+                        src={contribution.user.photoURL}
+                        key={contribution.user._id}
+                      />
+                    ))}
+                  </AvatarGroup>
                 </Box>
               </Box>
               <Box>
                 <Heading size="md">Reward Pool</Heading>
                 <Box my={5} p={5} borderRadius="md" bg="whiteAlpha.200" w="50%">
-                  {Object.values(contributions).map((contribution) =>
-                    Object.keys(contribution.rewards).map((reward) => (
-                      <RewardCube rewardName={reward} rewardNumber={contribution.rewards[reward]} />
-                    ))
-                  )}
+                  <Stack spacing="5">
+                    {Object.values(contributions).map((contribution) =>
+                      Object.keys(contribution.rewards).map((reward) => (
+                        <RewardCube
+                          key={reward}
+                          rewardName={reward}
+                          rewardNumber={contribution.rewards[reward]}
+                        />
+                      ))
+                    )}
+                  </Stack>
                 </Box>
               </Box>
               <Box>

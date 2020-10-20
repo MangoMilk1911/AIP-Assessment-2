@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, SimpleGrid } from "@chakra-ui/core";
+import { Text, HStack } from "@chakra-ui/core";
 
 interface RewardCubeProps {
   rewardName: string;
@@ -8,10 +8,10 @@ interface RewardCubeProps {
 
 const RewardCube: React.FC<RewardCubeProps> = ({ rewardName, rewardNumber }) => {
   return (
-    <SimpleGrid columns={2} spacing={2} borderRadius="md" bg="whiteAlpha.200" w="40" p={3} m={2}>
-      <Text>{rewardName}:</Text>
+    <HStack spacing={4} borderRadius="md" bg="whiteAlpha.200" w="24" p={3}>
+      <Text>{rewardName}</Text>
       <Text>{rewardNumber}</Text>
-    </SimpleGrid>
+    </HStack>
   );
 };
 

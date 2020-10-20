@@ -32,9 +32,7 @@ interface PaginatedRequests {
 
 const RequestList: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
-  const { data } = useSWR<PaginatedRequests, ApiError>(
-    `http://localhost:3000/api/requests?page=${pageIndex}`
-  );
+  const { data } = useSWR<PaginatedRequests, ApiError>(`/api/requests?page=${pageIndex}`);
 
   const prevDisabled = pageIndex === 1;
   const nextDisabled = pageIndex === data?.totalPages;
@@ -51,7 +49,7 @@ const RequestList: React.FC = () => {
             Requests
           </Heading>
           <Spacer />
-          <Link href="http://localhost:3000/requests/create">
+          <Link href="/requests/create">
             <IconButton aria-label="Add" icon={<AddIcon />} />
           </Link>
         </Flex>
