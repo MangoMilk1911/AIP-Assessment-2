@@ -10,10 +10,10 @@ function rewardsReducer(state: Rewards, action: RewardsReducerAction) {
   switch (action.type) {
     case "set":
       state[action.payload.reward] = action.payload.quantity;
-      return state;
+      return { ...state };
     case "remove":
       delete state[action.payload];
-      return state;
+      return { ...state };
     case "clear":
       return {};
     default:
