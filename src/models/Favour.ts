@@ -1,8 +1,9 @@
 import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { isValidObjectId } from "mongoose";
 import * as yup from "yup";
 import { EmbeddedUserSchema } from "./User";
+
+export type Rewards = { [key: string]: number };
 
 export interface FavourSchema extends Base {}
 
