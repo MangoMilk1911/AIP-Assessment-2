@@ -1,5 +1,27 @@
 import { yup } from ".";
 
+// =================== Shared =====================
+
+const rewardSchema = yup.lazy((val) => {
+  if (typeof val === "object") {
+    const shape = {};
+
+    for (const key in val) {
+      shape[key] = yup.number().required().min(1);
+    }
+
+    return yup.object(shape).test("notEmpty", "${path} must not be empty", (val) => {
+      const rewards = Object.keys(val);
+      return rewards.length !== 0;
+    });
+  } else {
+    return yup.object().when("$create", {
+      is: true,
+      then: yup.object().required(),
+    });
+  }
+});
+
 // =================== User =====================
 
 export const userValidation = yup.object({
@@ -23,4 +45,24 @@ export const userValidation = yup.object({
         .equals([yup.ref("password")], "Passwords do not match"),
     }),
   photoURL: yup.string().url().optional().trim(),
+});
+
+// ==================== Favour ====================
+
+export const favourValidation = yup.object({
+  id: yup.string().when("$create", {
+    is: false,
+    then: yup.string().required().trim().isMongoID(),
+  }),
+  debtor: yup.string().when("$create", {
+    is: true,
+    then: yup.string().required(),
+  }),
+  recipient: yup.string().when("$create", {
+    is: true,
+    then: yup.string().required(),
+  }),
+  rewards: rewardSchema,
+  initialEvidence: yup.string(), // todo
+  evidence: yup.string(), // todo
 });
