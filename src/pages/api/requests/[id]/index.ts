@@ -2,7 +2,8 @@ import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
-import Request, { requestValidation } from "models/Request";
+import Request from "models/Request";
+import { requestValidation } from "lib/validator/schemas";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);

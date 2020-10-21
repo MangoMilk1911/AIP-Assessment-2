@@ -32,7 +32,7 @@ interface PaginatedRequests {
 
 const RequestList: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(1);
-  const { data } = useSWR<PaginatedRequests, ApiError>(`/api/requests?page=${pageIndex}`);
+  const { data, mutate } = useSWR<PaginatedRequests, ApiError>(`/api/requests?page=${pageIndex}`);
 
   const prevDisabled = pageIndex === 1;
   const nextDisabled = pageIndex === data?.totalPages;

@@ -18,6 +18,9 @@ import { RequestSchema } from "models/Request";
 import React from "react";
 import ReactTimeAgo from "react-time-ago";
 import RewardCube from "../reward/RewardCube";
+import { useAuth } from "lib/auth";
+import fetcher from "lib/fetcher";
+import { Router, useRouter } from "next/router";
 
 interface ReqModalProps {
   isOpen: boolean;
@@ -27,7 +30,16 @@ interface ReqModalProps {
 }
 
 const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request }) => {
+  const router = useRouter();
+  const { user, accessToken } = useAuth();
   const { owner, title, createdAt, description, contributions } = request;
+
+  const deleteRequest = async () => {
+    console.log("help");
+    await fetcher(`api/requests/${request._id}`, accessToken, { method: "DELETE" });
+    router.reload();
+  };
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -79,6 +91,11 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
               <Button>Upload Evidence</Button>
             </ModalBody>
             <ModalFooter>
+              {user && user.uid == request.owner._id && (
+                <Button onClick={deleteRequest} colorScheme="red">
+                  Delete Request
+                </Button>
+              )}
               <Button colorScheme="teal">Submit for Review</Button>
             </ModalFooter>
           </ModalContent>
