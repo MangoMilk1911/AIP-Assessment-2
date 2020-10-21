@@ -42,7 +42,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
 
         <Stack direction="row" spacing={5} my={4}>
           {Object.values(contributions).map((contribution) =>
-            Object.keys(contribution.rewards).map((reward) => <Text>{reward}</Text>)
+            Object.keys(contribution.rewards).map((reward) => <Text fontSize="3xl">{reward}</Text>)
           )}
         </Stack>
 

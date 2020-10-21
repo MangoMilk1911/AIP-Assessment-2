@@ -1,4 +1,10 @@
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Avatar,
   AvatarGroup,
   Box,
@@ -14,13 +20,13 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/core";
-import { RequestSchema } from "models/Request";
-import React from "react";
-import ReactTimeAgo from "react-time-ago";
-import RewardCube from "../reward/RewardCube";
 import { useAuth } from "lib/auth";
 import fetcher from "lib/fetcher";
-import { Router, useRouter } from "next/router";
+import { RequestSchema } from "models/Request";
+import { useRouter } from "next/router";
+import React, { useRef, useState } from "react";
+import ReactTimeAgo from "react-time-ago";
+import RewardCube from "../reward/RewardCube";
 
 interface ReqModalProps {
   isOpen: boolean;
@@ -34,6 +40,10 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
   const { user, accessToken } = useAuth();
   const { owner, title, createdAt, description, contributions } = request;
 
+  const [isOpenDelete, setIsOpen] = useState(false);
+  const onCloseDelete = () => setIsOpen(false);
+  const cancelRef = useRef();
+
   const deleteRequest = async () => {
     console.log("help");
     await fetcher(`api/requests/${request._id}`, accessToken, { method: "DELETE" });
@@ -42,7 +52,7 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay>
           <ModalContent minW="4xl" p="5">
             <ModalCloseButton />
@@ -92,15 +102,41 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
             </ModalBody>
             <ModalFooter>
               {user && user.uid == request.owner._id && (
-                <Button onClick={deleteRequest} colorScheme="red">
+                <Button onClick={() => setIsOpen(true)} colorScheme="red">
                   Delete Request
                 </Button>
               )}
-              <Button colorScheme="teal">Submit for Review</Button>
+              <Button colorScheme="teal">Claim</Button>
             </ModalFooter>
           </ModalContent>
         </ModalOverlay>
       </Modal>
+
+      <AlertDialog
+        isCentered
+        isOpen={isOpenDelete}
+        leastDestructiveRef={cancelRef}
+        onClose={onCloseDelete}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Customer
+            </AlertDialogHeader>
+
+            <AlertDialogBody>Are you sure? You can't undo this action afterwards.</AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onCloseDelete}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={deleteRequest} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 };

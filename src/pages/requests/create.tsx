@@ -11,6 +11,7 @@ import {
   Input,
   Stack,
   Textarea,
+  Text,
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import RewardList from "components/reward/RewardList";
@@ -60,7 +61,6 @@ const CreateRequest: React.FC = () => {
         <Heading size="lg" my={6}>
           Create Request
         </Heading>
-
         <Stack as="form" onSubmit={handleSubmit(createRequest)} spacing={8} align="start">
           <FormControl isInvalid={!!formErrors.title}>
             <FormLabel htmlFor="title">Title</FormLabel>
