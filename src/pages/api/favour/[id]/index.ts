@@ -1,88 +1,62 @@
-import { EDESTADDRREQ } from "constants";
-import { ApiError, NoUserError } from "lib/errorHandler";
+import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
+import createValidator from "lib/validator";
+import { favourValidation } from "lib/validator/schemas";
 import { Favour } from "models";
-import {
-  checkIdValidation,
-  deleteFavourValidation,
-  updateFavourRewardsValidation,
-} from "models/Favour";
 
 const handler = createHandler();
+const validate = createValidator(favourValidation);
 
-/* ========= READ REQUEST ========= */
-
-/* Read single request */
+// =================== Read single request =====================
 
 handler.get(authMiddleware, async (req, res) => {
-  const data = await checkIdValidation.validate(req.query, {
-    abortEarly: false,
-  });
+  const { id } = await validate(req);
 
-  const { id } = data;
   const favour = await Favour.findById(id);
-  if (!favour) {
-    throw new ApiError(400, "Favour not found.");
-  }
+  if (!favour) throw new ApiError(400, "No Favour with that ID exists.");
+
+  // User is not related to the favour
+  if (req.userId !== favour.debtor._id && req.userId !== favour.recipient._id)
+    throw new ApiError(403, "You do not have permission to view this favour.");
+
   res.json(favour);
 });
 
-/* ========== UPDATE REQUEST ========== */
-
-/* Update Favour By Reward */
+// =================== Update favour =====================
 
 handler.put(authMiddleware, async (req, res) => {
-  const data = await updateFavourRewardsValidation.validate(
-    {
-      ...req.query,
-      ...req.body,
-    },
-    { abortEarly: false }
-  );
-
-  const { id, rewards } = data;
+  const { id, rewards } = await validate(req, "updateFavour");
 
   const favour = await Favour.findById(id);
-  if (!favour) {
-    throw new ApiError(400, "Favour not found");
-  }
+  if (!favour) throw new ApiError(400, "No Favour with that ID exists.");
 
   const isCreator = req.userId === favour.creator._id;
-  if (!isCreator) {
-    throw new ApiError(400, "You are not the creator");
-  }
+  if (!isCreator) throw new ApiError(403, "You do not have permission to perform this action.");
 
-  favour.set({
-    rewards,
-  });
+  // Update the local favour object then write to db
+  favour.set({ rewards });
+  await favour.save();
 
-  const updateFavour = await favour.save();
-  res.json(updateFavour);
+  res.json(favour);
 });
 
-/* ========== DELETE REQUEST ========== */
+// =================== Delete favour =====================
 
-handler.post(authMiddleware, async (req, res) => {
-  const data = await deleteFavourValidation.validate({
-    ...req.query,
-    ...req.body,
-  });
+handler.delete(authMiddleware, async (req, res) => {
+  const { id } = await validate(req);
 
-  const { id } = data;
   const favour = await Favour.findById(id);
+  if (!favour) throw new ApiError(400, "Favour not found");
 
-  if (!favour) {
-    throw new ApiError(400, "Favour not found");
-  }
+  // Don't let others delete the favour
+  if (req.userId !== favour.creator._id)
+    throw new ApiError(400, "You do not have permission to delete this favour.");
 
-  if (!(id === favour.creator._id)) {
-    throw new ApiError(400, "You must be the creator to delete");
-  }
+  // Remove the favour
+  await favour.deleteOne();
 
-  favour.remove();
-  favour.save();
-  res.json("POOF!! I just gobbled you :)");
+  res.status(204).end();
 });
 
 export default handler;

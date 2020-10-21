@@ -15,8 +15,8 @@ const rewardSchema = yup.lazy((val) => {
       return rewards.length !== 0;
     });
   } else {
-    return yup.object().when("$create", {
-      is: true,
+    return yup.object().when(["$create", "$updateFavour"], {
+      is: (...params) => params.some((val) => val), // Either create or favour update action
       then: yup.object().required(),
     });
   }

@@ -1,35 +1,26 @@
 import { ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
+import createValidator from "lib/validator";
+import { favourValidation } from "lib/validator/schemas";
 import { Favour } from "models";
-import { updateFavourEvidenceValidation } from "models/Favour";
 
 const handler = createHandler();
+const validate = createValidator(favourValidation);
 
-/* Update Favour By Evidence */
+// =================== Submitting evidence =====================
 
-handler.put(authMiddleware, async (req, res) => {
-  const data = await updateFavourEvidenceValidation.validate(
-    {
-      ...req.query,
-      ...req.body,
-    },
-    { abortEarly: false }
-  );
-
-  const { id, evidence } = data;
+handler.post(authMiddleware, async (req, res) => {
+  const { id, evidence } = await validate(req);
 
   const favour = await Favour.findById(id);
-  if (!favour) {
-    throw new ApiError(400, "You are not the creator");
-  }
+  if (!favour) throw new ApiError(400, "No Favour with that ID exists.");
 
-  favour.set({
-    evidence,
-  });
+  // Update local favour object then write to db
+  favour.set({ evidence });
+  await favour.save();
 
-  const updateFavour = await favour.save();
-  res.json(updateFavour);
+  res.json(favour);
 });
 
 export default handler;
