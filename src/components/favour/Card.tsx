@@ -25,7 +25,9 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
         width="sm"
         onClick={onOpen}
       >
-        <Text>{favourMessage}</Text>
+        <Text fontSize="xl" fontWeight="bold" textAlign="center">
+          {favourMessage}
+        </Text>
 
         <Spacer />
 
