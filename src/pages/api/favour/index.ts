@@ -51,15 +51,20 @@ handler.post(authMiddleware, async (req, res) => {
 /* Get All User Requests -- Not completed */
 handler.get(authMiddleware, async (req, res) => {
   const { page = 1, limit = 6 } = req.query;
-  const allUserFavours = await Favour.find({ "creator._id": req.userId })
-  .limit(Number(limit))
-  .skip((Number(page) - 1) * Number(limit));
+  const userDebtorFavours = await Favour.find({ "debtor._id": req.userId })
+    .limit(Number(limit))
+    .skip((Number(page) - 1) * Number(limit));
+  const userRecipientFavours = await Favour.find({ "recipient._id": req.userId })
+    .limit(Number(limit))
+    .skip((Number(page) - 1) * Number(limit));
   const numberOfFavours = await Favour.countDocuments();
-  if (!allUserFavours) throw new ApiError(503, "Favours could not be loaded.");
+  if (!userDebtorFavours || !userRecipientFavours)
+    throw new ApiError(503, "Favours could not be loaded.");
   res.json({
-    allUserFavours,
+    userDebtorFavours,
+    userRecipientFavours,
     currentPage: page,
-    totalPages: Math.ceil(numberOfFavours / Number(limit))
+    totalPages: Math.ceil(numberOfFavours / Number(limit)),
   });
 });
 

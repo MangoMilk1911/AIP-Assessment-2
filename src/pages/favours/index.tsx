@@ -26,9 +26,10 @@ import { useAuth } from "lib/auth";
 TimeAgo.addLocale(en);
 
 interface PaginatedFavours {
-  allUserFavours: FavourSchema[];
+  userDebtorFavours: FavourSchema[];
+  userRecipientFavours: FavourSchema[];
   currentPage: number;
-  totalPages:number;
+  totalPages: number;
 }
 
 const FavourList: React.FC = () => {
@@ -72,33 +73,33 @@ const FavourList: React.FC = () => {
           </SimpleGrid>
         ) : (
           <>
-          <SimpleGrid columns={2} spacing="5">
-            {data.allUserFavours.map((favour) => (
-              <Card favour={favour} key={favour._id.toString()}></Card>
-            ))}
-          </SimpleGrid>
-          <Stack direction="row" mt={4} spacing={16} align="center">
-          <IconButton
-            disabled={prevDisabled}
-            onClick={() => {
-              if (data.currentPage > 1) setPageIndex(pageIndex - 1);
-            }}
-            aria-label="Previous"
-            icon={<ArrowLeftIcon />}
-          />
-          <Text bg="whiteAlpha.200" px={4} py={2} borderRadius="full" fontWeight="bold">
-            {data.currentPage}
-          </Text>
-          <IconButton
-            disabled={nextDisabled}
-            onClick={() => {
-              if (data.currentPage < data.totalPages) setPageIndex(pageIndex + 1);
-            }}
-            aria-label="Next"
-            icon={<ArrowRightIcon />}
-          />
-        </Stack>
-        </>
+            <SimpleGrid columns={2} spacing="5">
+              {data.userDebtorFavours.map((favour) => (
+                <Card favour={favour} key={favour._id.toString()}></Card>
+              ))}
+            </SimpleGrid>
+            <Stack direction="row" mt={4} spacing={16} align="center">
+              <IconButton
+                disabled={prevDisabled}
+                onClick={() => {
+                  if (data.currentPage > 1) setPageIndex(pageIndex - 1);
+                }}
+                aria-label="Previous"
+                icon={<ArrowLeftIcon />}
+              />
+              <Text bg="whiteAlpha.200" px={4} py={2} borderRadius="full" fontWeight="bold">
+                {data.currentPage}
+              </Text>
+              <IconButton
+                disabled={nextDisabled}
+                onClick={() => {
+                  if (data.currentPage < data.totalPages) setPageIndex(pageIndex + 1);
+                }}
+                aria-label="Next"
+                icon={<ArrowRightIcon />}
+              />
+            </Stack>
+          </>
         )}
       </Container>
     </>
