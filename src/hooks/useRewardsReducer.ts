@@ -9,6 +9,8 @@ type RewardsReducerAction =
 function rewardsReducer(state: Rewards, action: RewardsReducerAction) {
   switch (action.type) {
     case "set":
+      if (action.payload.quantity <= 0) return { ...state };
+
       state[action.payload.reward] = action.payload.quantity;
       return { ...state };
     case "remove":

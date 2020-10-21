@@ -2,53 +2,14 @@ import { NoUserError, ApiError } from "lib/errorHandler";
 import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import { Favour, User } from "models";
-import { createFavourValidation } from "models/Favour";
+import { favourValidation } from "lib/validator/schemas";
+import createValidator from "lib/validator";
 
 const handler = createHandler();
+const validate = createValidator(favourValidation);
 
-/* ========== CREATE FAVOUR ========== */
+// =================== Get User Favours =====================
 
-handler.post(authMiddleware, async (req, res) => {
-  const {
-    debtor,
-    recipient,
-    rewards,
-    initialEvidence,
-  } = await createFavourValidation.validate(req.body, { abortEarly: false });
-
-  const user = await User.findById(req.userId);
-  if (!user) {
-    throw new NoUserError();
-  }
-
-  const debtorData = await User.findById(debtor);
-  if (!debtorData) {
-    throw new NoUserError();
-  }
-  console.log(debtorData);
-  const recipientData = await User.findById(recipient);
-  if (!recipientData) {
-    throw new NoUserError();
-  }
-  console.log(recipientData);
-  if (!initialEvidence && user._id === recipientData._id) {
-    throw new ApiError(400, "Evidence required");
-  }
-
-  const newFavour = await Favour.create({
-    creator: user.asEmbedded(),
-    debtor: debtorData.asEmbedded(),
-    recipient: recipientData.asEmbedded(),
-    rewards: rewards as Map<string, number>,
-    initialEvidence: initialEvidence as string, // <-- Subject to change
-  });
-  console.log(newFavour);
-  res.status(201).json(newFavour);
-});
-
-/* ========== READ FAVOUR ========== */
-
-/* Get All User Requests -- Not completed */
 handler.get(authMiddleware, async (req, res) => {
   const { page = 1, limit = 6 } = req.query;
   const userDebtorFavours = await Favour.find({ "debtor._id": req.userId })
@@ -66,6 +27,42 @@ handler.get(authMiddleware, async (req, res) => {
     currentPage: page,
     totalPages: Math.ceil(numberOfFavours / Number(limit)),
   });
+});
+
+// =================== Create Favour =====================
+
+handler.post(authMiddleware, async (req, res) => {
+  const { debtor, recipient, rewards, initialEvidence } = await validate(req, "create");
+
+  /**
+   * Avoid redundant read
+   */
+
+  // Find the current user from db
+  const userData = await User.findById(req.userId);
+  if (!userData) throw new NoUserError();
+
+  // Find the debtor from db
+  const debtorData = await User.findById(debtor);
+  if (!debtorData) throw new ApiError(400, "No debtor with that ID exists.");
+
+  // Find the recipient form db
+  const recipientData = await User.findById(recipient);
+  if (!recipientData) throw new ApiError(400, "No recipient with that ID exists.");
+
+  if (!initialEvidence && userData._id === recipientData._id)
+    throw new ApiError(400, "Evidence required");
+
+  // Write new favour to db
+  const newFavour = await Favour.create({
+    creator: userData.asEmbedded(),
+    debtor: debtorData.asEmbedded(),
+    recipient: recipientData.asEmbedded(),
+    rewards,
+    initialEvidence,
+  });
+
+  res.status(201).json(newFavour);
 });
 
 export default handler;
