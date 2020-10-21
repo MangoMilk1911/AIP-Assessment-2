@@ -40,8 +40,23 @@ export const requestValidation = yup.object({
     is: true,
     then: yup.string().required(),
   }),
-  rewards: yup.object().isRewards().when("$create", {
-    is: true,
-    then: yup.object().required(),
+  rewards: yup.lazy((val) => {
+    if (typeof val === "object") {
+      const shape = {};
+
+      for (const key in val) {
+        shape[key] = yup.number().required().min(1);
+      }
+
+      return yup.object(shape).test("notEmpty", "${path} must not be empty", (val) => {
+        const rewards = Object.keys(val);
+        return rewards.length !== 0;
+      });
+    } else {
+      return yup.object().when("$create", {
+        is: true,
+        then: yup.object().required(),
+      });
+    }
   }),
 });
