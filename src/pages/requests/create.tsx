@@ -18,6 +18,9 @@ import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
 import useRewardList from "hooks/useRewardsReducer";
+import { useAuth } from "lib/auth";
+import fetcher from "lib/fetcher";
+import { Router, useRouter } from "next/router";
 
 interface RequestFormData {
   title: string;
@@ -26,15 +29,27 @@ interface RequestFormData {
 }
 
 const CreateRequest: React.FC = () => {
+  const router = useRouter();
+  const { accessToken } = useAuth();
   const { rewards, dispatch } = useRewardList();
   const { register, handleSubmit, errors: formErrors, formState } = useForm<RequestFormData>({
     resolver: yupResolver(requestValidation),
     context: { form: true, create: true },
   });
 
-  const createRequest = ({ title, description, rewards }: RequestFormData) => {
-    console.log(rewards);
+  const createRequest = async ({ title, description, rewards }: RequestFormData) => {
+    await fetcher("/api/requests/", accessToken, {
+      method: "POST",
+      body: JSON.stringify({
+        title: title,
+        description: description,
+        rewards: rewards,
+      }),
+      headers: { "Content-type": "application/json" },
+    });
+    router.push("/requests");
   };
+
   return (
     <>
       <Head>

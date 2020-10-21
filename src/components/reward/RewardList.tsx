@@ -1,6 +1,6 @@
 import React from "react";
 import { Rewards } from "models/Request";
-import { RewardsReducerAction } from "pages/requests/create";
+import { RewardsReducerAction } from "hooks/useRewardsReducer";
 import { availableRewards } from "lib/availableRewards";
 import RewardRow from "./RewardRow";
 import {

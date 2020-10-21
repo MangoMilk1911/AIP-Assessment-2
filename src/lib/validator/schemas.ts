@@ -32,14 +32,21 @@ export const requestValidation = yup.object({
     is: false,
     then: yup.string().required().trim().isMongoID(),
   }),
-  title: yup.string().strict(true).trim().min(10).max(90).when("$create", {
+  title: yup.string().formLabel("Title").strict(true).trim().min(10).max(90).when("$create", {
     is: true,
     then: yup.string().required(),
   }),
-  description: yup.string().strict(true).trim().min(20).max(500).when("$create", {
-    is: true,
-    then: yup.string().required(),
-  }),
+  description: yup
+    .string()
+    .formLabel("Description")
+    .strict(true)
+    .trim()
+    .min(20)
+    .max(500)
+    .when("$create", {
+      is: true,
+      then: yup.string().required(),
+    }),
   rewards: yup.lazy((val) => {
     if (typeof val === "object") {
       const shape = {};
