@@ -100,7 +100,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
             <Box borderRadius="md">
               <SimpleGrid columns={3} spacingX={12} w="50%">
                 {Object.keys(rewardPool).map((reward) => (
-                  <RewardCube rewardName={reward} rewardNumber={rewardPool[reward]} key={reward} />
+                  <RewardCube reward={reward} quantity={rewardPool[reward]} key={reward} />
                 ))}
               </SimpleGrid>
             </Box>

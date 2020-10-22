@@ -84,8 +84,8 @@ const ReqModal: React.FC<ReqModalProps> = ({ isOpen, onOpen, onClose, request })
                       Object.keys(contribution.rewards).map((reward) => (
                         <RewardCube
                           key={reward}
-                          rewardName={reward}
-                          rewardNumber={contribution.rewards[reward]}
+                          reward={reward}
+                          quantity={contribution.rewards[reward]}
                         />
                       ))
                     )}
