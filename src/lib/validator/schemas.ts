@@ -28,9 +28,8 @@ export const userValidation = yup.object({
 // ==================== Request ====================
 
 export const requestValidation = yup.object({
-  id: yup.string().when("$create", {
-    is: false,
-    then: yup.string().required().trim().isMongoID(),
+  id: yup.string().when("$create", (create: boolean, schema: yup.StringSchema) => {
+    return create ? schema : schema.trim().required().isMongoID();
   }),
   title: yup.string().formLabel("Title").strict(true).trim().min(10).max(90).when("$create", {
     is: true,
