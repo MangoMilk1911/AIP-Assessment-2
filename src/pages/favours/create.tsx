@@ -30,54 +30,9 @@ import { favourValidation } from "lib/validator/schemas";
 import { useAuth } from "lib/auth";
 import fetcher, { FetcherError } from "lib/fetcher";
 import { Rewards } from "models/Favour";
+import SelectUser from "@/components/favour/SelectUser";
 
-/**
- * User Preview Card
- */
-
-interface UserPreviewProps {
-  user: UserSchema;
-  onClick: () => void;
-}
-
-const UserPreview: React.FC<UserPreviewProps> = ({ user, onClick }) => (
-  <Flex
-    onClick={onClick}
-    bg="whiteAlpha.100"
-    flexDir="row"
-    align="center"
-    p={5}
-    borderRadius="lg"
-    _hover={{ cursor: "pointer", bg: "whiteAlpha.200" }}
-  >
-    <Avatar src={user.photoURL} name={user.displayName} mr={4} />
-    <Box>
-      <Text fontSize="xl">{user.displayName}</Text>
-      <Text color="gray.400">{user.email}</Text>
-    </Box>
-  </Flex>
-);
-
-/**
- * Owing Form
- */
-
-type UserQueryData = UserSchema[];
-
-interface OwingFormData {
-  debtor: string;
-  recipient: string;
-  rewards: Rewards;
-}
-
-const OwingForm: React.FC = () => {
-  const { user, accessToken } = useAuth();
-  const router = useRouter();
-  const toast = useToast();
-
-  // Rewards
-  const { rewards } = useRewardList();
-
+const useSelectUser = () => {
   // Selected User
   const [selectedUser, setSelectedUser] = useState<UserSchema>(null);
   const [showUsers, setShowUsers] = useState(false);
@@ -101,6 +56,48 @@ const OwingForm: React.FC = () => {
     setShowUsers(false);
     userQueryInput.current.value = user.displayName;
   };
+
+  return {
+    users,
+    showUsers,
+    selectUser,
+    setShowUsers,
+    userQueryInput,
+    searchUsers,
+    selectedUser,
+  };
+};
+
+/**
+ * Owing Form
+ */
+
+type UserQueryData = UserSchema[];
+
+interface OwingFormData {
+  debtor: string;
+  recipient: string;
+  rewards: Rewards;
+}
+
+const OwingForm: React.FC = () => {
+  const { user, accessToken } = useAuth();
+  const router = useRouter();
+  const toast = useToast();
+
+  // Rewards
+  const { rewards } = useRewardList();
+
+  // Select User Hook
+  const {
+    users,
+    showUsers,
+    selectUser,
+    setShowUsers,
+    userQueryInput,
+    searchUsers,
+    selectedUser,
+  } = useSelectUser();
 
   // Form
   const { handleSubmit, register, errors: formErrors } = useForm<OwingFormData>({
@@ -164,32 +161,12 @@ const OwingForm: React.FC = () => {
       </FormControl>
 
       {/* Select User */}
-      <Collapse
-        isOpen={showUsers}
-        mb={8}
-        p={3}
-        borderRadius="lg"
-        border="solid 1px"
-        borderColor="primary.50"
-      >
-        <Stack spacing={4} mb={4}>
-          {!users || users?.length === 0 ? (
-            <Text textAlign="center" fontSize="xl" my={4}>
-              No users found 😢
-            </Text>
-          ) : (
-            users
-              .filter((u) => u._id !== user.uid)
-              .map((user) => (
-                <UserPreview user={user} onClick={() => selectUser(user)} key={user._id} />
-              ))
-          )}
-        </Stack>
-
-        <Button variant="outline" color="inherit" onClick={() => setShowUsers(false)}>
-          Hide
-        </Button>
-      </Collapse>
+      <SelectUser
+        users={users}
+        showUsers={showUsers}
+        selectUser={selectUser}
+        setShowUsers={setShowUsers}
+      />
 
       {/* Rewards */}
       <FormControl mt="0 !important" isInvalid={!!formErrors.rewards}>
