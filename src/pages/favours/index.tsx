@@ -124,7 +124,11 @@ const FavourList: React.FC = () => {
           </Stack>
 
           {/* Tabs */}
-          <Tabs onChange={(i) => setFilterQuery(i === 0 ? "owed" : "owing")}>
+          <Tabs
+            onChange={(i) => setFilterQuery(i === 0 ? "owed" : "owing")}
+            colorScheme="primary"
+            isFitted
+          >
             <TabList>
               <Tab>Owed</Tab>
               <Tab>Owing</Tab>
