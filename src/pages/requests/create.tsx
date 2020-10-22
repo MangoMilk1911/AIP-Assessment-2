@@ -11,6 +11,7 @@ import {
   Input,
   Stack,
   Textarea,
+  useToast,
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import RewardList from "components/reward/RewardList";
@@ -19,7 +20,7 @@ import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { useAuth } from "lib/auth";
-import fetcher from "lib/fetcher";
+import fetcher, { FetcherError } from "lib/fetcher";
 import { useRouter } from "next/router";
 
 interface RequestFormData {
@@ -42,17 +43,29 @@ const CreateRequest: React.FC = () => {
     dispatch({ type: "clear" });
   }, []);
 
+  const toast = useToast();
+
   const createRequest = async ({ title, description, rewards }: RequestFormData) => {
-    await fetcher("/api/requests/", accessToken, {
-      method: "POST",
-      body: JSON.stringify({
-        title,
-        description,
-        rewards,
-      }),
-      headers: { "Content-type": "application/json" },
-    });
-    router.push("/requests");
+    try {
+      await fetcher("/api/requests/", accessToken, {
+        method: "POST",
+        body: JSON.stringify({
+          title,
+          description,
+          rewards,
+        }),
+        headers: { "Content-type": "application/json" },
+      });
+      router.push("/requests");
+    } catch (error) {
+      (error as FetcherError).details.errors.forEach((err) => {
+        toast({
+          status: "error",
+          title: "Uh oh...",
+          description: err.message,
+        });
+      });
+    }
   };
 
   return (

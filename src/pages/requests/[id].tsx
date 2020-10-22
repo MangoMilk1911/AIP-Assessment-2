@@ -15,12 +15,13 @@ import {
   Spacer,
   useDisclosure,
   Input,
+  useToast,
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
 import RewardCube from "@/components/reward/RewardCube";
 import { useAuth } from "lib/auth";
-import fetcher from "lib/fetcher";
+import fetcher, { FetcherError } from "lib/fetcher";
 import DeleteAlert from "@/components/request/DeleteAlert";
 import RewardModal from "@/components/request/ContributionModal";
 import useSWR from "swr";
@@ -41,6 +42,8 @@ interface RequestPageProps {
 const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { user, accessToken } = useAuth();
 
+  const toast = useToast();
+
   const router = useRouter();
   const { id } = router.query;
 
@@ -59,6 +62,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { register, handleSubmit, errors } = useForm({ resolver: yupResolver(evidenceSchema) });
 
   const { owner, title, createdAt, description, contributions, isClaimed } = request;
+
   const isContributor = user && Object.keys(contributions).includes(user.uid);
 
   function getEvidenceSrc(evidence: Buffer) {
@@ -69,12 +73,19 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
     const formData = new FormData();
     formData.append("evidence", data.evidence[0]);
 
-    const res = await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
-      method: "POST",
-      body: formData,
-    });
-
-    router.reload();
+    try {
+      const res = await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
+        method: "POST",
+        body: formData,
+      });
+      router.reload();
+    } catch (error) {
+      toast({
+        status: "error",
+        title: "Uh oh...",
+        description: "LOL SORRY",
+      });
+    }
   };
 
   const rewardPool = useMemo(() => {
@@ -142,13 +153,13 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
         <Stack my={18} spacing={4}>
           <Heading size="md">Evidence</Heading>
           <Stack
+            id="evidenceform"
             as="form"
             align="flex-start"
             spacing={5}
             onSubmit={handleSubmit(addEvidenceAndClaim)}
           >
-            <input type="file" name="evidence" ref={register} />
-            <Button type="submit">Upload Evidence</Button>
+            <input id="evidence" type="file" name="evidence" ref={register} />
           </Stack>
           {request.evidence && <img src={getEvidenceSrc(request.evidence)} />}
           {isClaimed && <Text>CLAIMED</Text>}
@@ -161,7 +172,9 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
             </Button>
           )}
           <Spacer />
-          <Button colorScheme="teal">Claim</Button>
+          <Button colorScheme="teal" form="evidenceform" type="submit">
+            Confirm & Claim
+          </Button>
         </HStack>
       </Stack>
 

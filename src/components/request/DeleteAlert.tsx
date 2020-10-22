@@ -6,6 +6,7 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   Button,
+  useToast,
 } from "@chakra-ui/core";
 import { useAuth } from "lib/auth";
 import fetcher from "lib/fetcher";
@@ -22,14 +23,23 @@ interface DeleteAlertProps {
 const DeleteAlert: React.FC<DeleteAlertProps> = ({ id, isOpen, onClose }) => {
   const router = useRouter();
   const { accessToken } = useAuth();
+  const toast = useToast();
 
   //Alert State
   const cancelRef = React.useRef();
 
   //Delete Function
   const deleteRequest = async () => {
-    await fetcher(`/api/requests/${id}`, accessToken, { method: "DELETE" });
-    router.push("/requests");
+    try {
+      await fetcher(`/api/requests/${id}`, accessToken, { method: "DELETE" });
+      router.push("/requests");
+    } catch (error) {
+      toast({
+        status: "error",
+        title: "Uh oh...",
+        description: "Bruh Sorry",
+      });
+    }
   };
 
   return (
