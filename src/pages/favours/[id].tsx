@@ -4,11 +4,13 @@ import { FavourSchema } from "models/Favour";
 import fetcher, { FetcherError } from "lib/fetcher";
 import nookies from "nookies";
 import Head from "next/head";
-import { Avatar, Box, Button, Container, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
+import { Avatar, Box, Button, Container, Link, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
 import { EmbeddedUserSchema } from "models/User";
 import { useAuth } from "lib/auth";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
+import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
 
 /**
  * User Preview
@@ -70,6 +72,17 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
       </Head>
 
       <Container maxW="sm" mt={16}>
+        <Button
+          variant="link"
+          color="inherit"
+          fontWeight="normal"
+          size="lg"
+          mb={6}
+          leftIcon={<ArrowBackIcon />}
+        >
+          <NextLink href="/favours">Back</NextLink>
+        </Button>
+
         <Stack spacing={8} align="center">
           {/* Involved Users */}
           <Stack
@@ -103,10 +116,13 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
               isDisabled={!canDelete}
               variant="ghost"
               colorScheme="red"
+              rightIcon={<DeleteIcon />}
             >
               Delete
             </Button>
-            <Button>Upload Evidence</Button>
+            <Button colorScheme="cyan" rightIcon={<AttachmentIcon />}>
+              Upload Evidence
+            </Button>
           </Stack>
         </Stack>
       </Container>
