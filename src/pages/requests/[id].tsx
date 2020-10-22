@@ -172,9 +172,11 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
             </Button>
           )}
           <Spacer />
-          <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
-            Confirm & Claim
-          </Button>
+          {user && (
+            <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
+              Confirm & Claim
+            </Button>
+          )}
         </HStack>
       </Stack>
 
