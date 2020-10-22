@@ -11,21 +11,22 @@ const validate = createValidator(favourValidation);
 // =================== Get User Favours =====================
 
 handler.get(authMiddleware, async (req, res) => {
-  const { page = 1, limit = 6 } = req.query;
-  const userDebtorFavours = await Favour.find({ "debtor._id": req.userId })
-    .limit(Number(limit))
-    .skip((Number(page) - 1) * Number(limit));
-  const userRecipientFavours = await Favour.find({ "recipient._id": req.userId })
-    .limit(Number(limit))
-    .skip((Number(page) - 1) * Number(limit));
-  const numberOfFavours = await Favour.countDocuments();
-  if (!userDebtorFavours || !userRecipientFavours)
-    throw new ApiError(503, "Favours could not be loaded.");
+  let { page = 1, limit = 6, q } = req.query;
+  page = Number(page);
+  limit = Number(limit);
+
+  if (q !== "owe" && q !== "owed")
+    throw new ApiError(400, "You must query the favours by either 'owe' or 'owed'.");
+
+  let mongoQuery = q === "owe" ? "debtor._id" : "recipient._id";
+  const favours = await Favour.find({ [mongoQuery]: req.userId })
+    .limit(limit)
+    .skip((page - 1) * limit);
+
   res.json({
-    userDebtorFavours,
-    userRecipientFavours,
+    favours,
     currentPage: page,
-    totalPages: Math.ceil(numberOfFavours / Number(limit)),
+    totalPages: Math.ceil((await Favour.countDocuments({ [mongoQuery]: req.userId })) / limit),
   });
 });
 
