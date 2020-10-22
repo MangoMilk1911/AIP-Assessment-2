@@ -29,8 +29,11 @@ import { ApiError } from "lib/errorHandler";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 
-//DayJS
 dayjs.extend(relativeTime);
+
+function getEvidenceSrc(evidence: Buffer) {
+  return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
+}
 
 interface RequestPageProps {
   initRequest: RequestSchema;
@@ -60,13 +63,15 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { owner, title, createdAt, description, contributions } = request;
   const isContributor = user && Object.keys(contributions).includes(user.uid);
 
-  // const addEvidenceAndClaim = async (file) => {
-  //   await fetcher(`/api/requests/evidence`, null, {
-  //     method: "POST",
-  //     body: {},
-  //     headers: { "Content-type": "multipart/form-data" },
-  //   });
-  // };
+  const addEvidenceAndClaim = async (data) => {
+    const formData = new FormData();
+    formData.append("evidence", data.evidence[0]);
+
+    const res = await fetcher(`/api/requests/${request._id}/evidence`, null, {
+      method: "POST",
+      body: formData,
+    });
+  };
 
   const rewardPool = useMemo(() => {
     const temp = {};
@@ -82,6 +87,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
 
   return (
     <Container maxW="50rem" mt={24}>
+      <img src={getEvidenceSrc(request.evidence)} />
       <Stack direction="column" spacing={10}>
         <Stack mb={18}>
           <Heading size="xl">{title}</Heading>
@@ -134,14 +140,12 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
           <Heading size="md">Evidence</Heading>
           <Stack
             as="form"
-            action={`/api/requests/${request._id}/evidence`}
-            method="POST"
-            encType="multipart/form-data"
             align="flex-start"
             spacing={5}
+            onSubmit={handleSubmit(addEvidenceAndClaim)}
           >
-            <input type="file" name="evidence" />
-            <Button type={"submit"}>Upload Evidence</Button>
+            <input type="file" name="evidence" ref={register} />
+            <Button type="submit">Upload Evidence</Button>
           </Stack>
         </Stack>
 

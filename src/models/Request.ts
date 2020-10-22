@@ -1,4 +1,4 @@
-import { getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { EmbeddedUserSchema } from "./User";
 
@@ -38,6 +38,12 @@ export class RequestSchema extends TimeStamps {
 
   @prop()
   public recipient?: EmbeddedUserSchema;
+
+  public getEvidenceSrc(this: DocumentType<RequestSchema>): string {
+    const { evidence } = this;
+
+    return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
+  }
 }
 
 const Request = getModelForClass(RequestSchema);
