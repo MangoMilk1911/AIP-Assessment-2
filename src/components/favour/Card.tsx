@@ -1,45 +1,47 @@
-import { Flex, Spacer, Text, useDisclosure } from "@chakra-ui/core";
+import React from "react";
+import NextLink from "next/link";
+import { Flex, Spacer, Text } from "@chakra-ui/core";
 import { FavourSchema } from "models/Favour";
-import React, { useMemo } from "react";
-import ReactTimeAgo from "react-time-ago";
-import FavModal from "./FavModal";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { useAuth } from "lib/auth";
+
+dayjs.extend(relativeTime);
 
 interface FavourCardProps {
   favour: FavourSchema;
 }
 
 const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
-  const { debtor, recipient, rewards, createdAt } = favour;
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { _id, debtor, recipient, rewards, createdAt } = favour;
 
-  let favourMessage = `${debtor.displayName} promised ${recipient.displayName}`;
+  // Change promise text based on favour
+  const { user } = useAuth();
+  const isDebtor = user.uid === debtor._id;
 
   return (
-    <>
+    <NextLink href={`/favours/${_id}`}>
       <Flex
-        h={48}
-        direction="column"
+        h={40}
+        p={5}
         bg="whiteAlpha.200"
-        borderRadius="1g"
-        p="5"
-        width="sm"
-        onClick={onOpen}
+        borderRadius="lg"
+        flexDir="column"
+        _hover={{ cursor: "pointer" }}
       >
-        <Text fontSize="xl" fontWeight="bold" textAlign="center">
-          {favourMessage}
+        <Text fontSize="xl" fontWeight="bold">
+          {isDebtor ? "You" : debtor.displayName}{" "}
+          <Text as="span" fontWeight="normal">
+            promised
+          </Text>{" "}
+          {!isDebtor ? "You" : recipient.displayName}
         </Text>
 
         <Spacer />
 
-        {/* <SingleFavour></SingleFavour> */}
-
-        <Flex>
-          <ReactTimeAgo date={createdAt} locale="en-US" timeStyle="round-minute" />
-        </Flex>
+        <Text>{dayjs(createdAt).from(new Date())}</Text>
       </Flex>
-
-      <FavModal favour={favour} onOpen={onOpen} onClose={onClose} isOpen={isOpen}></FavModal>
-    </>
+    </NextLink>
   );
 };
 
