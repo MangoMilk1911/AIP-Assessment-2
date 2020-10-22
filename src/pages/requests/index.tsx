@@ -1,9 +1,8 @@
+import React, { useState } from "react";
+import Head from "next/head";
+import { useRouter } from "next/router";
 import {
-  Box,
-  Button,
-  Center,
   Container,
-  Flex,
   Heading,
   HStack,
   IconButton,
@@ -15,18 +14,10 @@ import {
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import Card from "components/request/Card";
-import TimeAgo from "javascript-time-ago";
-import en from "javascript-time-ago/locale/en";
 import { useAuth } from "lib/auth";
 import { ApiError } from "lib/errorHandler";
 import { RequestSchema } from "models/Request";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { useState } from "react";
 import useSWR from "swr";
-
-TimeAgo.addLocale(en);
 
 interface PaginatedRequests {
   requests: RequestSchema[];
