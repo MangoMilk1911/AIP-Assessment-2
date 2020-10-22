@@ -15,6 +15,18 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   const { owner, title, createdAt, contributions } = request;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const rewardPool = useMemo(() => {
+    const temp = {};
+
+    for (const contribution of Object.values(contributions)) {
+      for (const reward in contribution.rewards) {
+        temp[reward] = (temp[reward] || 0) + contribution.rewards[reward];
+      }
+    }
+
+    return temp;
+  }, [contributions]);
+
   const contributors = useMemo(() => {
     const restCount = Object.keys(contributions).length - 1;
 
@@ -42,9 +54,11 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         <Text>{contributors}</Text>
 
         <Stack direction="row" spacing={5} my={4}>
-          {Object.values(contributions).map((contribution) =>
-            Object.keys(contribution.rewards).map((reward) => <Text fontSize="3xl">{reward}</Text>)
-          )}
+          {Object.keys(rewardPool).map((reward) => (
+            <Text fontSize="3xl" key={reward}>
+              {reward}
+            </Text>
+          ))}
         </Stack>
 
         <Spacer />
