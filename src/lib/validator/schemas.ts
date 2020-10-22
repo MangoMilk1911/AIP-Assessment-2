@@ -10,15 +10,21 @@ const rewardSchema = yup.lazy((val) => {
       shape[key] = yup.number().required().min(1);
     }
 
-    return yup.object(shape).test("notEmpty", "${path} must not be empty", (val) => {
-      const rewards = Object.keys(val);
-      return rewards.length !== 0;
-    });
+    return yup
+      .object(shape)
+      .formLabel("Rewards")
+      .test("notEmpty", "${path} must not be empty", (val) => {
+        const rewards = Object.keys(val);
+        return rewards.length !== 0;
+      });
   } else {
-    return yup.object().when(["$create", "$updateFavour"], {
-      is: (...params) => params.some((val) => val), // Either create or favour update action
-      then: yup.object().required(),
-    });
+    return yup
+      .object()
+      .formLabel("Rewards")
+      .when(["$create", "$updateFavour"], {
+        is: (...params) => params.some((val) => val), // Either create or favour update action
+        then: yup.object().required(),
+      });
   }
 });
 
@@ -54,11 +60,11 @@ export const favourValidation = yup.object({
     is: false,
     then: yup.string().required().trim().isMongoID(),
   }),
-  debtor: yup.string().when("$create", {
+  debtor: yup.string().formLabel("Debtor").when("$create", {
     is: true,
     then: yup.string().required(),
   }),
-  recipient: yup.string().when("$create", {
+  recipient: yup.string().formLabel("Recipient").when("$create", {
     is: true,
     then: yup.string().required(),
   }),

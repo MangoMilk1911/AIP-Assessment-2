@@ -17,7 +17,7 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
 
   // Change promise text based on favour
   const { user } = useAuth();
-  const isDebtor = user.uid === debtor._id;
+  const isDebtor = user?.uid === debtor._id;
 
   return (
     <NextLink href={`/favours/${_id}`}>
