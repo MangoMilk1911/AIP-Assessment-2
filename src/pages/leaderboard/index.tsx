@@ -2,14 +2,11 @@ import React from "react";
 import useSWR from "swr";
 import { EmbeddedUserSchema } from "models/User";
 import { ApiError } from "lib/errorHandler";
-import { Container, Heading, Box, Divider, Grid, SimpleGrid, Text } from "@chakra-ui/core";
+import { Container, Heading, Box, Divider, Text } from "@chakra-ui/core";
 import LeaderboardRow from "components/leaderboard/LeaderboardRow";
-import { database } from "firebase";
 
 const Leaderboard: React.FC = () => {
-  const { data: allUsers } = useSWR<EmbeddedUserSchema[], ApiError>(
-    "http://localhost:3000/api/leaderboard"
-  );
+  const { data: allUsers } = useSWR<EmbeddedUserSchema[], ApiError>("/api/leaderboard");
 
   return (
     <>
@@ -21,20 +18,6 @@ const Leaderboard: React.FC = () => {
         <Heading size="xl" m="8">
           Global Leaderboard
         </Heading>
-
-        {/* <Grid templateColumns="repeat(5, 1fr)" gap={6}>
-          <Box w="100%" h="10">
-            Rank #
-          </Box>
-          <Box w="100%" h="10" />
-          <Box w="100%" h="10" />
-          <Box w="100%" h="10">
-            Name
-          </Box>
-          <Box w="100%" h="10">
-            # of Completed Favours
-          </Box>
-        </Grid> */}
 
         <Box as="table" w="full" cellPadding={20} textAlign="left">
           <tr>
@@ -53,8 +36,8 @@ const Leaderboard: React.FC = () => {
 
         {allUsers && (
           <Box as="table" w="full" cellPadding={20}>
-            {allUsers.map((user) => (
-              <LeaderboardRow user={user} />
+            {allUsers.map((user, idx) => (
+              <LeaderboardRow user={user} rank={idx + 1} />
             ))}
           </Box>
         )}
