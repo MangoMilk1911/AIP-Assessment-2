@@ -8,8 +8,8 @@ interface RewardCubeProps {
 
 const RewardCube: React.FC<RewardCubeProps> = ({ rewardName, rewardNumber }) => {
   return (
-    <HStack spacing={4} borderRadius="md" bg="whiteAlpha.200" w="24" p={3}>
-      <Text>{rewardName}</Text>
+    <HStack spacing={4} borderRadius="md" w="24">
+      <Text fontSize="4xl">{rewardName}</Text>
       <Text>{rewardNumber}</Text>
     </HStack>
   );

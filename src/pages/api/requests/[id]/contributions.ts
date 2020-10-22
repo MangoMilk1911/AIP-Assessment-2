@@ -3,7 +3,7 @@ import { authMiddleware } from "lib/middleware";
 import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
 import { Request, User } from "models";
-import { requestValidation } from "models/Request";
+import { requestValidation } from "lib/validator/schemas";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);

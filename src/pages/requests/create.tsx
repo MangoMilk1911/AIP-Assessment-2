@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Head from "next/head";
 import {
   Button,
@@ -11,14 +11,13 @@ import {
   Input,
   Stack,
   Textarea,
-  Text,
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import RewardList from "components/reward/RewardList";
 import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
-import useRewardList from "hooks/useRewardsReducer";
+import { useRewardList } from "hooks/useRewardList";
 import { useAuth } from "lib/auth";
 import fetcher from "lib/fetcher";
 import { Router, useRouter } from "next/router";
@@ -38,13 +37,18 @@ const CreateRequest: React.FC = () => {
     context: { form: true, create: true },
   });
 
+  // Start with empty reward list
+  useEffect(() => {
+    dispatch({ type: "clear" });
+  }, []);
+
   const createRequest = async ({ title, description, rewards }: RequestFormData) => {
     await fetcher("/api/requests/", accessToken, {
       method: "POST",
       body: JSON.stringify({
-        title: title,
-        description: description,
-        rewards: rewards,
+        title,
+        description,
+        rewards,
       }),
       headers: { "Content-type": "application/json" },
     });
@@ -94,7 +98,7 @@ const CreateRequest: React.FC = () => {
             <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
           </FormControl>
           <Grid>
-            <RewardList rewards={rewards} dispatch={dispatch} />
+            <RewardList />
           </Grid>
 
           <Button type="submit" isLoading={formState.isSubmitting}>
