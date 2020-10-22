@@ -16,7 +16,7 @@ handler.get(authMiddleware, async (req, res) => {
   limit = Number(limit);
 
   if (q !== "owing" && q !== "owed")
-    throw new ApiError(400, "You must query the favours by either 'owe' or 'owed'.");
+    throw new ApiError(400, "You must query the favours by either 'owing' or 'owed'.");
 
   let mongoQuery = q === "owing" ? "debtor._id" : "recipient._id";
   const favours = await Favour.find({ [mongoQuery]: req.userId })
