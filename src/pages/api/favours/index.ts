@@ -15,10 +15,10 @@ handler.get(authMiddleware, async (req, res) => {
   page = Number(page);
   limit = Number(limit);
 
-  if (q !== "owe" && q !== "owed")
+  if (q !== "owing" && q !== "owed")
     throw new ApiError(400, "You must query the favours by either 'owe' or 'owed'.");
 
-  let mongoQuery = q === "owe" ? "debtor._id" : "recipient._id";
+  let mongoQuery = q === "owing" ? "debtor._id" : "recipient._id";
   const favours = await Favour.find({ [mongoQuery]: req.userId })
     .limit(limit)
     .skip((page - 1) * limit);

@@ -9,6 +9,9 @@ import {
   SimpleGrid,
   Skeleton,
   Stack,
+  Tab,
+  TabList,
+  Tabs,
   Text,
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
@@ -24,15 +27,85 @@ interface PaginatedFavours {
   totalPages: number;
 }
 
-const FavourList: React.FC = () => {
-  const { accessToken } = useAuth();
-  const [pageIndex, setPageIndex] = useState(1);
-  const { data } = useSWR<PaginatedFavours, ApiError>(
-    accessToken ? [`/api/favours?page=${pageIndex}&q=owe`, accessToken] : null
-  );
+/**
+ * Favour List Content
+ */
+
+interface ListContentProps {
+  data: PaginatedFavours;
+  pageIndex: number;
+  setPageIndex: React.Dispatch<React.SetStateAction<number>>;
+}
+
+const ListContent: React.FC<ListContentProps> = ({ data, pageIndex, setPageIndex }) => {
+  const { favours, currentPage, totalPages } = data;
 
   const prevDisabled = pageIndex === 1;
   const nextDisabled = pageIndex === data?.totalPages;
+
+  if (favours.length === 0)
+    return (
+      <Heading size="2xl" textAlign="center" my="4rem !important">
+        You're all square 😝
+      </Heading>
+    );
+
+  return (
+    <Stack spacing={8}>
+      {/* Favour List */}
+      <SimpleGrid columns={2} spacing={8}>
+        {favours.map((favour) => (
+          <Card favour={favour} key={favour._id.toString()}></Card>
+        ))}
+      </SimpleGrid>
+
+      {/* Navigation */}
+      {favours.length !== 0 && (
+        <Stack alignSelf="center" direction="row" align="center" spacing={16}>
+          <IconButton
+            disabled={prevDisabled}
+            onClick={() => {
+              if (currentPage > 1) setPageIndex(pageIndex - 1);
+            }}
+            aria-label="Previous"
+            icon={<ArrowLeftIcon />}
+          />
+
+          <Text bg="whiteAlpha.200" px={4} py={2} borderRadius="full" fontWeight="bold">
+            {currentPage}{" "}
+            <Text as="span" fontWeight="normal">
+              of
+            </Text>{" "}
+            {totalPages}
+          </Text>
+          <IconButton
+            disabled={nextDisabled}
+            onClick={() => {
+              if (currentPage < totalPages) setPageIndex(pageIndex + 1);
+            }}
+            aria-label="Next"
+            icon={<ArrowRightIcon />}
+          />
+        </Stack>
+      )}
+    </Stack>
+  );
+};
+
+/**
+ * Favour List Page
+ */
+
+type FilterQuery = "owing" | "owed";
+
+const FavourList: React.FC = () => {
+  const { accessToken } = useAuth();
+
+  const [filterQuery, setFilterQuery] = useState<FilterQuery>("owed");
+  const [pageIndex, setPageIndex] = useState(1);
+  const { data } = useSWR<PaginatedFavours, ApiError>(
+    accessToken ? [`/api/favours?page=${pageIndex}&q=${filterQuery}`, accessToken] : null
+  );
 
   return (
     <>
@@ -40,16 +113,25 @@ const FavourList: React.FC = () => {
         <title> Pinki | Favours </title>
       </Head>
 
-      <Container maxW="lg">
-        <Stack spacing={8} w="full">
+      <Container maxW="lg" mt={8}>
+        <Stack spacing={4} w="full">
           <Stack direction="row" justify="space-between" align="center" mb={4}>
-            <Heading>Favours</Heading>
+            <Heading size="2xl">Favours</Heading>
 
             <NextLink href="favours/create">
               <Button rightIcon={<AddIcon mb="2px" />}>Add</Button>
             </NextLink>
           </Stack>
 
+          {/* Tabs */}
+          <Tabs onChange={(i) => setFilterQuery(i === 0 ? "owed" : "owing")}>
+            <TabList>
+              <Tab>Owed</Tab>
+              <Tab>Owing</Tab>
+            </TabList>
+          </Tabs>
+
+          {/* Favours */}
           {!data ? (
             <SimpleGrid columns={2} spacing={8}>
               {[...Array(6)].map((_, i) => (
@@ -57,42 +139,7 @@ const FavourList: React.FC = () => {
               ))}
             </SimpleGrid>
           ) : (
-            <>
-              {/* Favours */}
-              <SimpleGrid columns={2} spacing={8}>
-                {data.favours.map((favour) => (
-                  <Card favour={favour} key={favour._id.toString()}></Card>
-                ))}
-              </SimpleGrid>
-
-              {/* Navigation */}
-              <Stack alignSelf="center" direction="row" align="center" spacing={16}>
-                <IconButton
-                  disabled={prevDisabled}
-                  onClick={() => {
-                    if (data.currentPage > 1) setPageIndex(pageIndex - 1);
-                  }}
-                  aria-label="Previous"
-                  icon={<ArrowLeftIcon />}
-                />
-
-                <Text bg="whiteAlpha.200" px={4} py={2} borderRadius="full" fontWeight="bold">
-                  {data.currentPage}{" "}
-                  <Text as="span" fontWeight="normal">
-                    of
-                  </Text>{" "}
-                  {data.totalPages}
-                </Text>
-                <IconButton
-                  disabled={nextDisabled}
-                  onClick={() => {
-                    if (data.currentPage < data.totalPages) setPageIndex(pageIndex + 1);
-                  }}
-                  aria-label="Next"
-                  icon={<ArrowRightIcon />}
-                />
-              </Stack>
-            </>
+            <ListContent data={data} pageIndex={pageIndex} setPageIndex={setPageIndex} />
           )}
         </Stack>
       </Container>
