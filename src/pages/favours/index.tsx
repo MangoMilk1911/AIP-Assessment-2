@@ -15,7 +15,7 @@ import {
   Text,
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
-import Card from "components/favour/Card";
+import FavourCard from "components/favour/Card";
 import { useAuth } from "lib/auth";
 import { ApiError } from "lib/errorHandler";
 import { FavourSchema } from "models/Favour";
@@ -41,7 +41,7 @@ const ListContent: React.FC<ListContentProps> = ({ data, pageIndex, setPageIndex
   const { favours, currentPage, totalPages } = data;
 
   const prevDisabled = pageIndex === 1;
-  const nextDisabled = pageIndex === data?.totalPages;
+  const nextDisabled = pageIndex === totalPages;
 
   if (favours.length === 0)
     return (
@@ -55,7 +55,7 @@ const ListContent: React.FC<ListContentProps> = ({ data, pageIndex, setPageIndex
       {/* Favour List */}
       <SimpleGrid columns={2} spacing={8}>
         {favours.map((favour) => (
-          <Card favour={favour} key={favour._id.toString()}></Card>
+          <FavourCard favour={favour} key={favour._id.toString()} />
         ))}
       </SimpleGrid>
 
@@ -118,7 +118,7 @@ const FavourList: React.FC = () => {
           <Stack direction="row" justify="space-between" align="center" mb={4}>
             <Heading size="2xl">Favours</Heading>
 
-            <NextLink href="favours/create">
+            <NextLink href={`favours/create?type=${filterQuery}`}>
               <Button rightIcon={<AddIcon mb="2px" />}>Add</Button>
             </NextLink>
           </Stack>
