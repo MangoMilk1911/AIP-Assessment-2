@@ -13,6 +13,7 @@ import {
   TabList,
   Tabs,
   Text,
+  useToast,
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import FavourCard from "components/favour/Card";
@@ -20,6 +21,7 @@ import { useAuth } from "lib/auth";
 import { ApiError } from "lib/errorHandler";
 import { FavourSchema } from "models/Favour";
 import useSWR from "swr";
+import { useRouter } from "next/router";
 
 interface PaginatedFavours {
   favours: FavourSchema[];
@@ -99,7 +101,13 @@ const ListContent: React.FC<ListContentProps> = ({ data, pageIndex, setPageIndex
 type FilterQuery = "owing" | "owed";
 
 const FavourList: React.FC = () => {
+  const toast = useToast();
+  const router = useRouter();
   const { accessToken } = useAuth();
+  if (!accessToken) {
+    router.push("/login");
+    toast({ status: "warning", title: "You must be logged in!" });
+  }
 
   const [filterQuery, setFilterQuery] = useState<FilterQuery>("owed");
   const [pageIndex, setPageIndex] = useState(1);
