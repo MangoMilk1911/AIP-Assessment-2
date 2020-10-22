@@ -62,7 +62,7 @@ const RewardModal: React.FC<RewardModalProps> = ({ isOpen, onClose, initRewards 
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay>
         <ModalContent minW="2xl">
-          <ModalHeader>Modal Title</ModalHeader>
+          <ModalHeader>Add Rewards</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <RewardList />

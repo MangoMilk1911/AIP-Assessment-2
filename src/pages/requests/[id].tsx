@@ -60,6 +60,14 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { owner, title, createdAt, description, contributions } = request;
   const isContributor = user && Object.keys(contributions).includes(user.uid);
 
+  // const addEvidenceAndClaim = async (file) => {
+  //   await fetcher(`/api/requests/evidence`, null, {
+  //     method: "POST",
+  //     body: {},
+  //     headers: { "Content-type": "multipart/form-data" },
+  //   });
+  // };
+
   const rewardPool = useMemo(() => {
     const temp = {};
 
@@ -73,8 +81,8 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   }, [contributions]);
 
   return (
-    <Container maxW="50rem" mt={16}>
-      <Stack direction="column" spacing={5}>
+    <Container maxW="50rem" mt={24}>
+      <Stack direction="column" spacing={10}>
         <Stack mb={18}>
           <Heading size="xl">{title}</Heading>
           <Text>{dayjs(createdAt).from(new Date())}</Text>
@@ -95,7 +103,9 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
                 ))}
               </AvatarGroup>
               {user && (
-                <Button onClick={onOpen}>{isContributor ? "Edit" : "Add"} Contribution</Button>
+                <Button fontSize="sm" variant="link" onClick={onOpen}>
+                  {isContributor ? "Edit" : "Add"} Contribution
+                </Button>
               )}
             </Stack>
           </Stack>
@@ -120,15 +130,19 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
           </Box>
         </Stack>
 
-        <Stack align="flex-start" my={18}>
-          <form
-            onSubmit={handleSubmit((file) => {
-              console.log(file);
-            })}
+        <Stack my={18} spacing={4}>
+          <Heading size="md">Evidence</Heading>
+          <Stack
+            as="form"
+            action={`/api/requests/${request._id}/evidence`}
+            method="POST"
+            encType="multipart/form-data"
+            align="flex-start"
+            spacing={5}
           >
-            <input type="file" name="file" ref={register()} />
+            <input type="file" name="evidence" />
             <Button type={"submit"}>Upload Evidence</Button>
-          </form>
+          </Stack>
         </Stack>
 
         <HStack w="100%">

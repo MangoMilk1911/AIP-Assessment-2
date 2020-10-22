@@ -87,6 +87,7 @@ const CreateRequest: React.FC = () => {
             <FormLabel htmlFor="rewards">Rewards</FormLabel>
             {Object.keys(rewards).map((reward) => (
               <Input
+                hidden
                 key={reward}
                 readOnly
                 name={`rewards.${reward}`}
