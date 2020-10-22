@@ -14,6 +14,7 @@ import {
   HStack,
   Spacer,
   useDisclosure,
+  Input,
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
@@ -25,6 +26,7 @@ import RewardModal from "@/components/request/ContributionModal";
 import useSWR from "swr";
 import { NextPage } from "next";
 import { ApiError } from "lib/errorHandler";
+import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 
 //DayJS
@@ -36,6 +38,7 @@ interface RequestPageProps {
 
 const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { user, accessToken } = useAuth();
+  const [evidenceDisabled, setEvidenceDisabled] = useState(true);
 
   const router = useRouter();
   const { id } = router.query;
@@ -50,6 +53,9 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
 
   //RewardsModal
   const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
+
+  //Add Evidence Form
+  const { register, handleSubmit } = useForm();
 
   const { owner, title, createdAt, description, contributions } = request;
   const isContributor = user && Object.keys(contributions).includes(user.uid);
@@ -115,7 +121,14 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
         </Stack>
 
         <Stack align="flex-start" my={18}>
-          <Button>Upload Evidence</Button>
+          <form
+            onSubmit={handleSubmit((file) => {
+              console.log(file);
+            })}
+          >
+            <input type="file" name="file" ref={register()} />
+            <Button type={"submit"}>Upload Evidence</Button>
+          </form>
         </Stack>
 
         <HStack w="100%">
