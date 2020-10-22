@@ -151,29 +151,31 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
           </Box>
         </Stack>
 
-        <Stack my={18} spacing={4}>
-          <Heading size="md">Evidence</Heading>
-          <Stack
-            id="evidenceform"
-            as="form"
-            align="flex-start"
-            spacing={5}
-            onSubmit={handleSubmit(addEvidenceAndClaim)}
-          >
-            <input id="evidence" type="file" name="evidence" ref={register} />
+        {!isContributor && (
+          <Stack my={18} spacing={4}>
+            <Heading size="md">Evidence</Heading>
+            <Stack
+              id="evidenceform"
+              as="form"
+              align="flex-start"
+              spacing={5}
+              onSubmit={handleSubmit(addEvidenceAndClaim)}
+            >
+              <input id="evidence" type="file" name="evidence" ref={register} />
+            </Stack>
+            {request.evidence && <Image boxSize="xs" src={getEvidenceSrc(request.evidence)} />}
+            {isClaimed && <Text>CLAIMED</Text>}
           </Stack>
-          {request.evidence && <Image boxSize="xs" src={getEvidenceSrc(request.evidence)} />}
-          {isClaimed && <Text>CLAIMED</Text>}
-        </Stack>
+        )}
 
         <HStack w="100%">
-          {user?.uid == request.owner._id && (
+          {user?.uid === request.owner._id && (
             <Button onClick={() => setIsOpen(true)} colorScheme="red" isDisabled={isClaimed}>
               Delete Request
             </Button>
           )}
           <Spacer />
-          {user?.uid != request.owner._id && (
+          {user?.uid !== request.owner._id && !isContributor && (
             <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
               Confirm & Claim
             </Button>
