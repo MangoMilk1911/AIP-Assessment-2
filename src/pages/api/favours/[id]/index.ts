@@ -49,9 +49,11 @@ handler.delete(authMiddleware, async (req, res) => {
   const favour = await Favour.findById(id);
   if (!favour) throw new ApiError(400, "Favour not found");
 
+  const { debtor, recipient, evidence } = favour;
+
   // Don't let others delete the favour
-  if (req.userId !== favour.creator._id)
-    throw new ApiError(400, "You do not have permission to delete this favour.");
+  const canDelete = req.userId === recipient._id || (req.userId === debtor._id && evidence);
+  if (!canDelete) throw new ApiError(400, "You do not have permission to delete this favour.");
 
   // Remove the favour
   await favour.deleteOne();
