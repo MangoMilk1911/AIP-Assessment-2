@@ -21,10 +21,10 @@ export class FavourSchema extends TimeStamps {
   public rewards!: Rewards;
 
   @prop()
-  public initialEvidence?: Buffer;
+  public initialEvidence?: string;
 
   @prop()
-  public evidence?: Buffer;
+  public evidence?: string;
 }
 
 const Favour = getModelForClass(FavourSchema);

@@ -1,11 +1,10 @@
 import React, { useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import SelectUser from "@/components/favour/SelectUser";
+import RewardList from "@/components/reward/RewardList";
 import {
-  Avatar,
-  Box,
   Button,
-  Collapse,
   Container,
   Flex,
   FormControl,
@@ -15,22 +14,20 @@ import {
   Heading,
   Input,
   Select,
-  Skeleton,
   Stack,
   Text,
   useToast,
 } from "@chakra-ui/core";
-import { useForm } from "react-hook-form";
-import useSWR from "swr";
-import { UserSchema } from "models/User";
-import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import RewardList from "@/components/reward/RewardList";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { favourValidation } from "lib/validator/schemas";
+import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { useAuth } from "lib/auth";
 import fetcher, { FetcherError } from "lib/fetcher";
+import { firebase } from "lib/firebase/client";
+import { favourValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Favour";
-import SelectUser from "@/components/favour/SelectUser";
+import { UserSchema } from "models/User";
+import { useForm } from "react-hook-form";
+import useSWR from "swr";
 
 const useSelectUser = () => {
   // Selected User
@@ -68,11 +65,11 @@ const useSelectUser = () => {
   };
 };
 
+type UserQueryData = UserSchema[];
+
 /**
  * Owing Form
  */
-
-type UserQueryData = UserSchema[];
 
 interface OwingFormData {
   debtor: string;
@@ -194,21 +191,147 @@ const OwingForm: React.FC = () => {
   );
 };
 
+/**
+ * Owe Form
+ */
+
+interface OweFormData extends OwingFormData {
+  ev: FileList;
+}
+
 const OweForm: React.FC = () => {
+  const { user, accessToken } = useAuth();
   const router = useRouter();
+  const toast = useToast();
+
+  // Rewards
+  const { rewards } = useRewardList();
+
+  // Select User Hook
+  const {
+    users,
+    showUsers,
+    selectUser,
+    setShowUsers,
+    userQueryInput,
+    searchUsers,
+    selectedUser,
+  } = useSelectUser();
+
+  // Form
+  const { handleSubmit, register, errors: formErrors } = useForm<OweFormData>({
+    resolver: yupResolver(favourValidation),
+    context: { form: true, create: true },
+  });
+
+  const createFavour = async ({ debtor, recipient, rewards, ev: evidence }: OweFormData) => {
+    try {
+      console.log(evidence[0].name);
+
+      const initEvidencePath = `favours/${debtor}_${recipient}_${new Date().toISOString()}/initialEvidence.png`;
+      const storageRef = firebase.storage().ref();
+      const fileRef = storageRef.child(initEvidencePath);
+      await fileRef.put(evidence[0]);
+
+      await fetcher("/api/favours", accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          debtor,
+          recipient,
+          rewards,
+          initialEvidence: initEvidencePath,
+        }),
+      });
+
+      toast({
+        status: "success",
+        title: "New Favour Created!",
+      });
+      router.push("/favours");
+    } catch (error) {
+      console.log(error);
+
+      (error as FetcherError).details?.errors.forEach((err) => {
+        toast({
+          status: "error",
+          title: "Uh oh...",
+          description: err.message,
+        });
+      });
+    }
+  };
 
   return (
-    <p>
-      <span
-        onClick={() => {
-          router.push({
-            query: { type: "owing" },
-          });
-        }}
-      >
-        Owe
-      </span>
-    </p>
+    <Stack as="form" spacing={8} onSubmit={handleSubmit(createFavour)}>
+      {/* Recipient */}
+      <Input
+        hidden
+        readOnly
+        value={user?.uid || ""}
+        id="recipient"
+        name="recipient"
+        ref={register}
+      />
+
+      {/* Debtor */}
+      <FormControl isInvalid={!!formErrors.debtor} mt="0 !important">
+        <FormLabel htmlFor="debtor">Who owes you?</FormLabel>
+        <Flex>
+          <Input ref={userQueryInput} flexGrow={1} borderRightRadius={0} />
+          <Button onClick={searchUsers} px={12} borderLeftRadius={0}>
+            Search
+          </Button>
+        </Flex>
+        <FormHelperText>Search must be more than 2 characters.</FormHelperText>
+
+        <Input
+          readOnly
+          hidden
+          id="debtor"
+          name="debtor"
+          ref={register}
+          value={selectedUser?._id || ""}
+        />
+        <FormErrorMessage>{formErrors.debtor?.message}</FormErrorMessage>
+      </FormControl>
+
+      {/* Select User */}
+      <SelectUser
+        users={users}
+        showUsers={showUsers}
+        selectUser={selectUser}
+        setShowUsers={setShowUsers}
+      />
+
+      {/* Rewards */}
+      <FormControl mt="0 !important" isInvalid={!!formErrors.rewards}>
+        <FormLabel htmlFor="rewards">What do they owe you?</FormLabel>
+        <RewardList />
+        {Object.keys(rewards).map((reward) => (
+          <Input
+            hidden
+            key={reward}
+            readOnly
+            name={`rewards.${reward}`}
+            id={`rewards.${reward}`}
+            value={rewards[reward]}
+            ref={register}
+          />
+        ))}
+        <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
+      </FormControl>
+
+      <FormControl>
+        <FormLabel>Initial Evidence Required</FormLabel>
+        <input type="file" name="ev" ref={register} />
+      </FormControl>
+
+      {/* Submit */}
+      <Button type="submit" colorScheme="primary" size="lg">
+        Submit
+      </Button>
+    </Stack>
   );
 };
 

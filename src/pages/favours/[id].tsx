@@ -1,16 +1,27 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { NextPage } from "next";
 import { FavourSchema } from "models/Favour";
 import fetcher, { FetcherError } from "lib/fetcher";
 import nookies from "nookies";
 import Head from "next/head";
-import { Avatar, Box, Button, Container, Link, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
+import {
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Image,
+  Stack,
+  Text,
+  useToast,
+  Wrap,
+} from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
 import { EmbeddedUserSchema } from "models/User";
 import { useAuth } from "lib/auth";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
+import { firebase } from "lib/firebase/client";
 
 /**
  * User Preview
@@ -65,6 +76,20 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
     }
   }, [_id, accessToken]);
 
+  // Image
+  const [initEvidenceURL, setinitEvidenceURL] = useState("");
+  useEffect(() => {
+    if (favour.initialEvidence) {
+      firebase
+        .storage()
+        .ref(favour.initialEvidence)
+        .getDownloadURL()
+        .then((url) => {
+          setinitEvidenceURL(url);
+        });
+    }
+  }, []);
+
   return (
     <>
       <Head>
@@ -109,6 +134,8 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
             ))}
           </Wrap>
 
+          {initEvidenceURL && <Image src={initEvidenceURL} />}
+
           {/* Actions */}
           <Stack direction="row" justify="space-between" w="full">
             <Button
@@ -120,9 +147,11 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
             >
               Delete
             </Button>
-            <Button colorScheme="cyan" rightIcon={<AttachmentIcon />}>
-              Upload Evidence
-            </Button>
+            {user?.uid === debtor._id && (
+              <Button colorScheme="cyan" rightIcon={<AttachmentIcon />}>
+                Upload Evidence
+              </Button>
+            )}
           </Stack>
         </Stack>
       </Container>
