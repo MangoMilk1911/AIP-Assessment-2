@@ -21,7 +21,7 @@ import RewardCube from "@/components/reward/RewardCube";
 import { useAuth } from "lib/auth";
 import fetcher from "lib/fetcher";
 import DeleteAlert from "@/components/request/DeleteAlert";
-import RewardModal from "components/reward/RewardModal";
+import RewardModal from "@/components/request/ContributionModal";
 import useSWR from "swr";
 import { NextPage } from "next";
 import { ApiError } from "lib/errorHandler";

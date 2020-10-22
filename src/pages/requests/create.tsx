@@ -17,10 +17,10 @@ import RewardList from "components/reward/RewardList";
 import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
-import { useRewardList } from "hooks/useRewardList";
+import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { useAuth } from "lib/auth";
 import fetcher from "lib/fetcher";
-import { Router, useRouter } from "next/router";
+import { useRouter } from "next/router";
 
 interface RequestFormData {
   title: string;
@@ -110,4 +110,10 @@ const CreateRequest: React.FC = () => {
   );
 };
 
-export default CreateRequest;
+const CreateWrapper: React.FC = () => (
+  <RewardListProvider>
+    <CreateRequest />
+  </RewardListProvider>
+);
+
+export default CreateWrapper;
