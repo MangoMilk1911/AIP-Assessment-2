@@ -172,7 +172,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
             </Button>
           )}
           <Spacer />
-          {user && (
+          {user?.uid != request.owner._id && (
             <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
               Confirm & Claim
             </Button>
