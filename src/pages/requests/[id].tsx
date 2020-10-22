@@ -197,7 +197,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
 
 RequestPage.getInitialProps = async ({ query, req, res }) => {
   try {
-    const request = await fetcher("http://localhost:3000/api/requests/" + query.id);
+    const request = await fetcher(`${process.env.NEXT_PUBLIC_APIURL}/api/requests/${query.id}`);
     return { initRequest: request };
   } catch (error) {
     res.writeHead(302, { location: "/requests" });
