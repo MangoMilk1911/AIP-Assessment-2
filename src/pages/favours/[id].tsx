@@ -4,7 +4,7 @@ import { FavourSchema } from "models/Favour";
 import fetcher, { FetcherError } from "lib/fetcher";
 import nookies from "nookies";
 import Head from "next/head";
-import { Avatar, Box, Button, Container, SimpleGrid, Stack, Text, useToast } from "@chakra-ui/core";
+import { Avatar, Box, Button, Container, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
 import { EmbeddedUserSchema } from "models/User";
 import { useAuth } from "lib/auth";
@@ -83,18 +83,18 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
             borderRadius="lg"
           >
             <UserPreview user={debtor} />
-            <Text color="primary.300">Promised</Text>
+            <Text color="primary.200">Promised</Text>
             <UserPreview user={recipient} />
           </Stack>
 
           {/* Reward Pool */}
-          <SimpleGrid columns={3}>
+          <Wrap justify="center" w="28rem">
             {Object.keys(rewards).map((reward) => (
               <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
                 <RewardCube reward={reward} quantity={rewards[reward]} />
               </Box>
             ))}
-          </SimpleGrid>
+          </Wrap>
 
           {/* Actions */}
           <Stack direction="row" justify="space-between" w="full">

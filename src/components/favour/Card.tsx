@@ -36,6 +36,11 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
           </Text>{" "}
           {!isDebtor ? "You" : recipient.displayName}
         </Text>
+        <Text mt={1} fontSize="2xl">
+          {Object.keys(favour.rewards).map((reward) => (
+            <>{reward}</>
+          ))}
+        </Text>
 
         <Spacer />
 
