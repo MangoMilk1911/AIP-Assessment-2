@@ -2,15 +2,16 @@ import React from "react";
 import { availableRewards } from "lib/availableRewards";
 import { CloseButton, Grid, Heading, IconButton, Input } from "@chakra-ui/core";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
-import { RewardsReducerAction } from "hooks/useRewardsReducer";
+import { useRewardList } from "hooks/useRewardList";
 
 interface RewardRowProps {
   reward: string;
   quantity: number;
-  dispatch: React.Dispatch<RewardsReducerAction>;
 }
 
-const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity, dispatch }) => {
+const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity }) => {
+  const { dispatch } = useRewardList();
+
   const increment = () => dispatch({ type: "set", payload: { reward, quantity: quantity + 1 } });
   const decrement = () => dispatch({ type: "set", payload: { reward, quantity: quantity - 1 } });
   const set = (quantity) =>
