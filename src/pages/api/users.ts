@@ -21,6 +21,7 @@ handler.get(async (req, res) => {
         _id: 1,
         displayName: 1,
         photoURL: 1,
+        email: 1,
       },
     },
   ]);

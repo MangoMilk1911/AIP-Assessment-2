@@ -28,7 +28,7 @@ yup.addMethod(yup.string, "isMongoID", function (this: yup.StringSchema) {
 
 // =================== Validator HOF =====================
 
-type ValidatorActions = "create";
+type ValidatorActions = "create" | "updateFavour";
 
 export default function createValidator<T>(schema: yup.Schema<T>) {
   return function (req: NextApiRequest, action?: ValidatorActions) {
