@@ -16,6 +16,7 @@ import {
   useDisclosure,
   Input,
   useToast,
+  Image,
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
@@ -161,7 +162,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
           >
             <input id="evidence" type="file" name="evidence" ref={register} />
           </Stack>
-          {request.evidence && <img src={getEvidenceSrc(request.evidence)} />}
+          {request.evidence && <Image boxSize="xs" src={getEvidenceSrc(request.evidence)} />}
           {isClaimed && <Text>CLAIMED</Text>}
         </Stack>
 
