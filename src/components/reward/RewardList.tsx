@@ -1,8 +1,4 @@
 import React from "react";
-import { Rewards } from "models/Contribution";
-import { RewardsReducerAction } from "pages/requests/create";
-import { availableRewards } from "lib/availableRewards";
-import RewardRow from "./RewardRow";
 import {
   Button,
   Grid,
@@ -15,13 +11,12 @@ import {
   ModalOverlay,
   useDisclosure,
 } from "@chakra-ui/core";
+import { useRewardList } from "hooks/useRewardList";
+import { availableRewards } from "lib/availableRewards";
+import RewardRow from "./RewardRow";
 
-interface RewardModalProps {
-  currentRewards: Rewards;
-  dispatch: React.Dispatch<RewardsReducerAction>;
-}
-
-const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) => {
+const RewardModal: React.FC = () => {
+  const { rewards, dispatch } = useRewardList();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   function addReward(emoji: string) {
@@ -31,7 +26,9 @@ const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) =
 
   return (
     <>
-      <Button onClick={onOpen}>Add</Button>
+      <Button w="100%" onClick={onOpen}>
+        Add Reward
+      </Button>
 
       <Modal onClose={onClose} isOpen={isOpen}>
         <ModalOverlay>
@@ -45,7 +42,7 @@ const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) =
                     onClick={() => addReward(reward)}
                     size="lg"
                     key={reward}
-                    disabled={Object.keys(currentRewards).includes(reward)}
+                    disabled={Object.keys(rewards).includes(reward)}
                   >
                     {reward}
                   </Button>
@@ -62,18 +59,17 @@ const RewardModal: React.FC<RewardModalProps> = ({ currentRewards, dispatch }) =
   );
 };
 
-interface RewardListProps {
-  rewards: Rewards;
-  dispatch: React.Dispatch<RewardsReducerAction>;
-}
+const RewardList: React.FC = () => {
+  const { rewards } = useRewardList();
 
-const RewardList: React.FC<RewardListProps> = ({ rewards, dispatch }) => (
-  <div id="reward-list">
-    {Object.keys(rewards).map((emoji) => (
-      <RewardRow reward={emoji} quantity={rewards[emoji]} dispatch={dispatch} key={emoji} />
-    ))}
-    <RewardModal currentRewards={rewards} dispatch={dispatch} />
-  </div>
-);
+  return (
+    <div id="reward-list">
+      {Object.keys(rewards).map((emoji) => (
+        <RewardRow reward={emoji} quantity={rewards[emoji]} key={emoji} />
+      ))}
+      <RewardModal />
+    </div>
+  );
+};
 
 export default RewardList;
