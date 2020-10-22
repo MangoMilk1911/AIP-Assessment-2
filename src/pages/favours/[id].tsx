@@ -76,17 +76,36 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
     }
   }, [_id, accessToken]);
 
+  // Upload Evidence
+  const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const evidence = e.target.files[0];
+
+    const path = `favours/${debtor._id}_${recipient._id}_${new Date().toISOString()}/evidence.png`;
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(path);
+    await fileRef.put(evidence);
+
+    await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evidence: path,
+      }),
+    });
+
+    router.reload();
+  };
+
   // Image
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
+  const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
     if (favour.initialEvidence) {
-      firebase
-        .storage()
-        .ref(favour.initialEvidence)
-        .getDownloadURL()
-        .then((url) => {
-          setinitEvidenceURL(url);
-        });
+      firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
+    }
+
+    if (favour.evidence) {
+      firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
     }
   }, []);
 
@@ -134,7 +153,18 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
             ))}
           </Wrap>
 
-          {initEvidenceURL && <Image src={initEvidenceURL} />}
+          {initEvidenceURL && (
+            <Box>
+              <Text textAlign="center">Initial Evidence</Text>
+              <Image boxSize="xs" src={initEvidenceURL} />
+            </Box>
+          )}
+          {evidenceURL && (
+            <Box>
+              <Text textAlign="center">Debtor Evidence</Text>
+              <Image boxSize="xs" src={evidenceURL} />
+            </Box>
+          )}
 
           {/* Actions */}
           <Stack direction="row" justify="space-between" w="full">
@@ -147,10 +177,8 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
             >
               Delete
             </Button>
-            {user?.uid === debtor._id && (
-              <Button colorScheme="cyan" rightIcon={<AttachmentIcon />}>
-                Upload Evidence
-              </Button>
+            {user?.uid === debtor._id && !favour.evidence && (
+              <input type="file" onChange={uploadEvidence} />
             )}
           </Stack>
         </Stack>
