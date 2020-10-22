@@ -226,8 +226,6 @@ const OweForm: React.FC = () => {
 
   const createFavour = async ({ debtor, recipient, rewards, ev: evidence }: OweFormData) => {
     try {
-      console.log(evidence[0].name);
-
       const initEvidencePath = `favours/${debtor}_${recipient}_${new Date().toISOString()}/initialEvidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(initEvidencePath);
@@ -250,8 +248,6 @@ const OweForm: React.FC = () => {
       });
       router.push("/favours");
     } catch (error) {
-      console.log(error);
-
       (error as FetcherError).details?.errors.forEach((err) => {
         toast({
           status: "error",
