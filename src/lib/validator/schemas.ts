@@ -53,6 +53,54 @@ export const userValidation = yup.object({
   photoURL: yup.string().url().optional().trim(),
 });
 
+// ==================== Request ====================
+
+export const requestValidation = yup.object({
+  id: yup.string().when("$create", (create: boolean, schema: yup.StringSchema) => {
+    return create ? schema : schema.trim().required().isMongoID();
+  }),
+  title: yup.string().formLabel("Title").strict(true).trim().min(10).max(90).when("$create", {
+    is: true,
+    then: yup.string().required(),
+  }),
+  description: yup
+    .string()
+    .formLabel("Description")
+    .strict(true)
+    .trim()
+    .min(20)
+    .max(500)
+    .when("$create", {
+      is: true,
+      then: yup.string().required(),
+    }),
+  rewards: yup.lazy((val) => {
+    if (typeof val === "object") {
+      const shape = {};
+
+      for (const key in val) {
+        shape[key] = yup.number().required().min(1);
+      }
+
+      return yup.object(shape).test("notEmpty", "${path} must not be empty", (val) => {
+        const rewards = Object.keys(val);
+        return rewards.length !== 0;
+      });
+    } else {
+      return yup.object().when("$create", {
+        is: true,
+        then: yup.object().required(),
+      });
+    }
+  }),
+});
+
+// ==================== Evidence  ====================
+
+export const evidenceSchema = yup.object({
+  evidence: yup.mixed().required("Please provide a file."),
+});
+
 // ==================== Favour ====================
 
 export const favourValidation = yup.object({
