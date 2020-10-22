@@ -28,12 +28,11 @@ import { NextPage } from "next";
 import { ApiError } from "lib/errorHandler";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
+import { yup } from "lib/validator";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { evidenceSchema } from "lib/validator/schemas";
 
 dayjs.extend(relativeTime);
-
-function getEvidenceSrc(evidence: Buffer) {
-  return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
-}
 
 interface RequestPageProps {
   initRequest: RequestSchema;
@@ -41,7 +40,6 @@ interface RequestPageProps {
 
 const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { user, accessToken } = useAuth();
-  const [evidenceDisabled, setEvidenceDisabled] = useState(true);
 
   const router = useRouter();
   const { id } = router.query;
@@ -58,19 +56,25 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
 
   //Add Evidence Form
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, errors } = useForm({ resolver: yupResolver(evidenceSchema) });
 
-  const { owner, title, createdAt, description, contributions } = request;
+  const { owner, title, createdAt, description, contributions, isClaimed } = request;
   const isContributor = user && Object.keys(contributions).includes(user.uid);
+
+  function getEvidenceSrc(evidence: Buffer) {
+    return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
+  }
 
   const addEvidenceAndClaim = async (data) => {
     const formData = new FormData();
     formData.append("evidence", data.evidence[0]);
 
-    const res = await fetcher(`/api/requests/${request._id}/evidence`, null, {
+    const res = await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
       method: "POST",
       body: formData,
     });
+
+    router.reload();
   };
 
   const rewardPool = useMemo(() => {
@@ -87,7 +91,6 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
 
   return (
     <Container maxW="50rem" mt={24}>
-      <img src={getEvidenceSrc(request.evidence)} />
       <Stack direction="column" spacing={10}>
         <Stack mb={18}>
           <Heading size="xl">{title}</Heading>
@@ -147,6 +150,8 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
             <input type="file" name="evidence" ref={register} />
             <Button type="submit">Upload Evidence</Button>
           </Stack>
+          {request.evidence && <img src={getEvidenceSrc(request.evidence)} />}
+          {isClaimed && <Text>CLAIMED</Text>}
         </Stack>
 
         <HStack w="100%">

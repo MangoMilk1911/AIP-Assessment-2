@@ -47,6 +47,7 @@ handler.post(authMiddleware, async (req, res) => {
     description,
     contributions,
     owner: user.asEmbedded(),
+    isClaimed: false,
   });
 
   res.status(201).json(newRequest);

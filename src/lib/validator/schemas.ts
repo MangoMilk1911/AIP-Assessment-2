@@ -66,3 +66,9 @@ export const requestValidation = yup.object({
     }
   }),
 });
+
+// ==================== Evidence  ====================
+
+export const evidenceSchema = yup.object({
+  evidence: yup.mixed().required("Please provide a file."),
+});
