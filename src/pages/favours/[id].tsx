@@ -189,6 +189,12 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
 
 FavourDetails.getInitialProps = async (ctx) => {
   const { "pinky-auth": accessToken } = nookies.get(ctx);
+  if (!accessToken) {
+    ctx.res.writeHead(302, { location: "/login" });
+    ctx.res.end();
+    return;
+  }
+
   const favour = await fetcher(
     `${process.env.NEXT_PUBLIC_APIURL}/api/favours/${ctx.query.id}`,
     accessToken

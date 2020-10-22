@@ -104,9 +104,9 @@ const FavourList: React.FC = () => {
   const toast = useToast();
   const router = useRouter();
   const { accessToken } = useAuth();
-  if (!accessToken) {
-    router.push("/login");
+  if (!accessToken && process.browser) {
     toast({ status: "warning", title: "You must be logged in!" });
+    router.push("/login");
   }
 
   const [filterQuery, setFilterQuery] = useState<FilterQuery>("owed");
