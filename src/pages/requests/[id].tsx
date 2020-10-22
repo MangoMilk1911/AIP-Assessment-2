@@ -83,7 +83,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
       toast({
         status: "error",
         title: "Uh oh...",
-        description: "LOL SORRY",
+        description: "Maybe you haven't added evidence?",
       });
     }
   };
@@ -123,7 +123,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
                 ))}
               </AvatarGroup>
               {user && (
-                <Button fontSize="sm" variant="link" onClick={onOpen}>
+                <Button fontSize="sm" variant="link" onClick={onOpen} isDisabled={isClaimed}>
                   {isContributor ? "Edit" : "Add"} Contribution
                 </Button>
               )}
@@ -167,12 +167,12 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
 
         <HStack w="100%">
           {user?.uid == request.owner._id && (
-            <Button onClick={() => setIsOpen(true)} colorScheme="red">
+            <Button onClick={() => setIsOpen(true)} colorScheme="red" isDisabled={isClaimed}>
               Delete Request
             </Button>
           )}
           <Spacer />
-          <Button colorScheme="teal" form="evidenceform" type="submit">
+          <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
             Confirm & Claim
           </Button>
         </HStack>
