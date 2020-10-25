@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { NextPage } from "next";
-import { FavourSchema } from "models/Favour";
-import fetcher, { FetcherError } from "lib/fetcher";
-import nookies from "nookies";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
+import NextLink from "next/link";
+import { useRouter } from "next/router";
 import {
   Avatar,
   Box,
@@ -15,13 +14,15 @@ import {
   useToast,
   Wrap,
 } from "@chakra-ui/core";
+import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import RewardCube from "components/reward/RewardCube";
-import { EmbeddedUserSchema } from "models/User";
 import { useAuth } from "lib/auth";
-import { useRouter } from "next/router";
-import NextLink from "next/link";
-import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
+import fetcher, { FetcherError } from "lib/fetcher";
+import { admin } from "lib/firebase/admin";
 import { firebase } from "lib/firebase/client";
+import Favour, { FavourSchema } from "models/Favour";
+import { EmbeddedUserSchema } from "models/User";
+import nookies from "nookies";
 
 /**
  * User Preview
@@ -48,7 +49,7 @@ interface FavourDetailsProps {
   favour: FavourSchema;
 }
 
-const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
+const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
   const toast = useToast();
   const router = useRouter();
 
@@ -187,20 +188,21 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
   );
 };
 
-FavourDetails.getInitialProps = async (ctx) => {
-  const { "pinky-auth": accessToken } = nookies.get(ctx);
-  if (!accessToken) {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  try {
+    const { "pinky-auth": accessToken } = nookies.get(ctx);
+    await admin.auth().verifyIdToken(accessToken);
+
+    const favour = await Favour.findById(ctx.query.id).lean();
+
+    return { props: { favour } };
+  } catch (error) {
+    // User isn't authenticated, send to login
     ctx.res.writeHead(302, { location: "/login" });
     ctx.res.end();
-    return;
+
+    return { props: {} as never };
   }
-
-  const favour = await fetcher(
-    `${process.env.NEXT_PUBLIC_APIURL}/api/favours/${ctx.query.id}`,
-    accessToken
-  );
-
-  return { favour };
 };
 
 export default FavourDetails;
