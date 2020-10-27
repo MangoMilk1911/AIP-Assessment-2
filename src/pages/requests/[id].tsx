@@ -21,7 +21,7 @@ import {
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
 import RewardCube from "@/components/reward/RewardCube";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import fetcher, { FetcherError } from "lib/fetcher";
 import DeleteAlert from "@/components/request/DeleteAlert";
 import RewardModal from "@/components/request/ContributionModal";

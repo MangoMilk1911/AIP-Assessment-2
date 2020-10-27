@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import fetcher, { FetcherError } from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
 import { favourValidation } from "lib/validator/schemas";

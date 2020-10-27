@@ -14,7 +14,7 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import { userValidation } from "lib/validator/schemas";
 import { useForm } from "react-hook-form";
 

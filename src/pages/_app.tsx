@@ -1,6 +1,6 @@
 import React from "react";
 import Head from "next/head";
-import { AuthProvider } from "lib/auth";
+import { AuthProvider } from "hooks/useAuth";
 import { SWRConfig } from "swr";
 import fetcher from "lib/fetcher";
 import { ChakraProvider } from "@chakra-ui/core";

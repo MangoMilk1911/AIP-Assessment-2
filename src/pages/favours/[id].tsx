@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
 import { EmbeddedUserSchema } from "models/User";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";

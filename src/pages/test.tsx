@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import { UserSchema } from "models/User";
 import useSWR from "swr";
 import { FetcherError } from "lib/fetcher";

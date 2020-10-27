@@ -19,7 +19,7 @@ import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import fetcher, { FetcherError } from "lib/fetcher";
 import { useRouter } from "next/router";
 
