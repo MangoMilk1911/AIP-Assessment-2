@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { NextPage } from "next";
 import { FavourSchema } from "models/Favour";
-import fetcher, { FetcherError } from "lib/fetcher";
+import fetcher from "lib/fetcher";
 import nookies from "nookies";
 import Head from "next/head";
 import {
@@ -22,6 +22,7 @@ import { useRouter } from "next/router";
 import NextLink from "next/link";
 import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
 import { firebase } from "lib/firebase/client";
+import { ServerError } from "lib/errorHandler";
 
 /**
  * User Preview
@@ -59,20 +60,16 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
   const canDelete = user?.uid === recipient._id || (user?.uid === debtor._id && evidence);
   const deleteFavour = useCallback(async () => {
     try {
-      await fetcher(`${process.env.NEXT_PUBLIC_APIURL}/api/favours/${_id}`, accessToken, {
-        method: "DELETE",
-      });
-
+      await fetcher(`api/favours/${_id}`, accessToken, { method: "DELETE" });
       router.push("/favours");
-    } catch (error) {
-      const { details } = error as FetcherError;
-      for (const err of details.errors) {
-        toast({
-          status: "error",
-          title: "Uh oh...",
-          description: err.message,
-        });
-      }
+    } catch (fetchError) {
+      const { errors } = fetchError as ServerError;
+
+      toast({
+        status: "error",
+        title: "Uh oh...",
+        description: errors[0].message,
+      });
     }
   }, [_id, accessToken]);
 

@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuth } from "hooks/useAuth";
-import { FetcherError } from "lib/fetcher";
+import { isServerError } from "lib/errorHandler";
 import { userValidation } from "lib/validator/schemas";
 import { useForm } from "react-hook-form";
 
@@ -62,8 +62,8 @@ const Login: React.FC = () => {
     try {
       await signInWithGoogle();
     } catch (error) {
-      const { details } = error as FetcherError;
-      errorToast(details?.errors[0].message || "Something went wrong.");
+      const errMsg = isServerError(error) ? error.errors[0].message : "Something went wrong.";
+      errorToast(errMsg);
     }
   }
 
