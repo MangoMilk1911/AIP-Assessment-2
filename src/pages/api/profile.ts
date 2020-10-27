@@ -1,4 +1,4 @@
-import { admin } from "lib/firebase/admin";
+import { firebaseAdmin } from "lib/firebase/admin";
 import { authGuard } from "lib/middleware";
 import { User } from "models";
 import { ApiError } from "lib/errorHandler";
@@ -21,7 +21,7 @@ handler.get(authGuard, async (req, res) => {
  * account!
  */
 handler.post(authGuard, async (req, res) => {
-  let user = await admin.auth().getUser(req.userId);
+  let user = await firebaseAdmin.auth().getUser(req.userId);
   const { uid, email, displayName, photoURL } = user;
 
   // Don't create user account data twice
