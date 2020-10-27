@@ -19,9 +19,10 @@ import { requestValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Request";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import { useAuth } from "lib/auth";
-import fetcher, { FetcherError } from "lib/fetcher";
+import { useAuth } from "hooks/useAuth";
+import fetcher from "lib/fetcher";
 import { useRouter } from "next/router";
+import { ServerError } from "lib/errorHandler";
 
 interface RequestFormData {
   title: string;
@@ -58,7 +59,7 @@ const CreateRequest: React.FC = () => {
       });
       router.push("/requests");
     } catch (error) {
-      (error as FetcherError).details.errors.forEach((err) => {
+      (error as ServerError).errors.forEach((err) => {
         toast({
           status: "error",
           title: "Uh oh...",

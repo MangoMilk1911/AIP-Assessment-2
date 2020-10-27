@@ -2,9 +2,9 @@ import createHandler from "lib/routeHandler";
 import multer from "multer";
 import { promises as fs } from "fs";
 import { Favour, Request, User } from "models";
-import { authMiddleware } from "lib/middleware";
+import { authGuard } from "lib/middleware";
 
-const handler = createHandler().use(authMiddleware);
+const handler = createHandler().use(authGuard);
 const upload = multer({ dest: "tmp/" });
 
 handler.post(upload.single("evidence"), async (req, res) => {
@@ -32,6 +32,9 @@ handler.post(upload.single("evidence"), async (req, res) => {
       rewards: contributions.get(uid).rewards,
     });
   });
+
+  recipient.points += 3;
+  await recipient.save();
 
   res.status(204).end();
 });

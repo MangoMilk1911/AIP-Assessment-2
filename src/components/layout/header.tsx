@@ -17,7 +17,7 @@ import {
   Divider,
 } from "@chakra-ui/core";
 import { ChevronDownIcon } from "@chakra-ui/icons";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 
 /**
  * Navbar Item
