@@ -16,13 +16,14 @@ import {
 } from "@chakra-ui/core";
 import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import RewardCube from "components/reward/RewardCube";
-import { useAuth } from "lib/auth";
-import fetcher, { FetcherError } from "lib/fetcher";
-import { admin } from "lib/firebase/admin";
+import { useAuth } from "hooks/useAuth";
+import fetcher from "lib/fetcher";
+import { firebaseAdmin } from "lib/firebase/admin";
 import { firebase } from "lib/firebase/client";
 import Favour, { FavourSchema } from "models/Favour";
 import { EmbeddedUserSchema } from "models/User";
 import nookies from "nookies";
+import { ServerError } from "lib/errorHandler";
 
 /**
  * User Preview
@@ -60,20 +61,16 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
   const canDelete = user?.uid === recipient._id || (user?.uid === debtor._id && evidence);
   const deleteFavour = useCallback(async () => {
     try {
-      await fetcher(`${process.env.NEXT_PUBLIC_APIURL}/api/favours/${_id}`, accessToken, {
-        method: "DELETE",
-      });
-
+      await fetcher(`api/favours/${_id}`, accessToken, { method: "DELETE" });
       router.push("/favours");
-    } catch (error) {
-      const { details } = error as FetcherError;
-      for (const err of details.errors) {
-        toast({
-          status: "error",
-          title: "Uh oh...",
-          description: err.message,
-        });
-      }
+    } catch (fetchError) {
+      const { errors } = fetchError as ServerError;
+
+      toast({
+        status: "error",
+        title: "Uh oh...",
+        description: errors[0].message,
+      });
     }
   }, [_id, accessToken]);
 
@@ -191,7 +188,7 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const { "pinky-auth": accessToken } = nookies.get(ctx);
-    await admin.auth().verifyIdToken(accessToken);
+    await firebaseAdmin.auth().verifyIdToken(accessToken);
 
     const favour = await Favour.findById(ctx.query.id).lean();
 

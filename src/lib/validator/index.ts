@@ -21,7 +21,7 @@ yup.addMethod(yup.mixed, "formLabel", function (this: yup.Schema<any>, label: st
 });
 
 yup.addMethod(yup.string, "isMongoID", function (this: yup.StringSchema) {
-  return this.strict(true).test("isMongoID", "${path} is not a valid Object ID", function (val) {
+  return this.test("isMongoID", "${path} is not a valid Object ID", function (val) {
     return isValidObjectId(val);
   });
 });

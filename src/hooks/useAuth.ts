@@ -5,10 +5,6 @@ import constate from "constate";
 import nookies from "nookies";
 import fetcher from "lib/fetcher";
 
-async function createProfile(accessToken: string) {
-  return await fetcher("/api/profile", accessToken, { method: "POST" });
-}
-
 function authContextHook() {
   const [user, setUser] = useState<firebase.User>();
   const [accessToken, setAccessToken] = useState<string>();
@@ -55,7 +51,7 @@ function authContextHook() {
 
     // Create profile in database
     const accessToken = await user.getIdToken();
-    await createProfile(accessToken);
+    await fetcher("/api/profile", accessToken, { method: "POST" });
 
     // Push to main page once complete
     Router.push("/");
@@ -70,9 +66,12 @@ function authContextHook() {
 
   async function signInWithGoogle() {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
-    const { additionalUserInfo } = await firebase.auth().signInWithPopup(googleProvider);
+    const { user, additionalUserInfo } = await firebase.auth().signInWithPopup(googleProvider);
 
-    if (additionalUserInfo?.isNewUser) await createProfile(accessToken);
+    if (additionalUserInfo?.isNewUser) {
+      const accessToken = await user.getIdToken();
+      await fetcher("/api/profile", accessToken, { method: "POST" });
+    }
 
     Router.push("/");
   }

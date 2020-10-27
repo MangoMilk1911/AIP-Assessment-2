@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import FavourCard from "components/favour/Card";
-import { useAuth } from "lib/auth";
+import { useAuth } from "hooks/useAuth";
 import { ApiError } from "lib/errorHandler";
 import { FavourSchema } from "models/Favour";
 import useSWR from "swr";

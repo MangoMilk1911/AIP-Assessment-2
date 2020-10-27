@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import SelectUser from "@/components/favour/SelectUser";
-import RewardList from "@/components/reward/RewardList";
+import SelectUser from "components/favour/SelectUser";
+import RewardList from "components/reward/RewardList";
 import {
   Button,
   Container,
@@ -20,14 +20,15 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import { useAuth } from "lib/auth";
-import fetcher, { FetcherError } from "lib/fetcher";
+import { useAuth } from "hooks/useAuth";
+import fetcher from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
 import { favourValidation } from "lib/validator/schemas";
 import { Rewards } from "models/Favour";
 import { UserSchema } from "models/User";
 import { useForm } from "react-hook-form";
 import useSWR from "swr";
+import { ServerError } from "lib/errorHandler";
 
 const useSelectUser = () => {
   // Selected User
@@ -118,9 +119,10 @@ const OwingForm: React.FC = () => {
         status: "success",
         title: "New Favour Created!",
       });
+
       router.push("/favours");
     } catch (error) {
-      (error as FetcherError).details?.errors.forEach((err) => {
+      (error as ServerError).errors.forEach((err) => {
         toast({
           status: "error",
           title: "Uh oh...",
@@ -248,7 +250,7 @@ const OweForm: React.FC = () => {
       });
       router.push("/favours");
     } catch (error) {
-      (error as FetcherError).details?.errors.forEach((err) => {
+      (error as ServerError).errors.forEach((err) => {
         toast({
           status: "error",
           title: "Uh oh...",
