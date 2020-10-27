@@ -1,5 +1,5 @@
 import { admin } from "lib/firebase/admin";
-import { authMiddleware } from "lib/middleware";
+import { authGuard } from "lib/middleware";
 import { User } from "models";
 import { ApiError } from "lib/errorHandler";
 import createHandler from "lib/routeHandler";
@@ -8,7 +8,7 @@ const handler = createHandler();
 
 // ==================== User Profile ====================
 
-handler.get(authMiddleware, async (req, res) => {
+handler.get(authGuard, async (req, res) => {
   const user = await User.findById(req.userId);
   res.json(user);
 });
@@ -20,7 +20,7 @@ handler.get(authMiddleware, async (req, res) => {
  * user first signs up on the website to finish creating their
  * account!
  */
-handler.post(authMiddleware, async (req, res) => {
+handler.post(authGuard, async (req, res) => {
   let user = await admin.auth().getUser(req.userId);
   const { uid, email, displayName, photoURL } = user;
 
