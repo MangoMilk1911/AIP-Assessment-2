@@ -20,11 +20,11 @@ import {
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
-import RewardCube from "@/components/reward/RewardCube";
+import RewardCube from "components/reward/RewardCube";
 import { useAuth } from "hooks/useAuth";
 import fetcher, { FetcherError } from "lib/fetcher";
-import DeleteAlert from "@/components/request/DeleteAlert";
-import RewardModal from "@/components/request/ContributionModal";
+import DeleteAlert from "components/request/DeleteAlert";
+import RewardModal from "components/request/ContributionModal";
 import useSWR from "swr";
 import { NextPage } from "next";
 import { ApiError } from "lib/errorHandler";

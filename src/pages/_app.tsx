@@ -6,7 +6,7 @@ import fetcher from "lib/fetcher";
 import { ChakraProvider } from "@chakra-ui/core";
 import theme from "../theme";
 import type { AppProps } from "next/app";
-import Header from "@/components/layout/header";
+import Header from "components/layout/header";
 
 /**
  * Add global serializer for Mongo Object IDs

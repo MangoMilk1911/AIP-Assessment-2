@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import SelectUser from "@/components/favour/SelectUser";
-import RewardList from "@/components/reward/RewardList";
+import SelectUser from "components/favour/SelectUser";
+import RewardList from "components/reward/RewardList";
 import {
   Button,
   Container,
