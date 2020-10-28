@@ -84,6 +84,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
   //evidence things
   const previewImageRef = useRef<HTMLImageElement>(null);
+  const [cannotSubmit, setCannotSubmit] = useState(true);
 
   const checkFileType = () => {
     const fileInput = document.getElementById("evidence") as HTMLInputElement;
@@ -97,7 +98,8 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
         status: "error",
       });
       fileInput.value = "";
-      previewImageRef.current.src = "";
+      previewImageRef.current.src = null;
+      setCannotSubmit(true);
     } else {
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
@@ -105,6 +107,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           previewImageRef.current.src = e.target.result.toString();
         };
         reader.readAsDataURL(fileInput.files[0]);
+        setCannotSubmit(false);
       }
     }
   };
@@ -203,7 +206,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           )}
           <Spacer />
           {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && (
-            <Button colorScheme="green" type="submit">
+            <Button colorScheme="green" type="submit" isDisabled={cannotSubmit}>
               Confirm & Claim
             </Button>
           )}
