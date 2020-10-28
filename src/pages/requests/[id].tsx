@@ -26,13 +26,16 @@ import fetcher from "lib/fetcher";
 import DeleteAlert from "components/request/DeleteAlert";
 import RewardModal from "components/request/ContributionModal";
 import useSWR from "swr";
-import { NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import { ApiError } from "lib/errorHandler";
 import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { yup } from "lib/validator";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { evidenceSchema } from "lib/validator/schemas";
+import Request from "models/Request";
+import { firebaseAdmin } from "lib/firebase/admin";
+import nookies from "nookies";
 
 dayjs.extend(relativeTime);
 
@@ -40,7 +43,7 @@ interface RequestPageProps {
   initRequest: RequestSchema;
 }
 
-const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
+const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
   const { user, accessToken } = useAuth();
 
   const toast = useToast();
@@ -59,35 +62,9 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   //RewardsModal
   const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
 
-  //Add Evidence Form
-  const { register, handleSubmit, errors } = useForm({ resolver: yupResolver(evidenceSchema) });
-
-  const { owner, title, createdAt, description, contributions, isClaimed } = request;
+  const { owner, title, createdAt, description, contributions, isClaimed } = initRequest;
 
   const isContributor = user && Object.keys(contributions).includes(user.uid);
-
-  function getEvidenceSrc(evidence: Buffer) {
-    return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
-  }
-
-  const addEvidenceAndClaim = async (data) => {
-    const formData = new FormData();
-    formData.append("evidence", data.evidence[0]);
-
-    try {
-      const res = await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
-        method: "POST",
-        body: formData,
-      });
-      router.reload();
-    } catch (error) {
-      toast({
-        status: "error",
-        title: "Uh oh...",
-        description: "Maybe you haven't added evidence?",
-      });
-    }
-  };
 
   const rewardPool = useMemo(() => {
     const temp = {};
@@ -154,28 +131,20 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
         {!isContributor && (
           <Stack my={18} spacing={4}>
             <Heading size="md">Evidence</Heading>
-            <Stack
-              id="evidenceform"
-              as="form"
-              align="flex-start"
-              spacing={5}
-              onSubmit={handleSubmit(addEvidenceAndClaim)}
-            >
-              <input id="evidence" type="file" name="evidence" ref={register} />
+            <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
+              <input id="evidence" type="file" name="evidence" />
             </Stack>
-            {request.evidence && <Image boxSize="xs" src={getEvidenceSrc(request.evidence)} />}
-            {isClaimed && <Text>CLAIMED</Text>}
           </Stack>
         )}
 
         <HStack w="100%">
-          {user?.uid === request.owner._id && (
+          {user?.uid === initRequest.owner._id && (
             <Button onClick={() => setIsOpen(true)} colorScheme="red" isDisabled={isClaimed}>
               Delete Request
             </Button>
           )}
           <Spacer />
-          {user?.uid !== request.owner._id && !isContributor && (
+          {user?.uid !== initRequest.owner._id && !isContributor && (
             <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
               Confirm & Claim
             </Button>
@@ -183,7 +152,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
         </HStack>
       </Stack>
 
-      <DeleteAlert isOpen={isOpen} onClose={onClose} id={request._id} />
+      <DeleteAlert isOpen={isOpen} onClose={onClose} id={initRequest._id} />
       <RewardListProvider>
         <RewardModal
           isOpen={isOpenRM}
@@ -195,13 +164,20 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   );
 };
 
-RequestPage.getInitialProps = async ({ query, req, res }) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
-    const request = await fetcher(`${process.env.NEXT_PUBLIC_APIURL}/api/requests/${query.id}`);
-    return { initRequest: request };
+    const { "pinky-auth": accessToken } = nookies.get(ctx);
+    await firebaseAdmin.auth().verifyIdToken(accessToken);
+
+    const request = await Request.findById(ctx.query.id).lean();
+
+    return { props: { initRequest: request } };
   } catch (error) {
-    res.writeHead(302, { location: "/requests" });
-    res.end();
+    // User isn't authenticated, send to login
+    ctx.res.writeHead(302, { location: "/login" });
+    ctx.res.end();
+
+    return { props: {} as never };
   }
 };
 

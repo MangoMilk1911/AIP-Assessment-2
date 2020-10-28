@@ -12,7 +12,7 @@ interface RequestCardProps {
 }
 
 const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
-  const { owner, title, createdAt, contributions } = request;
+  const { owner, title, createdAt, contributions, isClaimed } = request;
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const rewardPool = useMemo(() => {
@@ -41,7 +41,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
       <Flex
         h={48}
         direction="column"
-        bg="whiteAlpha.200"
+        bg={isClaimed ? "green.500" : "whiteAlpha.200"}
         borderRadius="lg"
         p="5"
         width="sm"
@@ -60,10 +60,11 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
             </Text>
           ))}
         </Stack>
-
-        <Spacer />
-
-        <Text>{dayjs(createdAt).from(new Date())}</Text>
+        <Stack direction="row">
+          <Text>{dayjs(createdAt).from(new Date())}</Text>
+          <Spacer />
+          {isClaimed && <Text>Completed!</Text>}
+        </Stack>
       </Flex>
     </NextLink>
   );

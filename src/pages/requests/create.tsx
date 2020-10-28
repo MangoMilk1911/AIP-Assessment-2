@@ -1,5 +1,3 @@
-import React, { useEffect } from "react";
-import Head from "next/head";
 import {
   Button,
   Container,
@@ -15,14 +13,16 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import RewardList from "components/reward/RewardList";
-import { requestValidation } from "lib/validator/schemas";
-import { Rewards } from "models/Request";
-import { useForm } from "react-hook-form";
-import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { useAuth } from "hooks/useAuth";
-import fetcher from "lib/fetcher";
-import { useRouter } from "next/router";
+import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { ServerError } from "lib/errorHandler";
+import fetcher from "lib/fetcher";
+import { requestValidation } from "lib/validator/schemas";
+import { RequestSchema, Rewards } from "models/Request";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 interface RequestFormData {
   title: string;
@@ -48,7 +48,7 @@ const CreateRequest: React.FC = () => {
 
   const createRequest = async ({ title, description, rewards }: RequestFormData) => {
     try {
-      await fetcher("/api/requests/", accessToken, {
+      const newRequest = (await fetcher("/api/requests/", accessToken, {
         method: "POST",
         body: JSON.stringify({
           title,
@@ -56,8 +56,9 @@ const CreateRequest: React.FC = () => {
           rewards,
         }),
         headers: { "Content-type": "application/json" },
-      });
-      router.push("/requests");
+      })) as RequestSchema;
+      toast({ status: "success", title: "Success!", description: "Request created!" });
+      router.push(`/requests/${newRequest._id}`);
     } catch (error) {
       (error as ServerError).errors.forEach((err) => {
         toast({
