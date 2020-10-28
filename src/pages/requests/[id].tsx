@@ -82,6 +82,32 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     return temp;
   }, [contributions]);
 
+  //evidence things
+  const previewImageRef = useRef<HTMLImageElement>(null);
+
+  const checkFileType = () => {
+    const fileInput = document.getElementById("evidence") as HTMLInputElement;
+    const filePath = fileInput.value;
+    var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+
+    if (!allowedExtensions.exec(filePath)) {
+      toast({
+        title: "OI MATE",
+        description: "Please only upload image type files.",
+        status: "error",
+      });
+      fileInput.value = "";
+    } else {
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImageRef.current.src = e.target.result.toString();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    }
+  };
+
   return (
     <Container maxW="50rem" mt={24}>
       <Stack direction="column" spacing={10}>
@@ -152,10 +178,12 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
         <Stack>
           <Heading size="md">Evidence</Heading>
+          {isContributor && <Text>You cannot claim if you are a contributor.</Text>}
           {!isContributor && !isClaimed && (
             <Stack my={18} spacing={4}>
               <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
-                <input id="evidence" type="file" name="evidence" />
+                <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
+                <Image ref={previewImageRef} width="50%" height="35rem" />
               </Stack>
             </Stack>
           )}
