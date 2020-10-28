@@ -17,6 +17,10 @@ import {
   Input,
   useToast,
   Image,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
@@ -86,6 +90,24 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           <Text>{dayjs(createdAt).from(new Date())}</Text>
         </Stack>
 
+        <Stack>
+          {isClaimed ? (
+            <Alert status="success">
+              <AlertIcon />
+              <AlertTitle mr={2}>Woo Hoo!</AlertTitle>
+              <AlertDescription>This request has been completed. Rejoice! 🥳</AlertDescription>
+            </Alert>
+          ) : (
+            <Alert status="info">
+              <AlertIcon />
+              <AlertTitle mr={2}></AlertTitle>
+              <AlertDescription>
+                Contribute or Claim this request below. Evidence required. 😳
+              </AlertDescription>
+            </Alert>
+          )}
+        </Stack>
+
         <SimpleGrid columns={2} spacing={5}>
           <Stack spacing={4}>
             <Heading size="md">Contributors</Heading>
@@ -128,14 +150,16 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           </Box>
         </Stack>
 
-        {!isContributor && (
-          <Stack my={18} spacing={4}>
-            <Heading size="md">Evidence</Heading>
-            <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
-              <input id="evidence" type="file" name="evidence" />
+        <Stack>
+          <Heading size="md">Evidence</Heading>
+          {!isContributor && !isClaimed && (
+            <Stack my={18} spacing={4}>
+              <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
+                <input id="evidence" type="file" name="evidence" />
+              </Stack>
             </Stack>
-          </Stack>
-        )}
+          )}
+        </Stack>
 
         <HStack w="100%">
           {user?.uid === initRequest.owner._id && (
@@ -144,8 +168,8 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             </Button>
           )}
           <Spacer />
-          {user?.uid !== initRequest.owner._id && !isContributor && (
-            <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
+          {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && (
+            <Button colorScheme="green" type="submit">
               Confirm & Claim
             </Button>
           )}
