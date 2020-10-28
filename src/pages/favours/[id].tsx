@@ -24,6 +24,8 @@ import Favour, { FavourSchema } from "models/Favour";
 import { EmbeddedUserSchema } from "models/User";
 import nookies from "nookies";
 import { ServerError } from "lib/errorHandler";
+import useSWR from "swr";
+import { isValidObjectId } from "mongoose";
 
 /**
  * User Preview
@@ -47,65 +49,91 @@ const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (
  */
 
 interface FavourDetailsProps {
-  favour: FavourSchema;
+  initFavour: FavourSchema;
 }
 
-const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
-  const toast = useToast();
-  const router = useRouter();
-
+const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
   const { user, accessToken } = useAuth();
-  const { _id, debtor, recipient, rewards, evidence } = favour;
+  const router = useRouter();
+  const toast = useToast();
+
+  const { data: favour, mutate } = useSWR<FavourSchema, ServerError>(
+    [`/api/favours/${initFavour._id}`, accessToken],
+    {
+      initialData: initFavour,
+    }
+  );
+  const { _id, debtor, recipient, rewards, initialEvidence, evidence } = favour;
 
   // Delete Favour
   const canDelete = user?.uid === recipient._id || (user?.uid === debtor._id && evidence);
   const deleteFavour = useCallback(async () => {
     try {
-      await fetcher(`api/favours/${_id}`, accessToken, { method: "DELETE" });
+      await fetcher(`/api/favours/${_id}`, accessToken, { method: "DELETE" });
+
+      toast({
+        status: "success",
+        title: "Favour deleted!",
+      });
+
       router.push("/favours");
     } catch (fetchError) {
       const { errors } = fetchError as ServerError;
 
       toast({
         status: "error",
-        title: "Uh oh...",
+        title: "Unable to delete favour 😭",
         description: errors[0].message,
       });
     }
   }, [_id, accessToken]);
 
   // Upload Evidence
+  const canUploadEvidence = user?.uid === debtor._id && !initFavour.evidence;
   const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const evidence = e.target.files[0];
 
-    const path = `favours/${debtor._id}_${recipient._id}_${new Date().toISOString()}/evidence.png`;
-    const storageRef = firebase.storage().ref();
-    const fileRef = storageRef.child(path);
-    await fileRef.put(evidence);
+    try {
+      const timestamp = new Date().toISOString();
+      const path = `favours/${debtor._id}_${recipient._id}_${timestamp}/evidence.png`;
+      const storageRef = firebase.storage().ref();
+      const fileRef = storageRef.child(path);
+      await fileRef.put(evidence);
 
-    await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      await fetcher(`/api/favours/${initFavour._id}/evidence`, accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          evidence: path,
+        }),
+      });
+
+      mutate({
+        ...favour,
         evidence: path,
-      }),
-    });
+      });
 
-    router.reload();
+      toast({
+        status: "success",
+        title: "Evidence submitted! 🥳",
+      });
+    } catch (error) {
+      // Todo
+    }
   };
 
   // Image
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
   const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
-    if (favour.initialEvidence) {
-      firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
+    if (initialEvidence) {
+      firebase.storage().ref(initialEvidence).getDownloadURL().then(setinitEvidenceURL);
     }
 
-    if (favour.evidence) {
-      firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
+    if (evidence) {
+      firebase.storage().ref(evidence).getDownloadURL().then(setEvidenceURL);
     }
-  }, []);
+  }, [initialEvidence, evidence]);
 
   return (
     <>
@@ -175,9 +203,8 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
             >
               Delete
             </Button>
-            {user?.uid === debtor._id && !favour.evidence && (
-              <input type="file" onChange={uploadEvidence} />
-            )}
+
+            {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
           </Stack>
         </Stack>
       </Container>
@@ -186,13 +213,18 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ favour }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  if (!isValidObjectId(ctx.query.id)) {
+    ctx.res.writeHead(302, { location: "/favours" });
+    ctx.res.end();
+  }
+
   try {
     const { "pinky-auth": accessToken } = nookies.get(ctx);
     await firebaseAdmin.auth().verifyIdToken(accessToken);
 
-    const favour = await Favour.findById(ctx.query.id).lean();
+    const initFavour = await Favour.findById(ctx.query.id).lean();
 
-    return { props: { favour } };
+    return { props: { initFavour } };
   } catch (error) {
     // User isn't authenticated, send to login
     ctx.res.writeHead(302, { location: "/login" });
