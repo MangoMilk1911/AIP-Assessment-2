@@ -97,6 +97,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
         status: "error",
       });
       fileInput.value = "";
+      previewImageRef.current.src = "";
     } else {
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
@@ -183,7 +184,12 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             <Stack my={18} spacing={4}>
               <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
                 <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
-                <Image ref={previewImageRef} width="50%" height="35rem" />
+                <Image
+                  ref={previewImageRef}
+                  hidden={!!previewImageRef.current?.src}
+                  w="50%"
+                  h="auto"
+                />
               </Stack>
             </Stack>
           )}
