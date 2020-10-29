@@ -31,7 +31,7 @@ export class RequestSchema extends TimeStamps {
   public description!: string;
 
   @prop()
-  public evidence?: Buffer;
+  public evidence?: string;
 
   @prop()
   public owner!: EmbeddedUserSchema;

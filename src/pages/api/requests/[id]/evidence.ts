@@ -4,20 +4,17 @@ import { promises as fs } from "fs";
 import { Favour, Request, User } from "models";
 import { authGuard } from "lib/middleware";
 
-const handler = createHandler().use(authGuard);
-const upload = multer({ dest: "tmp/" });
+const handler = createHandler();
 
-handler.post(upload.single("evidence"), async (req, res) => {
+handler.post(authGuard, async (req, res) => {
   const { id } = req.query;
+  const { evidence } = req.body;
   const request = await Request.findById(id);
 
   //setting evidence on Request
-  request.evidence = await fs.readFile(req.file.path);
+  request.evidence = evidence;
   request.isClaimed = true;
   await request.save();
-
-  //Clean up tmp file
-  await fs.unlink(req.file.path);
 
   const recipient = await User.findById((req as any).userId);
 
@@ -38,11 +35,5 @@ handler.post(upload.single("evidence"), async (req, res) => {
 
   res.status(204).end();
 });
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export default handler;

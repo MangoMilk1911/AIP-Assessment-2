@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import {
@@ -21,6 +21,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  Skeleton,
 } from "@chakra-ui/core";
 import Router, { useRouter } from "next/router";
 import { RequestSchema } from "models/Request";
@@ -83,7 +84,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     return temp;
   }, [contributions]);
 
-  //evidence things
+  //evidence upload
   const previewImageRef = useRef<HTMLImageElement>(null);
   const [cannotSubmit, setCannotSubmit] = useState(true);
 
@@ -117,11 +118,31 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     const fileInput = document.getElementById("evidence") as HTMLInputElement;
     const evidence = fileInput.files[0];
 
-    // const path = `requests/${request._id}_${new Date().toISOString()}/evidence.png`;
-    // const storageRef = firebase.storage().ref();
-    // const fileRef = storageRef.child(path);
-    // await fileRef.put(evidence);
+    //prettier-ignore
+    const path = `requests/${request.title}_${request._id}_${new Date().toISOString()}/evidence.png`;
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(path);
+    await fileRef.put(evidence);
+
+    await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evidence: path,
+      }),
+    });
+
+    router.reload();
   };
+
+  //EVIDENCE POST CLAIMED
+  const [evidenceURL, setEvidenceURL] = useState<string>();
+  const evidenceLoading = request.evidence && !evidenceURL;
+  useEffect(() => {
+    if (request.evidence) {
+      firebase.storage().ref(request.evidence).getDownloadURL().then(setEvidenceURL);
+    }
+  }, [request.evidence]);
 
   return (
     <Container maxW="50rem" mt={24}>
@@ -193,8 +214,18 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
         <Stack>
           <Heading size="md">Evidence</Heading>
-          {isContributor && <Text>You cannot claim if you are a contributor.</Text>}
-          {!isContributor && !isClaimed && (
+          {isContributor ||
+            (!user && !isClaimed && (
+              <Text>You cannot claim if you are a contributor or not logged in.</Text>
+            ))}
+
+          {isClaimed && (
+            <Skeleton isLoaded={!evidenceLoading} h={64} w="50%">
+              {isClaimed && <Image src={evidenceURL} w="100%" h="auto" />}
+            </Skeleton>
+          )}
+
+          {!isContributor && !isClaimed && user && (
             <Stack my={18} spacing={4}>
               <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
                 <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
@@ -211,12 +242,12 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             </Button>
           )}
           <Spacer />
-          {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && (
+          {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && user && (
             <Button
               colorScheme="green"
               type="submit"
               isDisabled={cannotSubmit}
-              onSubmit={confirmAndClaim}
+              onClick={confirmAndClaim}
             >
               Confirm & Claim
             </Button>
@@ -238,18 +269,13 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
-    const { "pinky-auth": accessToken } = nookies.get(ctx);
-    await firebaseAdmin.auth().verifyIdToken(accessToken);
-
     const request = await Request.findById(ctx.query.id).lean();
 
     return { props: { initRequest: request } };
   } catch (error) {
     // User isn't authenticated, send to login
-    ctx.res.writeHead(302, { location: "/login" });
-    ctx.res.end();
 
-    return { props: {} as never };
+    return { unstable_redirect: { destination: "/requests", permanent: false } };
   }
 };
 
