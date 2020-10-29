@@ -16,6 +16,8 @@ import { useRewardList } from "hooks/useRewardList";
 import { useAuth } from "hooks/useAuth";
 import fetcher from "lib/fetcher";
 import { Rewards } from "models/Request";
+import { ApiError } from "next/dist/next-server/server/api-utils";
+import { isServerError } from "lib/errorHandler";
 
 interface RewardModalProps {
   isOpen: boolean;
@@ -50,11 +52,13 @@ const RewardModal: React.FC<RewardModalProps> = ({ isOpen, onClose, initRewards 
 
       router.reload();
     } catch (error) {
-      toast({
-        title: "Error!",
-        description: error.details.errors[0].message,
-        status: "error",
-      });
+      const message = isServerError(error) ? (error.errors.[0].message) : "Something went wrong lmao rekt. Please try again."
+        toast({
+          title: "Error!",
+          description: message,
+          status: "error",
+        });
+
     }
   }, [accessToken, rewards]);
 

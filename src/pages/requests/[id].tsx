@@ -40,6 +40,7 @@ import { evidenceSchema } from "lib/validator/schemas";
 import Request from "models/Request";
 import { firebaseAdmin } from "lib/firebase/admin";
 import nookies from "nookies";
+import { firebase } from "lib/firebase/client";
 
 dayjs.extend(relativeTime);
 
@@ -110,6 +111,16 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
         setCannotSubmit(false);
       }
     }
+  };
+
+  const confirmAndClaim = async () => {
+    const fileInput = document.getElementById("evidence") as HTMLInputElement;
+    const evidence = fileInput.files[0];
+
+    // const path = `requests/${request._id}_${new Date().toISOString()}/evidence.png`;
+    // const storageRef = firebase.storage().ref();
+    // const fileRef = storageRef.child(path);
+    // await fileRef.put(evidence);
   };
 
   return (
@@ -201,7 +212,12 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           )}
           <Spacer />
           {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && (
-            <Button colorScheme="green" type="submit" isDisabled={cannotSubmit}>
+            <Button
+              colorScheme="green"
+              type="submit"
+              isDisabled={cannotSubmit}
+              onSubmit={confirmAndClaim}
+            >
               Confirm & Claim
             </Button>
           )}
