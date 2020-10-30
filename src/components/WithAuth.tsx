@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "hooks/useAuth";
 import { Heading, Spinner, Stack, useToast } from "@chakra-ui/core";
 import Layout from "./layout/Layout";
+import SuperJSON from "superjson";
 
 const Loader: React.FC = () => (
   <Layout title="Loading..." mt={48}>
@@ -17,6 +18,11 @@ const Loader: React.FC = () => (
 
 const WithAuth = (WrappedComponent) => {
   const AuthGuard: React.FC = (props) => {
+    // Deserialize if coming from GSSP
+    if ("json" in props && "meta" in props) {
+      props = SuperJSON.deserialize(props);
+    }
+
     const { loading, accessToken } = useAuth();
     const router = useRouter();
     const toast = useToast();
