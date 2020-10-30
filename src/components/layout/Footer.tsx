@@ -11,7 +11,13 @@ const Footer: React.FC = () => (
     transition="0.2s ease"
     transitionProperty="background, border"
   >
-    <Text>Made with ❤ by Justin, Kevin, Leon & Oliver</Text>
+    <Text>
+      Made with{" "}
+      <Text as="span" color="red.500">
+        ❤
+      </Text>{" "}
+      by Justin, Kevin, Leon & Oliver
+    </Text>
   </Center>
 );
 
