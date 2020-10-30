@@ -1,6 +1,6 @@
 const typography = {
   fontWeights: {
-    heading: 800,
+    heading: 600,
     button: 500,
   },
 

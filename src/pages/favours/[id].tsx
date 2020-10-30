@@ -1,31 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { GetServerSideProps } from "next";
-import Head from "next/head";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import {
-  Avatar,
-  Box,
-  Button,
-  Container,
-  Image,
-  Stack,
-  Text,
-  useToast,
-  Wrap,
-} from "@chakra-ui/core";
+import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import Layout from "components/layout/Layout";
 import RewardCube from "components/reward/RewardCube";
 import { useAuth } from "hooks/useAuth";
+import { ServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
 import { firebaseAdmin } from "lib/firebase/admin";
 import { firebase } from "lib/firebase/client";
 import Favour, { FavourSchema } from "models/Favour";
 import { EmbeddedUserSchema } from "models/User";
-import nookies from "nookies";
-import { ServerError } from "lib/errorHandler";
-import useSWR from "swr";
 import { isValidObjectId } from "mongoose";
+import nookies from "nookies";
+import useSWR from "swr";
 
 /**
  * User Preview
@@ -136,60 +126,70 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
   }, [initialEvidence, evidence]);
 
   return (
-    <>
-      <Head>
-        <title>Pink | Favour</title>
-      </Head>
+    <Layout maxW="sm" mt={16}>
+      <Button
+        variant="link"
+        color="inherit"
+        fontWeight="normal"
+        size="lg"
+        mb={6}
+        leftIcon={<ArrowBackIcon />}
+      >
+        <NextLink href="/favours">Back</NextLink>
+      </Button>
 
-      <Container maxW="sm" mt={16}>
-        <Button
-          variant="link"
-          color="inherit"
-          fontWeight="normal"
-          size="lg"
-          mb={6}
-          leftIcon={<ArrowBackIcon />}
+      <Stack spacing={8} align="center">
+        {/* Involved Users */}
+        <Stack
+          direction="row"
+          spacing={4}
+          align="center"
+          justify="center"
+          w="full"
+          p={8}
+          bg="whiteAlpha.200"
+          borderRadius="lg"
         >
-          <NextLink href="/favours">Back</NextLink>
-        </Button>
+          <UserPreview user={debtor} />
+          <Text color="primary.200">Promised</Text>
+          <UserPreview user={recipient} />
+        </Stack>
 
-        <Stack spacing={8} align="center">
-          {/* Involved Users */}
-          <Stack
-            direction="row"
-            spacing={4}
-            align="center"
-            justify="center"
-            w="full"
-            p={8}
-            bg="whiteAlpha.200"
-            borderRadius="lg"
+        {/* Reward Pool */}
+        <Wrap justify="center" w="28rem">
+          {Object.keys(rewards).map((reward) => (
+            <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
+              <RewardCube reward={reward} quantity={rewards[reward]} />
+            </Box>
+          ))}
+        </Wrap>
+
+        {initEvidenceURL && (
+          <Box>
+            <Text textAlign="center">Initial Evidence</Text>
+            <Image boxSize="xs" src={initEvidenceURL} />
+          </Box>
+        )}
+        {evidenceURL && (
+          <Box>
+            <Text textAlign="center">Debtor Evidence</Text>
+            <Image boxSize="xs" src={evidenceURL} />
+          </Box>
+        )}
+
+        {/* Actions */}
+        <Stack direction="row" justify="space-between" w="full">
+          <Button
+            onClick={deleteFavour}
+            isDisabled={!canDelete}
+            variant="ghost"
+            colorScheme="red"
+            rightIcon={<DeleteIcon />}
           >
-            <UserPreview user={debtor} />
-            <Text color="primary.200">Promised</Text>
-            <UserPreview user={recipient} />
-          </Stack>
-
-          {/* Reward Pool */}
-          <Wrap justify="center" w="28rem">
-            {Object.keys(rewards).map((reward) => (
-              <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-                <RewardCube reward={reward} quantity={rewards[reward]} />
-              </Box>
-            ))}
-          </Wrap>
-
-          {initEvidenceURL && (
-            <Box>
-              <Text textAlign="center">Initial Evidence</Text>
-              <Image boxSize="xs" src={initEvidenceURL} />
-            </Box>
-          )}
-          {evidenceURL && (
-            <Box>
-              <Text textAlign="center">Debtor Evidence</Text>
-              <Image boxSize="xs" src={evidenceURL} />
-            </Box>
+            Delete
+          </Button>
+          {user?.uid === debtor._id && !favour.evidence && (
+            <input type="file" onChange={uploadEvidence} />
           )}
 
           {/* Actions */}
@@ -207,8 +207,8 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
             {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
           </Stack>
         </Stack>
-      </Container>
-    </>
+      </Stack>
+    </Layout>
   );
 };
 

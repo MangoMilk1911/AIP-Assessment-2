@@ -1,12 +1,11 @@
 import React from "react";
+import { AppProps } from "next/app";
 import Head from "next/head";
-import { AuthProvider } from "hooks/useAuth";
-import { SWRConfig } from "swr";
-import fetcher from "lib/fetcher";
 import { ChakraProvider } from "@chakra-ui/core";
-import theme from "../theme";
-import type { AppProps } from "next/app";
-import Header from "components/layout/header";
+import { AuthProvider } from "hooks/useAuth";
+import fetcher from "lib/fetcher";
+import theme from "theme";
+import { SWRConfig } from "swr";
 
 /**
  * Add global serializer for Mongo Object IDs
@@ -27,7 +26,6 @@ SuperJSON.registerCustom<Types.ObjectId, string>(
 /**
  * Main App Component
  */
-
 const App: React.FC<AppProps> = ({ Component, pageProps }) => (
   <>
     <Head>
@@ -35,15 +33,13 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
       <link rel="icon" href="/favicon.ico" />
     </Head>
 
-    <AuthProvider>
-      <SWRConfig value={{ fetcher }}>
-        <ChakraProvider resetCSS theme={theme}>
-          <Header />
+    <ChakraProvider resetCSS theme={theme}>
+      <AuthProvider>
+        <SWRConfig value={{ fetcher }}>
           <Component {...pageProps} />
-        </ChakraProvider>
-      </SWRConfig>
-    </AuthProvider>
+        </SWRConfig>
+      </AuthProvider>
+    </ChakraProvider>
   </>
 );
-
 export default App;
