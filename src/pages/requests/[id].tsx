@@ -32,7 +32,6 @@ import { useForm } from "react-hook-form";
 import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { yup } from "lib/validator";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { evidenceSchema } from "lib/validator/schemas";
 
 dayjs.extend(relativeTime);
 
@@ -60,7 +59,7 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
 
   //Add Evidence Form
-  const { register, handleSubmit, errors } = useForm({ resolver: yupResolver(evidenceSchema) });
+  const { register, handleSubmit, errors } = useForm();
 
   const { owner, title, createdAt, description, contributions, isClaimed } = request;
 
