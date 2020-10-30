@@ -3,26 +3,16 @@ import { NextPage } from "next";
 import { FavourSchema } from "models/Favour";
 import fetcher from "lib/fetcher";
 import nookies from "nookies";
-import Head from "next/head";
-import {
-  Avatar,
-  Box,
-  Button,
-  Container,
-  Image,
-  Stack,
-  Text,
-  useToast,
-  Wrap,
-} from "@chakra-ui/core";
+import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
 import { EmbeddedUserSchema } from "models/User";
 import { useAuth } from "hooks/useAuth";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
-import { ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import { firebase } from "lib/firebase/client";
 import { ServerError } from "lib/errorHandler";
+import Layout from "components/layout/Layout";
 
 /**
  * User Preview
@@ -107,80 +97,74 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
   }, []);
 
   return (
-    <>
-      <Head>
-        <title>Pink | Favour</title>
-      </Head>
+    <Layout maxW="sm" mt={16}>
+      <Button
+        variant="link"
+        color="inherit"
+        fontWeight="normal"
+        size="lg"
+        mb={6}
+        leftIcon={<ArrowBackIcon />}
+      >
+        <NextLink href="/favours">Back</NextLink>
+      </Button>
 
-      <Container maxW="sm" mt={16}>
-        <Button
-          variant="link"
-          color="inherit"
-          fontWeight="normal"
-          size="lg"
-          mb={6}
-          leftIcon={<ArrowBackIcon />}
+      <Stack spacing={8} align="center">
+        {/* Involved Users */}
+        <Stack
+          direction="row"
+          spacing={4}
+          align="center"
+          justify="center"
+          w="full"
+          p={8}
+          bg="whiteAlpha.200"
+          borderRadius="lg"
         >
-          <NextLink href="/favours">Back</NextLink>
-        </Button>
-
-        <Stack spacing={8} align="center">
-          {/* Involved Users */}
-          <Stack
-            direction="row"
-            spacing={4}
-            align="center"
-            justify="center"
-            w="full"
-            p={8}
-            bg="whiteAlpha.200"
-            borderRadius="lg"
-          >
-            <UserPreview user={debtor} />
-            <Text color="primary.200">Promised</Text>
-            <UserPreview user={recipient} />
-          </Stack>
-
-          {/* Reward Pool */}
-          <Wrap justify="center" w="28rem">
-            {Object.keys(rewards).map((reward) => (
-              <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-                <RewardCube reward={reward} quantity={rewards[reward]} />
-              </Box>
-            ))}
-          </Wrap>
-
-          {initEvidenceURL && (
-            <Box>
-              <Text textAlign="center">Initial Evidence</Text>
-              <Image boxSize="xs" src={initEvidenceURL} />
-            </Box>
-          )}
-          {evidenceURL && (
-            <Box>
-              <Text textAlign="center">Debtor Evidence</Text>
-              <Image boxSize="xs" src={evidenceURL} />
-            </Box>
-          )}
-
-          {/* Actions */}
-          <Stack direction="row" justify="space-between" w="full">
-            <Button
-              onClick={deleteFavour}
-              isDisabled={!canDelete}
-              variant="ghost"
-              colorScheme="red"
-              rightIcon={<DeleteIcon />}
-            >
-              Delete
-            </Button>
-            {user?.uid === debtor._id && !favour.evidence && (
-              <input type="file" onChange={uploadEvidence} />
-            )}
-          </Stack>
+          <UserPreview user={debtor} />
+          <Text color="primary.200">Promised</Text>
+          <UserPreview user={recipient} />
         </Stack>
-      </Container>
-    </>
+
+        {/* Reward Pool */}
+        <Wrap justify="center" w="28rem">
+          {Object.keys(rewards).map((reward) => (
+            <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
+              <RewardCube reward={reward} quantity={rewards[reward]} />
+            </Box>
+          ))}
+        </Wrap>
+
+        {initEvidenceURL && (
+          <Box>
+            <Text textAlign="center">Initial Evidence</Text>
+            <Image boxSize="xs" src={initEvidenceURL} />
+          </Box>
+        )}
+        {evidenceURL && (
+          <Box>
+            <Text textAlign="center">Debtor Evidence</Text>
+            <Image boxSize="xs" src={evidenceURL} />
+          </Box>
+        )}
+
+        {/* Actions */}
+        <Stack direction="row" justify="space-between" w="full">
+          <Button
+            onClick={deleteFavour}
+            isDisabled={!canDelete}
+            variant="ghost"
+            colorScheme="red"
+            rightIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
+          {user?.uid === debtor._id && !favour.evidence && (
+            <input type="file" onChange={uploadEvidence} />
+          )}
+        </Stack>
+      </Stack>
+    </Layout>
   );
 };
 

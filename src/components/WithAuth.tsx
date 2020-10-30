@@ -2,14 +2,17 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "hooks/useAuth";
 import { Heading, Spinner, Stack, useToast } from "@chakra-ui/core";
+import Layout from "./layout/Layout";
 
 const Loader: React.FC = () => (
-  <Stack w="full" my={48} direction="column" spacing={6} align="center">
-    <Heading size="xl" fontWeight="medium">
-      Loading...
-    </Heading>
-    <Spinner size="xl" speed="1s" thickness="4px" />
-  </Stack>
+  <Layout title="Loading..." mt={48}>
+    <Stack w="full" direction="column" spacing={6} align="center">
+      <Heading size="xl" fontWeight="medium">
+        Loading...
+      </Heading>
+      <Spinner size="xl" speed="1s" thickness="4px" />
+    </Stack>
+  </Layout>
 );
 
 const withAuth = (WrappedComponent) => {

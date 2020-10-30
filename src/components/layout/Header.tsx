@@ -15,8 +15,10 @@ import {
   Stack,
   Avatar,
   Text,
+  useColorMode,
+  IconButton,
 } from "@chakra-ui/core";
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { useAuth } from "hooks/useAuth";
 
 /**
@@ -74,9 +76,10 @@ const NavDropDown: React.FC<NavDropDownProps> = ({ user, signOut }) => (
  */
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
+  const { toggleColorMode } = useColorMode();
 
   return (
-    <Container as="header" maxW="lg" mb={4}>
+    <Container as="header" maxW="lg" mb={6}>
       <Flex as="nav" justify="space-between" align="center" h={20}>
         {/* Navbar Left */}
         <Stack direction="row" spacing={8}>
@@ -89,11 +92,20 @@ const Header: React.FC = () => {
         </Stack>
 
         {/* Navbar Right */}
-        {user ? (
-          <NavDropDown user={user} signOut={signOut} />
-        ) : (
-          <NavItem href="/login">Log In</NavItem>
-        )}
+        <Stack direction="row" spacing={8} align="center">
+          <IconButton
+            // size="sm"
+            aria-label="Toggle Colormode"
+            icon={useColorModeValue(<MoonIcon />, <SunIcon />)}
+            onClick={toggleColorMode}
+          />
+
+          {user ? (
+            <NavDropDown user={user} signOut={signOut} />
+          ) : (
+            <NavItem href="/login">Log In</NavItem>
+          )}
+        </Stack>
       </Flex>
     </Container>
   );

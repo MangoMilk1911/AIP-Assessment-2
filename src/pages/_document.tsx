@@ -17,7 +17,7 @@ class MyDocument extends Document {
             rel="stylesheet"
           ></link>
         </Head>
-        <body style={{ marginBottom: "4rem" }}>
+        <body>
           {/* 👇 Color mode script for SSR */}
           {/* See https://next.chakra-ui.com/docs/features/color-mode#with-nextjs */}
           <ColorModeScript initialColorMode="dark" />

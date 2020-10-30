@@ -7,7 +7,8 @@ const styles: Styles = {
       color: mode("primary.900", "primary.50")(props),
       fontFamily: "body",
       lineHeight: "base",
-      transition: "background 0.2s ease",
+      transition: "0.2s ease",
+      transitionProperty: "background, color",
     },
   }),
 };
