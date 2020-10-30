@@ -15,7 +15,7 @@ const Loader: React.FC = () => (
   </Layout>
 );
 
-const withAuth = (WrappedComponent) => {
+const WithAuth = (WrappedComponent) => {
   const AuthGuard: React.FC = (props) => {
     const { loading, accessToken } = useAuth();
     const router = useRouter();
@@ -29,7 +29,7 @@ const withAuth = (WrappedComponent) => {
           title: "You must be logged in to view to page!",
         });
 
-        router.push("/login?redirect=" + router.pathname);
+        router.push("/login?redirect=" + router.asPath);
       }
     }, [loading, accessToken, router]);
 
@@ -40,4 +40,4 @@ const withAuth = (WrappedComponent) => {
   return AuthGuard;
 };
 
-export default withAuth;
+export default WithAuth;
