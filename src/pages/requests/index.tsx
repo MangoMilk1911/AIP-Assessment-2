@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
@@ -11,6 +11,9 @@ import {
   Spacer,
   Stack,
   Text,
+  Flex,
+  Button,
+  Input,
 } from "@chakra-ui/core";
 import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import Card from "components/request/Card";
@@ -28,8 +31,18 @@ interface PaginatedRequests {
 const RequestList: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
+
+  const [query, setQuery] = useState("");
+  const queryInputRef = useRef<HTMLInputElement>();
+  function onQuerySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setQuery(queryInputRef.current.value);
+  }
+
   const [pageIndex, setPageIndex] = useState(1);
-  const { data, mutate } = useSWR<PaginatedRequests, ApiError>(`/api/requests?page=${pageIndex}`);
+  const { data, mutate } = useSWR<PaginatedRequests, ApiError>(
+    `/api/requests?page=${pageIndex}&q=${query}`
+  );
 
   const prevDisabled = pageIndex === 1;
   const nextDisabled = pageIndex === data?.totalPages;
@@ -56,6 +69,21 @@ const RequestList: React.FC = () => {
           <Spacer />
           <IconButton onClick={redirect} aria-label="Add" icon={<AddIcon />} />
         </HStack>
+
+        <Stack
+          as="form"
+          onSubmit={onQuerySubmit}
+          direction="row"
+          spacing={0}
+          mb={8}
+          alignSelf="flex-start"
+        >
+          <Input ref={queryInputRef} placeholder="Find a request" borderRightRadius={0} />
+          <Button type="submit" px={12} borderLeftRadius={0}>
+            Search
+          </Button>
+          <Spacer />
+        </Stack>
 
         {!data ? (
           <SimpleGrid columns={2} spacing="5">
