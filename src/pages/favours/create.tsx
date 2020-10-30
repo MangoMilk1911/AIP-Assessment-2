@@ -28,6 +28,7 @@ import { useForm } from "react-hook-form";
 import useSWR from "swr";
 import { ServerError } from "lib/errorHandler";
 import Layout from "components/layout/Layout";
+import WithAuth from "components/WithAuth";
 
 const useSelectUser = () => {
   // Selected User
@@ -367,4 +368,4 @@ const Create: React.FC = () => {
   );
 };
 
-export default Create;
+export default WithAuth(Create);

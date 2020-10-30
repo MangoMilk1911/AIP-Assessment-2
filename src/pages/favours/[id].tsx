@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import Layout from "components/layout/Layout";
+import WithAuth from "components/WithAuth";
 import RewardCube from "components/reward/RewardCube";
 import { useAuth } from "hooks/useAuth";
 import { ServerError } from "lib/errorHandler";
@@ -16,6 +17,7 @@ import { EmbeddedUserSchema } from "models/User";
 import { isValidObjectId } from "mongoose";
 import nookies from "nookies";
 import useSWR from "swr";
+import { withDatabase } from "lib/middleware";
 
 /**
  * User Preview
@@ -79,7 +81,7 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
   }, [_id, accessToken]);
 
   // Upload Evidence
-  const canUploadEvidence = user?.uid === debtor._id && !initFavour.evidence;
+  const canUploadEvidence = user?.uid === debtor._id && !evidence;
   const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const evidence = e.target.files[0];
 
@@ -90,7 +92,7 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
       const fileRef = storageRef.child(path);
       await fileRef.put(evidence);
 
-      await fetcher(`/api/favours/${initFavour._id}/evidence`, accessToken, {
+      await fetcher(`/api/favours/${_id}/evidence`, accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -188,24 +190,8 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
           >
             Delete
           </Button>
-          {user?.uid === debtor._id && !favour.evidence && (
-            <input type="file" onChange={uploadEvidence} />
-          )}
 
-          {/* Actions */}
-          <Stack direction="row" justify="space-between" w="full">
-            <Button
-              onClick={deleteFavour}
-              isDisabled={!canDelete}
-              variant="ghost"
-              colorScheme="red"
-              rightIcon={<DeleteIcon />}
-            >
-              Delete
-            </Button>
-
-            {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
-          </Stack>
+          {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
         </Stack>
       </Stack>
     </Layout>
@@ -213,9 +199,15 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  await withDatabase();
+
   if (!isValidObjectId(ctx.query.id)) {
-    ctx.res.writeHead(302, { location: "/favours" });
-    ctx.res.end();
+    return {
+      unstable_redirect: {
+        destination: "/favours",
+        permanent: true,
+      },
+    };
   }
 
   try {
@@ -226,12 +218,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
     return { props: { initFavour } };
   } catch (error) {
-    // User isn't authenticated, send to login
-    ctx.res.writeHead(302, { location: "/login" });
-    ctx.res.end();
-
-    return { props: {} as never };
+    return {
+      unstable_redirect: {
+        destination: "/login?redirect=" + ctx.resolvedUrl,
+        permanent: false,
+      },
+    };
   }
 };
 
-export default FavourDetails;
+export default WithAuth(FavourDetails);
