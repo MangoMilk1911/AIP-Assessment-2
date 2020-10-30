@@ -12,12 +12,29 @@ const validate = createValidator(requestValidation);
 // ==================== Get all Requests ====================
 
 handler.get(async (req, res) => {
-  const { page = 1, limit = 4 } = req.query;
-  const requests = await Request.find()
-    .limit(Number(limit))
-    .skip((Number(page) - 1) * Number(limit));
+  const { page = 1, limit = 4, q } = req.query;
+
+  // Create initial pipeline
+  const pipeline: Object[] = [
+    { $limit: Number(limit) },
+    { $skip: (Number(page) - 1) * Number(limit) },
+  ];
+
+  // If query add search stage to pipeline
+  if (q) {
+    pipeline.splice(0, 0, {
+      $search: {
+        autocomplete: {
+          path: "title",
+          query: req.query.q,
+        },
+      },
+    });
+  }
+
+  const requests = await Request.aggregate(pipeline);
   const numberOfRequests = await Request.countDocuments();
-  if (!requests) throw new ApiError(503, "Requests couldn't be loaded!");
+
   res.json({
     requests,
     currentPage: page,
