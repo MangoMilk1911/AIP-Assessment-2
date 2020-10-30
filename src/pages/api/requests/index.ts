@@ -4,7 +4,6 @@ import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
 import { Request, User } from "models";
 import { requestValidation } from "lib/validator/schemas";
-import { ApiError } from "next/dist/next-server/server/api-utils";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);
@@ -14,10 +13,14 @@ const validate = createValidator(requestValidation);
 handler.get(async (req, res) => {
   const { page = 1, limit = 4, q } = req.query;
 
-  // Create initial pipeline
+  // Create initial pipeline with pagination stage
   const pipeline: Object[] = [
-    { $limit: Number(limit) },
-    { $skip: (Number(page) - 1) * Number(limit) },
+    {
+      $facet: {
+        metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+        data: [{ $skip: (Number(page) - 1) * Number(limit) }, { $limit: Number(limit) }],
+      },
+    },
   ];
 
   // If query add search stage to pipeline
@@ -32,11 +35,12 @@ handler.get(async (req, res) => {
     });
   }
 
-  const requests = await Request.aggregate(pipeline);
-  const numberOfRequests = await Request.countDocuments();
+  // Deconstruct metadata and data from aggregation result
+  const [{ metadata, data }] = await Request.aggregate(pipeline);
+  const numberOfRequests = metadata[0]?.total || 0; // Total number of matching requests
 
   res.json({
-    requests,
+    requests: data,
     currentPage: page,
     totalPages: Math.ceil(numberOfRequests / Number(limit)),
   });
