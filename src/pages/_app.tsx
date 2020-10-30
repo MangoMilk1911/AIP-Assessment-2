@@ -27,7 +27,6 @@ SuperJSON.registerCustom<Types.ObjectId, string>(
 /**
  * Main App Component
  */
-
 const App: React.FC<AppProps> = ({ Component, pageProps }) => (
   <>
     <Head>
@@ -35,15 +34,14 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
       <link rel="icon" href="/favicon.ico" />
     </Head>
 
-    <AuthProvider>
-      <SWRConfig value={{ fetcher }}>
-        <ChakraProvider resetCSS theme={theme}>
+    <ChakraProvider resetCSS theme={theme}>
+      <AuthProvider>
+        <SWRConfig value={{ fetcher }}>
           <Header />
           <Component {...pageProps} />
-        </ChakraProvider>
-      </SWRConfig>
-    </AuthProvider>
+        </SWRConfig>
+      </AuthProvider>
+    </ChakraProvider>
   </>
 );
-
 export default App;
