@@ -1,6 +1,6 @@
 import React from "react";
 import NextLink from "next/link";
-import { Flex, Spacer, Text, useColorModeValue } from "@chakra-ui/core";
+import { Box, Flex, Link, LinkOverlay, Spacer, Text, useColorModeValue } from "@chakra-ui/core";
 import { FavourSchema } from "models/Favour";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -22,13 +22,28 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
   return (
     <NextLink href={`/favours/${_id}`}>
       <Flex
+        pos="relative"
         h={40}
         p={5}
-        bg="whiteAlpha.200"
+        bg={useColorModeValue("primary.50", "whiteAlpha.200")}
+        boxShadow={useColorModeValue("lg", "none")}
         borderRadius="lg"
         flexDir="column"
-        _hover={{ cursor: "pointer" }}
+        transition="0.15s ease"
+        transitionProperty="transform, background, box-shadow"
+        _hover={{
+          cursor: "pointer",
+          transform: "scale(1.025)",
+          boxShadow: useColorModeValue("xl", "none"),
+        }}
+        _active={{
+          bg: useColorModeValue("primary.100", "whiteAlpha.300"),
+          transform: "scale(0.95)",
+          boxShadow: useColorModeValue("md", "none"),
+        }}
       >
+        {/* Title */}
+
         <Text fontSize="xl" fontWeight="bold">
           {isDebtor ? "You" : debtor.displayName}{" "}
           <Text as="span" fontWeight="normal">
@@ -36,6 +51,8 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
           </Text>{" "}
           {!isDebtor ? "You" : recipient.displayName}
         </Text>
+
+        {/* Rewards */}
         <Text mt={1} fontSize="2xl">
           {Object.keys(rewards).map((reward) => (
             <span key={reward}>{reward}</span>
@@ -44,6 +61,7 @@ const FavourCard: React.FC<FavourCardProps> = ({ favour }) => {
 
         <Spacer />
 
+        {/* Date */}
         <Text>{dayjs(createdAt).from(new Date())}</Text>
       </Flex>
     </NextLink>
