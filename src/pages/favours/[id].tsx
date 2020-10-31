@@ -59,10 +59,10 @@ const FavourDetails: React.FC = () => {
   }
 
   const { id } = router.query;
-  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>(
-    [`/api/favours/${id}`, accessToken],
-    { shouldRetryOnError: false }
-  );
+  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>([
+    `/api/favours/${id}`,
+    accessToken,
+  ]);
 
   // Delete Favour
   const canDelete =
@@ -147,6 +147,7 @@ const FavourDetails: React.FC = () => {
 
   return (
     <Layout maxW="sm" mt={16}>
+      {/* Back Button */}
       <Button
         variant="link"
         color="inherit"
@@ -167,11 +168,11 @@ const FavourDetails: React.FC = () => {
           justify="center"
           w="full"
           p={8}
-          bg="whiteAlpha.200"
+          bg={useColorModeValue("primary.50", "whiteAlpha.200")}
           borderRadius="lg"
         >
           <UserPreview user={favour.debtor} />
-          <Text color={useColorModeValue("teal.600", "primary.300")}>Promised</Text>
+          <Text color={useColorModeValue("teal.500", "primary.300")}>Promised</Text>
           <UserPreview user={favour.recipient} />
         </Stack>
 
@@ -202,7 +203,7 @@ const FavourDetails: React.FC = () => {
           <Button
             onClick={deleteFavour}
             isDisabled={!canDelete}
-            variant="ghost"
+            variant="outline"
             colorScheme="red"
             rightIcon={<DeleteIcon />}
           >

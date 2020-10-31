@@ -108,7 +108,7 @@ const FavourList: React.FC = () => {
   );
 
   return (
-    <Layout title="Favours">
+    <Layout title="Favours" maxW="56rem">
       <Stack direction="row" justify="space-between" align="center" mb={6}>
         <Heading size="2xl">Favours</Heading>
 
