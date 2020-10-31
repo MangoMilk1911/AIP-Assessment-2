@@ -49,7 +49,7 @@ interface NavDropDownProps {
 }
 
 const NavDropDown: React.FC<NavDropDownProps> = ({ user, signOut }) => (
-  <Menu placement="bottom">
+  <Menu>
     {/* Dropdown Button */}
     <MenuButton>
       <Stack direction="row" align="center">
@@ -92,12 +92,13 @@ const Header: React.FC = () => {
         </Stack>
 
         {/* Navbar Right */}
-        <Stack direction="row" spacing={8} align="center">
+        <Flex alignItems="center">
           <IconButton
             // size="sm"
             aria-label="Toggle Colormode"
             icon={useColorModeValue(<MoonIcon />, <SunIcon />)}
             onClick={toggleColorMode}
+            mr={8}
           />
 
           {user ? (
@@ -105,7 +106,7 @@ const Header: React.FC = () => {
           ) : (
             <NavItem href="/login">Log In</NavItem>
           )}
-        </Stack>
+        </Flex>
       </Flex>
     </Container>
   );
