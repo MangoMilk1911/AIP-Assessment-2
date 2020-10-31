@@ -1,23 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { GetServerSideProps } from "next";
+import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
+import {
+  Avatar,
+  Box,
+  Button,
+  Image,
+  Stack,
+  Text,
+  useColorMode,
+  useColorModeValue,
+  useToast,
+  Wrap,
+} from "@chakra-ui/core";
 import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import Layout from "components/layout/Layout";
 import WithAuth from "components/WithAuth";
 import RewardCube from "components/reward/RewardCube";
 import { useAuth } from "hooks/useAuth";
-import { ServerError } from "lib/errorHandler";
+import { isServerError, ServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
-import { firebaseAdmin } from "lib/firebase/admin";
 import { firebase } from "lib/firebase/client";
-import Favour, { FavourSchema } from "models/Favour";
+import { FavourSchema } from "models/Favour";
 import { EmbeddedUserSchema } from "models/User";
-import { isValidObjectId } from "mongoose";
-import nookies from "nookies";
 import useSWR from "swr";
-import { withDatabase } from "lib/middleware";
+import ErrorPage from "components/layout/Error";
+import Loader from "components/layout/Loader";
 
 /**
  * User Preview
@@ -40,28 +48,30 @@ const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (
  * Favour Details Page
  */
 
-interface FavourDetailsProps {
-  initFavour: FavourSchema;
-}
-
-const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
+const FavourDetails: React.FC = () => {
   const { user, accessToken } = useAuth();
   const router = useRouter();
-  const toast = useToast();
 
-  const { data: favour, mutate } = useSWR<FavourSchema, ServerError>(
-    [`/api/favours/${initFavour._id}`, accessToken],
-    {
-      initialData: initFavour,
-    }
+  const toast = useToast();
+  const { colorMode } = useColorMode();
+  function useColorModeValue(light: any, dark: any) {
+    return colorMode === "light" ? light : dark;
+  }
+
+  const { id } = router.query;
+  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>(
+    [`/api/favours/${id}`, accessToken],
+    { shouldRetryOnError: false }
   );
-  const { _id, debtor, recipient, rewards, initialEvidence, evidence } = favour;
 
   // Delete Favour
-  const canDelete = user?.uid === recipient._id || (user?.uid === debtor._id && evidence);
-  const deleteFavour = useCallback(async () => {
+  const canDelete =
+    favour &&
+    (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && favour.evidence));
+
+  async function deleteFavour() {
     try {
-      await fetcher(`/api/favours/${_id}`, accessToken, { method: "DELETE" });
+      await fetcher(`/api/favours/${id}`, accessToken, { method: "DELETE" });
 
       toast({
         status: "success",
@@ -78,21 +88,21 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
         description: errors[0].message,
       });
     }
-  }, [_id, accessToken]);
+  }
 
   // Upload Evidence
-  const canUploadEvidence = user?.uid === debtor._id && !evidence;
+  const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
   const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const evidence = e.target.files[0];
 
     try {
       const timestamp = new Date().toISOString();
-      const path = `favours/${debtor._id}_${recipient._id}_${timestamp}/evidence.png`;
+      const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(path);
       await fileRef.put(evidence);
 
-      await fetcher(`/api/favours/${_id}/evidence`, accessToken, {
+      await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +120,11 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
         title: "Evidence submitted! 🥳",
       });
     } catch (error) {
-      // Todo
+      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
+      toast({
+        status: "error",
+        title: errMsg || "Something went wrong...",
+      });
     }
   };
 
@@ -118,14 +132,18 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
   const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
-    if (initialEvidence) {
-      firebase.storage().ref(initialEvidence).getDownloadURL().then(setinitEvidenceURL);
+    if (favour?.initialEvidence) {
+      firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
     }
 
-    if (evidence) {
-      firebase.storage().ref(evidence).getDownloadURL().then(setEvidenceURL);
+    if (favour?.evidence) {
+      firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
     }
-  }, [initialEvidence, evidence]);
+  }, [favour]);
+
+  if (error) return <ErrorPage statusCode={error.statusCode} error={error.errors[0].message} />;
+
+  if (!favour) return <Loader />;
 
   return (
     <Layout maxW="sm" mt={16}>
@@ -152,16 +170,16 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
           bg="whiteAlpha.200"
           borderRadius="lg"
         >
-          <UserPreview user={debtor} />
-          <Text color="primary.200">Promised</Text>
-          <UserPreview user={recipient} />
+          <UserPreview user={favour.debtor} />
+          <Text color={useColorModeValue("teal.600", "primary.300")}>Promised</Text>
+          <UserPreview user={favour.recipient} />
         </Stack>
 
         {/* Reward Pool */}
         <Wrap justify="center" w="28rem">
-          {Object.keys(rewards).map((reward) => (
+          {Object.keys(favour.rewards).map((reward) => (
             <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-              <RewardCube reward={reward} quantity={rewards[reward]} />
+              <RewardCube reward={reward} quantity={favour.rewards[reward]} />
             </Box>
           ))}
         </Wrap>
@@ -196,35 +214,6 @@ const FavourDetails: React.FC<FavourDetailsProps> = ({ initFavour }) => {
       </Stack>
     </Layout>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  await withDatabase();
-
-  if (!isValidObjectId(ctx.query.id)) {
-    return {
-      unstable_redirect: {
-        destination: "/favours",
-        permanent: true,
-      },
-    };
-  }
-
-  try {
-    const { "pinky-auth": accessToken } = nookies.get(ctx);
-    await firebaseAdmin.auth().verifyIdToken(accessToken);
-
-    const initFavour = await Favour.findById(ctx.query.id).lean();
-
-    return { props: { initFavour } };
-  } catch (error) {
-    return {
-      unstable_redirect: {
-        destination: "/login?redirect=" + ctx.resolvedUrl,
-        permanent: false,
-      },
-    };
-  }
 };
 
 export default WithAuth(FavourDetails);
