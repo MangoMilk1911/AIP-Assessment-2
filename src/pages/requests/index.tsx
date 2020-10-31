@@ -39,6 +39,11 @@ const RequestList: React.FC = () => {
     setQuery(queryInputRef.current.value);
   }
 
+  function clearSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setQuery((queryInputRef.current.value = ""));
+  }
+
   const [pageIndex, setPageIndex] = useState(1);
   const { data, mutate } = useSWR<PaginatedRequests, ApiError>(
     `/api/requests?page=${pageIndex}&q=${query}`
@@ -82,7 +87,12 @@ const RequestList: React.FC = () => {
           <Button type="submit" px={12} borderLeftRadius={0}>
             Search
           </Button>
-          <Spacer />
+        </Stack>
+
+        <Stack as="form" direction="row" spacing={0} mb={8} alignSelf="flex-start">
+          <Button onClick={clearSearch} px={12}>
+            clear Search
+          </Button>
         </Stack>
 
         {!data ? (
