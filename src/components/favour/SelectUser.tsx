@@ -11,7 +11,7 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/core";
-import Card from "components/List/Card";
+import Card from "components/list/Card";
 import { useAuth } from "hooks/useAuth";
 import useDebounce from "hooks/useDebounce";
 import { UserSchema } from "models/User";
@@ -24,7 +24,7 @@ interface UserPreviewCardProps {
 }
 
 const UserPreviewCard: React.FC<UserPreviewCardProps> = ({ user, onClick }) => (
-  <Card as={motion.div} onClick={onClick} flexDir="row" variants={cardAnimation} key={user._id}>
+  <Card as={motion.div} onClick={onClick} flexDir="row" variants={cardAnimation}>
     <Avatar name={user.displayName} mr={4} />
     <Box>
       <Text fontSize="xl">{user.displayName}</Text>

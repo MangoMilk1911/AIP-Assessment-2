@@ -14,14 +14,14 @@ import {
   Text,
 } from "@chakra-ui/core";
 import { AddIcon } from "@chakra-ui/icons";
-import Card from "components/List/Card";
+import Card from "components/list/Card";
 import { useAuth } from "hooks/useAuth";
 import { ApiError } from "lib/errorHandler";
 import { FavourSchema } from "models/Favour";
 import useSWR from "swr";
 import Layout from "components/layout/Layout";
 import WithAuth from "components/WithAuth";
-import PageNavigation from "components/List/PageNavigation";
+import PageNavigation from "components/list/PageNavigation";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { EmbeddedUserSchema, UserSchema } from "models/User";
