@@ -24,8 +24,7 @@ import WithAuth from "components/WithAuth";
 import PageNavigation from "components/list/PageNavigation";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { EmbeddedUserSchema, UserSchema } from "models/User";
-import Loader from "components/layout/Loader";
+import { UserSchema } from "models/User";
 
 dayjs.extend(relativeTime);
 
@@ -56,8 +55,8 @@ interface PaginatedFavours {
  */
 
 interface FavourCardTitleProps {
-  debtor: EmbeddedUserSchema;
-  recipient: EmbeddedUserSchema;
+  debtor: UserSchema;
+  recipient: UserSchema;
 }
 
 const FavourCardTitle: React.FC<FavourCardTitleProps> = ({ debtor, recipient }) => {

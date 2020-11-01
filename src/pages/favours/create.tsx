@@ -53,7 +53,7 @@ const OwingForm: React.FC = () => {
 
   async function createFavour({ debtor, recipient, rewards }: OwingFormData) {
     try {
-      const newFavour = (await fetcher("/api/favours", accessToken, {
+      const { newFavour, party } = (await fetcher("/api/favours", accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,7 +61,7 @@ const OwingForm: React.FC = () => {
           recipient,
           rewards,
         }),
-      })) as FavourSchema;
+      })) as { newFavour: FavourSchema; party: UserSchema[] };
 
       toast({
         status: "success",
