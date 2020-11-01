@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 import {
   Button,
@@ -25,6 +25,8 @@ import PageNavigation from "components/list/PageNavigation";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { UserSchema } from "models/User";
+import { motion, Variants } from "framer-motion";
+import useDebounce from "hooks/useDebounce";
 
 dayjs.extend(relativeTime);
 
@@ -34,21 +36,17 @@ interface PaginatedFavours {
   totalPages: number;
 }
 
-/**
- * Favour List Content
- */
-
-// const listVariants: Variants = {
-//   hidden: {
-//     opacity: 0,
-//   },
-//   visible: {
-//     opacity: 1,
-//     transition: {
-//       staggerChildren: 0.1,
-//     },
-//   },
-// };
+const listVariants: Variants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 /**
  * Favour Card Title
@@ -78,7 +76,25 @@ const FavourCardTitle: React.FC<FavourCardTitleProps> = ({ debtor, recipient }) 
  * Favour List
  */
 
-interface ListContentProps extends SimpleGridProps {
+const ListLoader: React.FC = () => {
+  // Set a debounced show flag to only show the
+  // loading skeleton if 2 seconds has passed since request sent
+  const [show, setShow] = useState(false);
+  const debouncedShow = useDebounce(show, 2000);
+  useEffect(() => setShow(true), []);
+
+  return (
+    debouncedShow && (
+      <SimpleGrid columns={2} spacing={8}>
+        {[...Array(4)].map((_, i) => (
+          <Skeleton h={40} borderRadius="lg" key={i} />
+        ))}
+      </SimpleGrid>
+    )
+  );
+};
+
+interface ListContentProps extends Omit<SimpleGridProps, "transition"> {
   data: PaginatedFavours;
   pageIndex: number;
   setPageIndex: React.Dispatch<React.SetStateAction<number>>;
@@ -94,7 +110,16 @@ const ListContent: React.FC<ListContentProps> = ({
 
   return (
     <Stack spacing={8}>
-      <SimpleGrid columns={2} spacing={8} {...restProps}>
+      <SimpleGrid
+        as={motion.div}
+        columns={2}
+        spacing={8}
+        initial="hidden"
+        animate="visible"
+        variants={listVariants}
+        {...restProps}
+        key={pageIndex} // So the animation replays whenever the page changes
+      >
         {favours.map((favour) => (
           <Card href={`/favours/${favour._id}`} h={40} key={favour._id.toString()}>
             {/* Title */}
@@ -132,7 +157,7 @@ const FavourList: React.FC = () => {
   const [filterQuery, setFilterQuery] = useState<FilterQuery>("owed");
   const [pageIndex, setPageIndex] = useState(1);
   const { data } = useSWR<PaginatedFavours, ApiError>(
-    accessToken ? [`/api/favours?page=${pageIndex}&q=${filterQuery}&limit=2`, accessToken] : null
+    accessToken ? [`/api/favours?page=${pageIndex}&q=${filterQuery}`, accessToken] : null
   );
 
   return (
@@ -161,11 +186,7 @@ const FavourList: React.FC = () => {
 
       {/* Favours */}
       {!data ? (
-        <SimpleGrid columns={2} spacing={8}>
-          {[...Array(4)].map((_, i) => (
-            <Skeleton h={40} borderRadius="lg" key={i} />
-          ))}
-        </SimpleGrid>
+        <ListLoader />
       ) : data.favours.length === 0 ? (
         <Heading size="2xl" textAlign="center" my="4rem !important">
           You're all square 😝

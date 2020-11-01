@@ -1,15 +1,16 @@
 import React, { useCallback } from "react";
 import NextLink from "next/link";
 import { ComponentWithAs, Flex, FlexProps, useColorModeValue } from "@chakra-ui/core";
+import { motion, Variants } from "framer-motion";
 
-// const cardVariants: Variants = {
-//   hidden: {
-//     opacity: 0,
-//   },
-//   visible: {
-//     opacity: 1,
-//   },
-// };
+const cardVariants: Variants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+  },
+};
 
 interface CardProps extends FlexProps {
   href?: string;
@@ -42,6 +43,8 @@ const Card: ComponentWithAs<"div", CardProps> = ({ href, children, ...restProps 
   return (
     <Wrapper>
       <Flex
+        as={motion.div}
+        variants={cardVariants}
         pos="relative"
         p={5}
         minW={0}
