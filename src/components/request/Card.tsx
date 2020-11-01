@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
 import NextLink from "next/link";
-import { Flex, Spacer, Stack, Text, useDisclosure } from "@chakra-ui/core";
+import { Flex, Spacer, Stack, Text, useColorModeValue, useDisclosure } from "@chakra-ui/core";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { RequestSchema } from "models/Request";
+import Card from "components/list/Card";
 
 dayjs.extend(relativeTime);
 
@@ -37,36 +38,34 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   }, [contributions.size, owner.displayName]);
 
   return (
-    <NextLink href={`requests/${request._id}`}>
-      <Flex
-        h={48}
-        direction="column"
-        bg={isClaimed ? "green.500" : "whiteAlpha.200"}
-        borderRadius="lg"
-        p="5"
-        width="sm"
-        _hover={{ cursor: "pointer" }}
-      >
-        <Text fontSize="xl" fontWeight="bold" isTruncated>
-          {title}
-        </Text>
+    <Card
+      href={`/requests/${request._id}`}
+      background={isClaimed ? "green.400" : useColorModeValue("primary.50", "whiteAlpha.200")}
+      _active={{
+        bg: isClaimed ? "green.500" : useColorModeValue("primary.100", "whiteAlpha.300"),
+        transform: "scale(0.95)",
+        boxShadow: useColorModeValue("md", "none"),
+      }}
+    >
+      <Text fontSize="xl" fontWeight="bold" isTruncated w="50%">
+        {title}
+      </Text>
 
-        <Text>{contributors}</Text>
+      <Text>{contributors}</Text>
 
-        <Stack direction="row" spacing={5} my={4}>
-          {Object.keys(rewardPool).map((reward) => (
-            <Text fontSize="3xl" key={reward}>
-              {reward}
-            </Text>
-          ))}
-        </Stack>
-        <Stack direction="row">
-          <Text>{dayjs(createdAt).from(new Date())}</Text>
-          <Spacer />
-          {isClaimed && <Text>Completed!</Text>}
-        </Stack>
-      </Flex>
-    </NextLink>
+      <Stack direction="row" spacing={5} my={4}>
+        {Object.keys(rewardPool).map((reward) => (
+          <Text fontSize="3xl" key={reward}>
+            {reward}
+          </Text>
+        ))}
+      </Stack>
+      <Stack direction="row">
+        <Text>{dayjs(createdAt).from(new Date())}</Text>
+        <Spacer />
+        {isClaimed && <Text>Completed!</Text>}
+      </Stack>
+    </Card>
   );
 };
 

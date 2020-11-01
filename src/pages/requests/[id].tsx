@@ -19,6 +19,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/core";
+import Layout from "components/layout/Layout";
 import RewardModal from "components/request/ContributionModal";
 import DeleteAlert from "components/request/DeleteAlert";
 import RewardCube from "components/reward/RewardCube";
@@ -138,7 +139,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
   }, [request.evidence]);
 
   return (
-    <Container maxW="50rem" mt={24}>
+    <Layout>
       <Stack direction="column" spacing={10}>
         <Stack mb={18}>
           <Heading size="xl">{title}</Heading>
@@ -214,7 +215,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
           {isClaimed && (
             <Skeleton isLoaded={!evidenceLoading} h={64} w="50%">
-              {isClaimed && <Image src={evidenceURL} w="100%" h="auto" />}
+              {isClaimed && <Image src={evidenceURL} w="50%" h="auto" />}
             </Skeleton>
           )}
 
@@ -222,7 +223,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             <Stack my={18} spacing={4}>
               <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
                 <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
-                <Image ref={previewImageRef} hidden={cannotSubmit} w="50%" h="auto" />
+                <Image ref={previewImageRef} hidden={cannotSubmit} w="25%" h="auto" />
               </Stack>
             </Stack>
           )}
@@ -256,7 +257,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
           initRewards={contributions[user?.uid]?.rewards}
         />
       </RewardListProvider>
-    </Container>
+    </Layout>
   );
 };
 

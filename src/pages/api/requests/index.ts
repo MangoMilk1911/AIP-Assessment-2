@@ -58,7 +58,7 @@ handler.post(authGuard, async (req, res) => {
   // Create initial contributions with current user as first contributor
   const contributions = {
     [req.userId]: {
-      user: user.asEmbedded(),
+      user: user.toJSON(),
       rewards,
     },
   };
@@ -67,7 +67,7 @@ handler.post(authGuard, async (req, res) => {
     title,
     description,
     contributions,
-    owner: user.asEmbedded(),
+    owner: user.toJSON(),
     isClaimed: false,
   });
 

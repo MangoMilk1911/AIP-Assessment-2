@@ -4,6 +4,7 @@ import createHandler from "lib/routeHandler";
 import { Favour, User } from "models";
 import { favourValidation } from "lib/validator/schemas";
 import createValidator from "lib/validator";
+import PartyDetector from "lib/PartyDetector";
 
 const handler = createHandler();
 const validate = createValidator(favourValidation);
@@ -11,6 +12,7 @@ const validate = createValidator(favourValidation);
 // =================== Get User Favours =====================
 
 handler.get(authGuard, async (req, res) => {
+  // Pagination
   let { page = 1, limit = 6, q } = req.query;
   page = Number(page);
   limit = Number(limit);
@@ -35,10 +37,6 @@ handler.get(authGuard, async (req, res) => {
 handler.post(authGuard, async (req, res) => {
   const { debtor, recipient, rewards, initialEvidence } = await validate(req, "create");
 
-  /**
-   * Avoid redundant read
-   */
-
   // Find the current user from db
   const userData = await User.findById(req.userId);
   if (!userData) throw new NoUserError();
@@ -51,19 +49,24 @@ handler.post(authGuard, async (req, res) => {
   const recipientData = await User.findById(recipient);
   if (!recipientData) throw new ApiError(400, "No recipient with that ID exists.");
 
+  // When someone owes you
   if (!initialEvidence && userData._id === recipientData._id)
     throw new ApiError(400, "Evidence required");
 
   // Write new favour to db
   const newFavour = await Favour.create({
-    creator: userData.asEmbedded(),
-    debtor: debtorData.asEmbedded(),
-    recipient: recipientData.asEmbedded(),
+    creator: userData.toJSON(),
+    debtor: debtorData.toJSON(),
+    recipient: recipientData.toJSON(),
     rewards,
     initialEvidence,
   });
 
-  res.status(201).json(newFavour);
+  // Party Detection
+  const partyDetector = await new PartyDetector(userData, recipientData).init();
+  const party = await partyDetector.findParty();
+
+  res.status(201).json({ newFavour, party });
 });
 
 export default handler;

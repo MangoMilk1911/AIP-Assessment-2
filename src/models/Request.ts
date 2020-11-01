@@ -1,6 +1,6 @@
 import { DocumentType, getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
 import { Base, TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
-import { EmbeddedUserSchema } from "./User";
+import { UserSchema } from "./User";
 
 export type Rewards = { [key: string]: number };
 
@@ -9,7 +9,7 @@ export type Rewards = { [key: string]: number };
 @modelOptions({ options: { allowMixed: Severity.ALLOW } })
 export class ContributionSchema {
   @prop()
-  public user!: EmbeddedUserSchema;
+  public user!: UserSchema;
 
   @prop()
   public rewards!: Rewards;
@@ -34,10 +34,10 @@ export class RequestSchema extends TimeStamps {
   public evidence?: string;
 
   @prop()
-  public owner!: EmbeddedUserSchema;
+  public owner!: UserSchema;
 
   @prop()
-  public recipient?: EmbeddedUserSchema;
+  public recipient?: UserSchema;
 
   @prop()
   public isClaimed!: boolean;

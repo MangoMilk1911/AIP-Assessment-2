@@ -52,13 +52,14 @@ const RewardModal: React.FC<RewardModalProps> = ({ isOpen, onClose, initRewards 
 
       router.reload();
     } catch (error) {
-      const message = isServerError(error) ? (error.errors.[0].message) : "Something went wrong lmao rekt. Please try again."
-        toast({
-          title: "Error!",
-          description: message,
-          status: "error",
-        });
-
+      const message = isServerError(error)
+        ? error.errors[0].message
+        : "Something went wrong lmao rekt. Please try again.";
+      toast({
+        title: "Error!",
+        description: message,
+        status: "error",
+      });
     }
   }, [accessToken, rewards]);
 
