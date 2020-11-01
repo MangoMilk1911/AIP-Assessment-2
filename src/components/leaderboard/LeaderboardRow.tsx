@@ -1,5 +1,5 @@
-import { Avatar, AvatarBadge, Wrap, Img, Text, Stack, Box, Spacer } from "@chakra-ui/core";
 import React from "react";
+import { Avatar, Text, Stack, Box } from "@chakra-ui/core";
 import { EmbeddedUserSchema } from "models/User";
 
 interface LeaderboardRowProps {
@@ -8,25 +8,33 @@ interface LeaderboardRowProps {
 }
 
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ user, rank }) => {
-  const { _id, displayName, email, photoURL, points } = user;
+  const { displayName, photoURL, points } = user;
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
 
   return (
-    <Stack direction="row" w="100%" spacing={0} px={5}>
-      <Text alignSelf="center">{rank}</Text>
-      <Spacer />
-      <Stack direction="row" w="35%" spacing={0}>
-        <Avatar name={displayName} src={photoURL} />
-        <Spacer />
-        <Text alignSelf="center">{displayName}</Text>
+    <tr>
+      <Text as="td" fontSize="lg" textAlign="center">
+        {rank}
+      </Text>
+
+      <Stack as="td" direction="row" spacing={6} align="center" py={3}>
+        <Box pos="relative">
+          <Avatar name={displayName} src={photoURL} size="lg" />
+          <Text pos="absolute" fontSize="3xl" bottom={-3} right={-3}>
+            {medal}
+          </Text>
+        </Box>
+        <Text fontSize="lg" fontWeight="bold">
+          {displayName}
+        </Text>
       </Stack>
-      <Spacer />
-      <Text alignSelf="center">{points}</Text>
-    </Stack>
+
+      <Text as="td" fontSize="lg" textAlign="center">
+        {points}
+      </Text>
+    </tr>
   );
 };
-
-// Display users name
-// PhotoId
-// Number of favours Completed
 
 export default LeaderboardRow;
