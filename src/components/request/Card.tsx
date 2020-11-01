@@ -47,7 +47,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
         boxShadow: useColorModeValue("md", "none"),
       }}
     >
-      <Text fontSize="xl" fontWeight="bold" isTruncated w="50%">
+      <Text fontSize="xl" fontWeight="bold" isTruncated>
         {title}
       </Text>
 

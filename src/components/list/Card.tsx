@@ -44,6 +44,7 @@ const Card: ComponentWithAs<"div", CardProps> = ({ href, children, ...restProps 
       <Flex
         pos="relative"
         p={5}
+        minW={0}
         bg={useColorModeValue("primary.50", "whiteAlpha.200")}
         boxShadow={useColorModeValue("lg", "none")}
         borderRadius="lg"
