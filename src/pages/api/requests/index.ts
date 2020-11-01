@@ -11,7 +11,7 @@ const validate = createValidator(requestValidation);
 // ==================== Get all Requests ====================
 
 handler.get(async (req, res) => {
-  const { page = 1, limit = 4, q } = req.query;
+  const { page = 1, limit = 6, q } = req.query;
 
   // Create initial pipeline with pagination stage
   const pipeline: Object[] = [
