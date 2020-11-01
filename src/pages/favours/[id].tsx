@@ -9,7 +9,6 @@ import {
   Stack,
   Text,
   useColorMode,
-  useColorModeValue,
   useToast,
   Wrap,
 } from "@chakra-ui/core";
@@ -22,17 +21,17 @@ import { isServerError, ServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
 import { FavourSchema } from "models/Favour";
-import { EmbeddedUserSchema } from "models/User";
 import useSWR from "swr";
 import ErrorPage from "components/layout/Error";
 import Loader from "components/layout/Loader";
+import { UserSchema } from "models/User";
 
 /**
  * User Preview
  */
 
 interface UserPreviewProps {
-  user: EmbeddedUserSchema;
+  user: UserSchema;
 }
 
 const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (

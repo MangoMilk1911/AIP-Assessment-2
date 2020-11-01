@@ -26,9 +26,9 @@ handler.post(upload.single("evidence"), async (req, res) => {
     const debtor = await User.findById(uid);
 
     await Favour.create({
-      creator: debtor.asEmbedded(),
-      debtor: debtor.asEmbedded(),
-      recipient: recipient.asEmbedded(),
+      creator: debtor.toJSON(),
+      debtor: debtor.toJSON(),
+      recipient: recipient.toJSON(),
       rewards: contributions.get(uid).rewards,
     });
   });
