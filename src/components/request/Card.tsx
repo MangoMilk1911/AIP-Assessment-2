@@ -40,6 +40,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   return (
     <Card
       href={`/requests/${request._id}`}
+      h="12rem"
       background={isClaimed ? "green.400" : useColorModeValue("primary.50", "whiteAlpha.200")}
       _active={{
         bg: isClaimed ? "green.500" : useColorModeValue("primary.100", "whiteAlpha.300"),

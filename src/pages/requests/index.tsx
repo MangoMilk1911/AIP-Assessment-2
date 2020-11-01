@@ -67,7 +67,7 @@ const RequestList: React.FC = () => {
         Requests
       </Heading>
 
-      <Stack direction="row" justify="space-between" align="center">
+      <Stack direction="row" justify="space-between" align="center" mb={4}>
         <InputGroup w={64} size="sm">
           <Input
             value={query}
@@ -93,18 +93,11 @@ const RequestList: React.FC = () => {
         </Button>
       </Stack>
 
-      <Stack as="form" direction="row" spacing={0} mx={2} mb={8} alignSelf="flex-start"></Stack>
-
       {!data ? (
         <SimpleGrid columns={2} spacing="5">
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
-          <Skeleton width="sm" height="40" />
+          {[...Array(6)].map((_, i) => (
+            <Skeleton h="12rem" borderRadius="lg" key={i} />
+          ))}
         </SimpleGrid>
       ) : (
         <>

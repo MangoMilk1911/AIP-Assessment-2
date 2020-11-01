@@ -214,8 +214,8 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             ))}
 
           {isClaimed && (
-            <Skeleton isLoaded={!evidenceLoading} h={64} w="50%">
-              {isClaimed && <Image src={evidenceURL} w="50%" h="auto" />}
+            <Skeleton isLoaded={!evidenceLoading} h={64} w="25%">
+              {isClaimed && <Image src={evidenceURL} w="100%" h="auto" />}
             </Skeleton>
           )}
 
