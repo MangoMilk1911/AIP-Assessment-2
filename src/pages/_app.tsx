@@ -1,18 +1,20 @@
 import React from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
-import { ChakraProvider } from "@chakra-ui/core";
+import { ChakraProvider, Flex } from "@chakra-ui/core";
 import { AuthProvider } from "hooks/useAuth";
 import fetcher from "lib/fetcher";
 import theme from "theme";
 import { SWRConfig } from "swr";
+import SuperJSON from "superjson";
+import { Types } from "mongoose";
+import Header from "components/layout/Header";
+import Footer from "components/layout/Footer";
+import { AnimatePresence, motion, MotionProps, Variants } from "framer-motion";
 
 /**
  * Add global serializer for Mongo Object IDs
  */
-
-import SuperJSON from "superjson";
-import { Types } from "mongoose";
 
 SuperJSON.registerCustom<Types.ObjectId, string>(
   {
@@ -24,9 +26,37 @@ SuperJSON.registerCustom<Types.ObjectId, string>(
 );
 
 /**
+ * Animations
+ */
+
+const pageAnimation: MotionProps = {
+  variants: {
+    pageStart: {
+      opacity: 0,
+      y: 50,
+    },
+    pageEnter: {
+      opacity: 1,
+      y: 0,
+    },
+    pageExit: {
+      opacity: 0,
+    },
+  },
+  initial: "pageStart",
+  animate: "pageEnter",
+  exit: "pageExit",
+  transition: {
+    ease: "easeOut",
+    duration: 0.4,
+  },
+};
+
+/**
  * Main App Component
  */
-const App: React.FC<AppProps> = ({ Component, pageProps }) => (
+
+const App: React.FC<AppProps> = ({ Component, pageProps, router }) => (
   <>
     <Head>
       <title>Pinki</title>
@@ -36,7 +66,17 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
     <ChakraProvider resetCSS theme={theme}>
       <AuthProvider>
         <SWRConfig value={{ fetcher }}>
-          <Component {...pageProps} />
+          <Flex h="100vh" flexDir="column">
+            <Header />
+
+            <AnimatePresence exitBeforeEnter>
+              <motion.main style={{ flexGrow: 1 }} {...pageAnimation} key={router.asPath}>
+                <Component {...pageProps} />
+              </motion.main>
+            </AnimatePresence>
+
+            <Footer />
+          </Flex>
         </SWRConfig>
       </AuthProvider>
     </ChakraProvider>
