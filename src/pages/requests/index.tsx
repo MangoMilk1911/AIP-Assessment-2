@@ -38,6 +38,7 @@ const RequestList: React.FC = () => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 500);
 
+  //Pagination influenced by: https://medium.com/javascript-in-plain-english/simple-pagination-with-node-js-mongoose-and-express-4942af479ab2
   const [pageIndex, setPageIndex] = useState(1);
   const { data, mutate } = useSWR<PaginatedRequests, ApiError>(
     `/api/requests?page=${pageIndex}&q=${debouncedQuery}`

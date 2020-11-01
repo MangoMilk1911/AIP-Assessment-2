@@ -1,47 +1,38 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Avatar,
   AvatarGroup,
   Box,
-  Heading,
-  Stack,
   Button,
-  Text,
   Container,
-  SimpleGrid,
+  Heading,
   HStack,
-  Spacer,
-  useDisclosure,
-  Input,
-  useToast,
   Image,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
+  SimpleGrid,
   Skeleton,
+  Spacer,
+  Stack,
+  Text,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/core";
-import Router, { useRouter } from "next/router";
-import { RequestSchema } from "models/Request";
-import RewardCube from "components/reward/RewardCube";
-import { useAuth } from "hooks/useAuth";
-import fetcher from "lib/fetcher";
-import DeleteAlert from "components/request/DeleteAlert";
 import RewardModal from "components/request/ContributionModal";
-import useSWR from "swr";
-import { GetServerSideProps, NextPage } from "next";
-import { ApiError } from "lib/errorHandler";
-import { useForm } from "react-hook-form";
-import { RewardListProvider, useRewardList } from "hooks/useRewardList";
-import { yup } from "lib/validator";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { evidenceSchema } from "lib/validator/schemas";
-import Request from "models/Request";
-import { firebaseAdmin } from "lib/firebase/admin";
-import nookies from "nookies";
+import DeleteAlert from "components/request/DeleteAlert";
+import RewardCube from "components/reward/RewardCube";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { useAuth } from "hooks/useAuth";
+import { RewardListProvider } from "hooks/useRewardList";
+import fetcher from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
+import Request, { RequestSchema } from "models/Request";
+import { GetServerSideProps } from "next";
+import { useRouter } from "next/router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
 
 dayjs.extend(relativeTime);
 
@@ -50,28 +41,23 @@ interface RequestPageProps {
 }
 
 const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
-  const { user, accessToken } = useAuth();
-
-  const toast = useToast();
-
   const router = useRouter();
   const { id } = router.query;
 
+  const toast = useToast();
+
+  // get logged in user details
+  const { user, accessToken } = useAuth();
+
+  //get request details using SWR
   const { data: request } = useSWR<RequestSchema>("/api/requests/" + id, {
     initialData: initRequest,
   });
-
-  //Alert
-  const [isOpen, setIsOpen] = React.useState(false);
-  const onClose = () => setIsOpen(false);
-
-  //RewardsModal
-  const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
-
   const { owner, title, createdAt, description, contributions, isClaimed } = initRequest;
-
   const isContributor = user && Object.keys(contributions).includes(user.uid);
 
+  //Edit rewards
+  const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
   const rewardPool = useMemo(() => {
     const temp = {};
 
@@ -84,6 +70,10 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     return temp;
   }, [contributions]);
 
+  //state for delete request alert
+  const [isOpen, setIsOpen] = React.useState(false);
+  const onClose = () => setIsOpen(false);
+
   //evidence upload
   const previewImageRef = useRef<HTMLImageElement>(null);
   const [cannotSubmit, setCannotSubmit] = useState(true);
@@ -92,7 +82,8 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     const fileInput = document.getElementById("evidence") as HTMLInputElement;
     const filePath = fileInput.value;
     var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
-
+    // Checking if uploaded image is a image type file, otherwise empty file input
+    // RegEx inspired by: https://www.geeksforgeeks.org/file-type-validation-while-uploading-it-using-javascript/
     if (!allowedExtensions.exec(filePath)) {
       toast({
         title: "OI MATE",
@@ -114,11 +105,13 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     }
   };
 
+  //Claim Request method
   const confirmAndClaim = async () => {
     const fileInput = document.getElementById("evidence") as HTMLInputElement;
     const evidence = fileInput.files[0];
 
     //prettier-ignore
+    //using firebase storage to store image and use link instead
     const path = `requests/${request.title}_${request._id}_${new Date().toISOString()}/evidence.png`;
     const storageRef = firebase.storage().ref();
     const fileRef = storageRef.child(path);
@@ -135,7 +128,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
     router.reload();
   };
 
-  //EVIDENCE POST CLAIMED
+  //Showing evidence after claimed on page
   const [evidenceURL, setEvidenceURL] = useState<string>();
   const evidenceLoading = request.evidence && !evidenceURL;
   useEffect(() => {

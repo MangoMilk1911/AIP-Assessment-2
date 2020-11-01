@@ -34,6 +34,8 @@ const CreateRequest: React.FC = () => {
   const router = useRouter();
   const { accessToken } = useAuth();
   const { rewards, dispatch } = useRewardList();
+
+  //form validation and submission using React Hook Form
   const { register, handleSubmit, errors: formErrors, formState } = useForm<RequestFormData>({
     resolver: yupResolver(requestValidation),
     context: { form: true, create: true },
