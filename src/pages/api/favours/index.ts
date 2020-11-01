@@ -4,6 +4,7 @@ import createHandler from "lib/routeHandler";
 import { Favour, User } from "models";
 import { favourValidation } from "lib/validator/schemas";
 import createValidator from "lib/validator";
+import PartyDetector from "lib/PartyDetector";
 
 const handler = createHandler();
 const validate = createValidator(favourValidation);
@@ -63,7 +64,10 @@ handler.post(authGuard, async (req, res) => {
     initialEvidence,
   });
 
-  res.status(201).json(newFavour);
+  const partyDetector = await new PartyDetector(userData, recipientData).init();
+  const party = await partyDetector.findParty();
+
+  res.status(201).json({ newFavour, party });
 });
 
 export default handler;
