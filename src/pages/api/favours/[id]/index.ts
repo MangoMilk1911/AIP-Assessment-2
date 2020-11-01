@@ -8,11 +8,12 @@ import { Favour } from "models";
 const handler = createHandler();
 const validate = createValidator(favourValidation);
 
-// =================== Read single request =====================
+// =================== Get single request =====================
 
 handler.get(authGuard, async (req, res) => {
   const { id } = await validate(req);
 
+  // Find the favour from db
   const favour = await Favour.findById(id);
   if (!favour) throw new ApiError(400, "No Favour with that ID exists.");
 
@@ -28,9 +29,11 @@ handler.get(authGuard, async (req, res) => {
 handler.put(authGuard, async (req, res) => {
   const { id, rewards } = await validate(req, "updateFavour");
 
+  // Find the favour from db
   const favour = await Favour.findById(id);
   if (!favour) throw new ApiError(400, "No Favour with that ID exists.");
 
+  // User is not related to the favour
   const isCreator = req.userId === favour.creator._id;
   if (!isCreator) throw new ApiError(403, "You do not have permission to perform this action.");
 
@@ -46,8 +49,9 @@ handler.put(authGuard, async (req, res) => {
 handler.delete(authGuard, async (req, res) => {
   const { id } = await validate(req);
 
+  // Find the favour from db
   const favour = await Favour.findById(id);
-  if (!favour) throw new ApiError(400, "Favour not found");
+  if (!favour) throw new ApiError(400, "No favour with that ID exists");
 
   const { debtor, recipient, evidence } = favour;
 

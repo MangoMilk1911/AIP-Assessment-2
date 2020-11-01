@@ -1,13 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import SelectUser from "components/favour/SelectUser";
 import RewardList from "components/reward/RewardList";
 import {
   Button,
-  Flex,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   Heading,
   Input,
@@ -22,50 +20,12 @@ import { useAuth } from "hooks/useAuth";
 import fetcher from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
 import { favourValidation } from "lib/validator/schemas";
-import { Rewards } from "models/Favour";
+import { FavourSchema, Rewards } from "models/Favour";
 import { UserSchema } from "models/User";
 import { useForm } from "react-hook-form";
-import useSWR from "swr";
-import { ServerError } from "lib/errorHandler";
+import { isServerError } from "lib/errorHandler";
 import Layout from "components/layout/Layout";
-
-const useSelectUser = () => {
-  // Selected User
-  const [selectedUser, setSelectedUser] = useState<UserSchema>(null);
-  const [showUsers, setShowUsers] = useState(false);
-
-  // User Query
-  const userQueryInput = useRef<HTMLInputElement>();
-  const [userQuery, setUserQuery] = useState("");
-  const { data: users } = useSWR<UserQueryData>(
-    userQuery.length >= 2 && `/api/users?q=${userQuery}`
-  );
-
-  const searchUsers: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
-    if (userQueryInput.current.value.length < 2) return;
-
-    setUserQuery(userQueryInput.current.value);
-    setShowUsers(true);
-  };
-
-  const selectUser = (user: UserSchema) => {
-    setSelectedUser(user);
-    setShowUsers(false);
-    userQueryInput.current.value = user.displayName;
-  };
-
-  return {
-    users,
-    showUsers,
-    selectUser,
-    setShowUsers,
-    userQueryInput,
-    searchUsers,
-    selectedUser,
-  };
-};
-
-type UserQueryData = UserSchema[];
+import WithAuth from "components/WithAuth";
 
 /**
  * Owing Form
@@ -82,29 +42,18 @@ const OwingForm: React.FC = () => {
   const router = useRouter();
   const toast = useToast();
 
-  // Rewards
+  const [selectedUser, setSelectedUser] = useState<UserSchema>(null);
   const { rewards } = useRewardList();
 
-  // Select User Hook
-  const {
-    users,
-    showUsers,
-    selectUser,
-    setShowUsers,
-    userQueryInput,
-    searchUsers,
-    selectedUser,
-  } = useSelectUser();
-
   // Form
-  const { handleSubmit, register, errors: formErrors } = useForm<OwingFormData>({
+  const { handleSubmit, register, errors: formErrors, formState } = useForm<OwingFormData>({
     resolver: yupResolver(favourValidation),
     context: { form: true, create: true },
   });
 
-  const createFavour = async ({ debtor, recipient, rewards }: OwingFormData) => {
+  async function createFavour({ debtor, recipient, rewards }: OwingFormData) {
     try {
-      await fetcher("/api/favours", accessToken, {
+      const { newFavour, party } = (await fetcher("/api/favours", accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -112,24 +61,32 @@ const OwingForm: React.FC = () => {
           recipient,
           rewards,
         }),
-      });
+      })) as { newFavour: FavourSchema; party: UserSchema[] };
 
       toast({
         status: "success",
-        title: "New Favour Created!",
+        title: "New favour created!",
       });
 
-      router.push("/favours");
-    } catch (error) {
-      (error as ServerError).errors.forEach((err) => {
+      if (party.length > 0) {
         toast({
-          status: "error",
-          title: "Uh oh...",
-          description: err.message,
+          status: "info",
+          title: "It's Party Time! 🥳",
+          description: `Party detected between ${party.map((user) => user.displayName).join(", ")}`,
+          duration: null,
+          isClosable: true,
         });
+      }
+
+      router.push("/favours/" + newFavour._id);
+    } catch (error) {
+      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
+      toast({
+        status: "error",
+        title: errMsg || "Something went wrong...",
       });
     }
-  };
+  }
 
   return (
     <Stack as="form" spacing={8} onSubmit={handleSubmit(createFavour)}>
@@ -139,13 +96,8 @@ const OwingForm: React.FC = () => {
       {/* Recipient */}
       <FormControl isInvalid={!!formErrors.recipient} mt="0 !important">
         <FormLabel htmlFor="recipient">Who do you owe?</FormLabel>
-        <Flex>
-          <Input ref={userQueryInput} flexGrow={1} borderRightRadius={0} />
-          <Button onClick={searchUsers} px={12} borderLeftRadius={0}>
-            Search
-          </Button>
-        </Flex>
-        <FormHelperText>Search must be more than 2 characters.</FormHelperText>
+        <SelectUser onSelectUser={setSelectedUser} />
+        <FormErrorMessage>{formErrors.recipient?.message}</FormErrorMessage>
 
         <Input
           readOnly
@@ -155,19 +107,10 @@ const OwingForm: React.FC = () => {
           ref={register}
           value={selectedUser?._id || ""}
         />
-        <FormErrorMessage>{formErrors.recipient?.message}</FormErrorMessage>
       </FormControl>
 
-      {/* Select User */}
-      <SelectUser
-        users={users}
-        showUsers={showUsers}
-        selectUser={selectUser}
-        setShowUsers={setShowUsers}
-      />
-
       {/* Rewards */}
-      <FormControl mt="0 !important" isInvalid={!!formErrors.rewards}>
+      <FormControl isInvalid={!!formErrors.rewards}>
         <FormLabel htmlFor="rewards">What do you owe them?</FormLabel>
         <RewardList />
         {Object.keys(rewards).map((reward) => (
@@ -185,7 +128,7 @@ const OwingForm: React.FC = () => {
       </FormControl>
 
       {/* Submit */}
-      <Button type="submit" colorScheme="primary" size="lg">
+      <Button type="submit" colorScheme="primary" size="lg" disabled={formState.isSubmitting}>
         Submit
       </Button>
     </Stack>
@@ -197,7 +140,7 @@ const OwingForm: React.FC = () => {
  */
 
 interface OweFormData extends OwingFormData {
-  ev: FileList;
+  initEvidence: FileList;
 }
 
 const OweForm: React.FC = () => {
@@ -205,19 +148,8 @@ const OweForm: React.FC = () => {
   const router = useRouter();
   const toast = useToast();
 
-  // Rewards
+  const [selectedUser, setSelectedUser] = useState<UserSchema>(null);
   const { rewards } = useRewardList();
-
-  // Select User Hook
-  const {
-    users,
-    showUsers,
-    selectUser,
-    setShowUsers,
-    userQueryInput,
-    searchUsers,
-    selectedUser,
-  } = useSelectUser();
 
   // Form
   const { handleSubmit, register, errors: formErrors } = useForm<OweFormData>({
@@ -225,14 +157,16 @@ const OweForm: React.FC = () => {
     context: { form: true, create: true },
   });
 
-  const createFavour = async ({ debtor, recipient, rewards, ev: evidence }: OweFormData) => {
+  async function createFavour({ debtor, recipient, rewards, initEvidence }: OweFormData) {
     try {
+      // Upload evidence to firebase storage
       const initEvidencePath = `favours/${debtor}_${recipient}_${new Date().toISOString()}/initialEvidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(initEvidencePath);
-      await fileRef.put(evidence[0]);
+      await fileRef.put(initEvidence[0]);
 
-      await fetcher("/api/favours", accessToken, {
+      // Add favour via API
+      const newFavour = (await fetcher("/api/favours", accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -241,23 +175,22 @@ const OweForm: React.FC = () => {
           rewards,
           initialEvidence: initEvidencePath,
         }),
-      });
+      })) as FavourSchema;
 
       toast({
         status: "success",
-        title: "New Favour Created!",
+        title: "New favour created!",
       });
-      router.push("/favours");
+
+      router.push("/favours/" + newFavour._id);
     } catch (error) {
-      (error as ServerError).errors.forEach((err) => {
-        toast({
-          status: "error",
-          title: "Uh oh...",
-          description: err.message,
-        });
+      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
+      toast({
+        status: "error",
+        title: errMsg || "Something went wrong...",
       });
     }
-  };
+  }
 
   return (
     <Stack as="form" spacing={8} onSubmit={handleSubmit(createFavour)}>
@@ -274,13 +207,8 @@ const OweForm: React.FC = () => {
       {/* Debtor */}
       <FormControl isInvalid={!!formErrors.debtor} mt="0 !important">
         <FormLabel htmlFor="debtor">Who owes you?</FormLabel>
-        <Flex>
-          <Input ref={userQueryInput} flexGrow={1} borderRightRadius={0} />
-          <Button onClick={searchUsers} px={12} borderLeftRadius={0}>
-            Search
-          </Button>
-        </Flex>
-        <FormHelperText>Search must be more than 2 characters.</FormHelperText>
+        <SelectUser onSelectUser={setSelectedUser} />
+        <FormErrorMessage>{formErrors.debtor?.message}</FormErrorMessage>
 
         <Input
           readOnly
@@ -290,19 +218,10 @@ const OweForm: React.FC = () => {
           ref={register}
           value={selectedUser?._id || ""}
         />
-        <FormErrorMessage>{formErrors.debtor?.message}</FormErrorMessage>
       </FormControl>
 
-      {/* Select User */}
-      <SelectUser
-        users={users}
-        showUsers={showUsers}
-        selectUser={selectUser}
-        setShowUsers={setShowUsers}
-      />
-
       {/* Rewards */}
-      <FormControl mt="0 !important" isInvalid={!!formErrors.rewards}>
+      <FormControl isInvalid={!!formErrors.rewards}>
         <FormLabel htmlFor="rewards">What do they owe you?</FormLabel>
         <RewardList />
         {Object.keys(rewards).map((reward) => (
@@ -319,9 +238,9 @@ const OweForm: React.FC = () => {
         <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
       </FormControl>
 
-      <FormControl>
-        <FormLabel>Initial Evidence Required</FormLabel>
-        <input type="file" name="ev" ref={register} />
+      <FormControl isRequired>
+        <FormLabel>Initial Evidence</FormLabel>
+        <input type="file" name="initEvidence" ref={register} />
       </FormControl>
 
       {/* Submit */}
@@ -336,6 +255,7 @@ const Create: React.FC = () => {
   const router = useRouter();
   const { type: formType } = router.query;
 
+  // Swap out form depending on favour type
   const changeFormType = (e: React.ChangeEvent<HTMLSelectElement>) => {
     router.push({
       query: { type: e.target.value },
@@ -359,6 +279,7 @@ const Create: React.FC = () => {
           </Select>
         </Stack>
 
+        {/* Form */}
         <RewardListProvider>
           {formType === "owing" ? <OwingForm /> : <OweForm />}
         </RewardListProvider>
@@ -367,4 +288,4 @@ const Create: React.FC = () => {
   );
 };
 
-export default Create;
+export default WithAuth(Create);

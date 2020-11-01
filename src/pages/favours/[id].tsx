@@ -1,18 +1,30 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { NextPage } from "next";
-import { FavourSchema } from "models/Favour";
-import fetcher from "lib/fetcher";
-import nookies from "nookies";
-import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
-import RewardCube from "components/reward/RewardCube";
-import { UserSchema } from "models/User";
-import { useAuth } from "hooks/useAuth";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
+import { useRouter } from "next/router";
+import {
+  Avatar,
+  Box,
+  Button,
+  Image,
+  Stack,
+  Text,
+  useColorMode,
+  useToast,
+  Wrap,
+} from "@chakra-ui/core";
 import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
-import { firebase } from "lib/firebase/client";
-import { ServerError } from "lib/errorHandler";
 import Layout from "components/layout/Layout";
+import WithAuth from "components/WithAuth";
+import RewardCube from "components/reward/RewardCube";
+import { useAuth } from "hooks/useAuth";
+import { isServerError, ServerError } from "lib/errorHandler";
+import fetcher from "lib/fetcher";
+import { firebase } from "lib/firebase/client";
+import { FavourSchema } from "models/Favour";
+import useSWR from "swr";
+import ErrorPage from "components/layout/Error";
+import Loader from "components/layout/Loader";
+import { UserSchema } from "models/User";
 
 /**
  * User Preview
@@ -35,69 +47,106 @@ const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (
  * Favour Details Page
  */
 
-interface FavourDetailsProps {
-  favour: FavourSchema;
-}
-
-const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
-  const toast = useToast();
+const FavourDetails: React.FC = () => {
+  const { user, accessToken } = useAuth();
   const router = useRouter();
 
-  const { user, accessToken } = useAuth();
-  const { _id, debtor, recipient, rewards, evidence } = favour;
+  const toast = useToast();
+  const { colorMode } = useColorMode();
+  function useColorModeValue(light: any, dark: any) {
+    return colorMode === "light" ? light : dark;
+  }
+
+  const { id } = router.query;
+  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>([
+    `/api/favours/${id}`,
+    accessToken,
+  ]);
 
   // Delete Favour
-  const canDelete = user?.uid === recipient._id || (user?.uid === debtor._id && evidence);
-  const deleteFavour = useCallback(async () => {
+  const canDelete =
+    favour &&
+    (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && favour.evidence));
+
+  async function deleteFavour() {
     try {
-      await fetcher(`api/favours/${_id}`, accessToken, { method: "DELETE" });
+      await fetcher(`/api/favours/${id}`, accessToken, { method: "DELETE" });
+
+      toast({
+        status: "success",
+        title: "Favour deleted!",
+      });
+
       router.push("/favours");
     } catch (fetchError) {
       const { errors } = fetchError as ServerError;
 
       toast({
         status: "error",
-        title: "Uh oh...",
+        title: "Unable to delete favour 😭",
         description: errors[0].message,
       });
     }
-  }, [_id, accessToken]);
+  }
 
   // Upload Evidence
+  const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
   const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const evidence = e.target.files[0];
 
-    const path = `favours/${debtor._id}_${recipient._id}_${new Date().toISOString()}/evidence.png`;
-    const storageRef = firebase.storage().ref();
-    const fileRef = storageRef.child(path);
-    await fileRef.put(evidence);
+    try {
+      const timestamp = new Date().toISOString();
+      const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
+      const storageRef = firebase.storage().ref();
+      const fileRef = storageRef.child(path);
+      await fileRef.put(evidence);
 
-    await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          evidence: path,
+        }),
+      });
+
+      mutate({
+        ...favour,
         evidence: path,
-      }),
-    });
+      });
 
-    router.reload();
+      toast({
+        status: "success",
+        title: "Evidence submitted! 🥳",
+      });
+    } catch (error) {
+      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
+      toast({
+        status: "error",
+        title: errMsg || "Something went wrong...",
+      });
+    }
   };
 
   // Image
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
   const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
-    if (favour.initialEvidence) {
+    if (favour?.initialEvidence) {
       firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
     }
 
-    if (favour.evidence) {
+    if (favour?.evidence) {
       firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
     }
-  }, []);
+  }, [favour]);
+
+  if (error) return <ErrorPage statusCode={error.statusCode} error={error.errors[0].message} />;
+
+  if (!favour) return <Loader />;
 
   return (
     <Layout maxW="sm" mt={16}>
+      {/* Back Button */}
       <Button
         variant="link"
         color="inherit"
@@ -118,19 +167,19 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
           justify="center"
           w="full"
           p={8}
-          bg="whiteAlpha.200"
+          bg={useColorModeValue("primary.50", "whiteAlpha.200")}
           borderRadius="lg"
         >
-          <UserPreview user={debtor} />
-          <Text color="primary.200">Promised</Text>
-          <UserPreview user={recipient} />
+          <UserPreview user={favour.debtor} />
+          <Text color={useColorModeValue("teal.500", "primary.300")}>Promised</Text>
+          <UserPreview user={favour.recipient} />
         </Stack>
 
         {/* Reward Pool */}
         <Wrap justify="center" w="28rem">
-          {Object.keys(rewards).map((reward) => (
+          {Object.keys(favour.rewards).map((reward) => (
             <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-              <RewardCube reward={reward} quantity={rewards[reward]} />
+              <RewardCube reward={reward} quantity={favour.rewards[reward]} />
             </Box>
           ))}
         </Wrap>
@@ -153,35 +202,18 @@ const FavourDetails: NextPage<FavourDetailsProps> = ({ favour }) => {
           <Button
             onClick={deleteFavour}
             isDisabled={!canDelete}
-            variant="ghost"
+            variant="outline"
             colorScheme="red"
             rightIcon={<DeleteIcon />}
           >
             Delete
           </Button>
-          {user?.uid === debtor._id && !favour.evidence && (
-            <input type="file" onChange={uploadEvidence} />
-          )}
+
+          {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
         </Stack>
       </Stack>
     </Layout>
   );
 };
 
-FavourDetails.getInitialProps = async (ctx) => {
-  const { "pinky-auth": accessToken } = nookies.get(ctx);
-  if (!accessToken) {
-    ctx.res.writeHead(302, { location: "/login" });
-    ctx.res.end();
-    return;
-  }
-
-  const favour = await fetcher(
-    `${process.env.NEXT_PUBLIC_APIURL}/api/favours/${ctx.query.id}`,
-    accessToken
-  );
-
-  return { favour };
-};
-
-export default FavourDetails;
+export default WithAuth(FavourDetails);

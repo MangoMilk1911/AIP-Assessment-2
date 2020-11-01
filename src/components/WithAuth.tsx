@@ -1,25 +1,14 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "hooks/useAuth";
-import { Heading, Spinner, Stack, useToast } from "@chakra-ui/core";
-import Layout from "./layout/Layout";
+import { useToast } from "@chakra-ui/core";
 import SuperJSON from "superjson";
-
-const Loader: React.FC = () => (
-  <Layout title="Loading..." mt={48}>
-    <Stack w="full" direction="column" spacing={6} align="center">
-      <Heading size="xl" fontWeight="medium">
-        Loading...
-      </Heading>
-      <Spinner size="xl" speed="1s" thickness="4px" />
-    </Stack>
-  </Layout>
-);
+import Loader from "./layout/Loader";
 
 const WithAuth = (WrappedComponent) => {
   const AuthGuard: React.FC = (props) => {
     // Deserialize if coming from GSSP
-    if ("json" in props && "meta" in props) {
+    if ("json" in props) {
       props = SuperJSON.deserialize(props);
     }
 
