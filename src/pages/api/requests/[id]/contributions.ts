@@ -26,7 +26,7 @@ handler.put(authGuard, async (req, res) => {
 
   // Update the new rewards if any otherwise remove the contribution
   if (rewards) {
-    contributions.set(user._id, { user: user.asEmbedded(), rewards });
+    contributions.set(user._id, { user: user.toJSON(), rewards });
   } else {
     contributions.delete(user._id);
   }

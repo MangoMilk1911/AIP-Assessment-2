@@ -1,9 +1,9 @@
 import { Center, Box, Image, Text, Spacer, SimpleGrid } from "@chakra-ui/core";
-import { EmbeddedUserSchema } from "models/User";
+import { UserSchema } from "models/User";
 import React from "react";
 
 interface PlaqueProps {
-  contributor: EmbeddedUserSchema;
+  contributor: UserSchema;
 }
 const Plaque: React.FC<PlaqueProps> = ({ contributor }) => {
   return (

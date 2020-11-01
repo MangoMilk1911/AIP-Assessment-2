@@ -1,9 +1,9 @@
 import React from "react";
 import { Avatar, Text, Stack, Box } from "@chakra-ui/core";
-import { EmbeddedUserSchema } from "models/User";
+import { UserSchema } from "models/User";
 
 interface LeaderboardRowProps {
-  user: EmbeddedUserSchema;
+  user: UserSchema;
   rank: number;
 }
 

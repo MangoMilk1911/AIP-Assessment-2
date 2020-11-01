@@ -5,7 +5,7 @@ import fetcher from "lib/fetcher";
 import nookies from "nookies";
 import { Avatar, Box, Button, Image, Stack, Text, useToast, Wrap } from "@chakra-ui/core";
 import RewardCube from "components/reward/RewardCube";
-import { EmbeddedUserSchema } from "models/User";
+import { UserSchema } from "models/User";
 import { useAuth } from "hooks/useAuth";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
@@ -19,7 +19,7 @@ import Layout from "components/layout/Layout";
  */
 
 interface UserPreviewProps {
-  user: EmbeddedUserSchema;
+  user: UserSchema;
 }
 
 const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (

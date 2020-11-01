@@ -57,9 +57,9 @@ handler.post(authGuard, async (req, res) => {
 
   // Write new favour to db
   const newFavour = await Favour.create({
-    creator: userData.asEmbedded(),
-    debtor: debtorData.asEmbedded(),
-    recipient: recipientData.asEmbedded(),
+    creator: userData.toJSON(),
+    debtor: debtorData.toJSON(),
+    recipient: recipientData.toJSON(),
     rewards,
     initialEvidence,
   });

@@ -1,5 +1,5 @@
 import { Favour } from "models";
-import User, { EmbeddedUserSchema, UserSchema } from "models/User";
+import User, { UserSchema } from "models/User";
 
 /**
  * recStack stands for ‘recursion stack’,
@@ -12,12 +12,12 @@ import User, { EmbeddedUserSchema, UserSchema } from "models/User";
 export default class PartyDetector {
   private allUsers: UserSchema[];
   private adjList: Record<string, string[]>;
-  private debtor: EmbeddedUserSchema;
-  private recipient: EmbeddedUserSchema;
+  private debtor: UserSchema;
+  private recipient: UserSchema;
   private visited: Record<string, boolean>;
   private recStack: Record<string, boolean>;
 
-  constructor(debtor: EmbeddedUserSchema, recipient: EmbeddedUserSchema) {
+  constructor(debtor: UserSchema, recipient: UserSchema) {
     this.adjList = {};
     this.debtor = debtor;
     this.recipient = recipient;

@@ -1,13 +1,13 @@
 import React from "react";
 import useSWR from "swr";
-import { EmbeddedUserSchema } from "models/User";
+import { UserSchema } from "models/User";
 import { ApiError } from "lib/errorHandler";
 import { Heading, Box } from "@chakra-ui/core";
 import LeaderboardRow from "components/leaderboard/LeaderboardRow";
 import Layout from "components/layout/Layout";
 
 const Leaderboard: React.FC = () => {
-  const { data: users } = useSWR<EmbeddedUserSchema[], ApiError>("/api/leaderboard");
+  const { data: users } = useSWR<UserSchema[], ApiError>("/api/leaderboard");
 
   return (
     <Layout title="Leaderboard">
