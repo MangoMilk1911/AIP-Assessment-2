@@ -68,6 +68,16 @@ const OwingForm: React.FC = () => {
         title: "New favour created!",
       });
 
+      if (party.length > 0) {
+        toast({
+          status: "info",
+          title: "It's Party Time! 🥳",
+          description: `Party detected between ${party.map((user) => user.displayName).join(", ")}`,
+          duration: null,
+          isClosable: true,
+        });
+      }
+
       router.push("/favours/" + newFavour._id);
     } catch (error) {
       const errMsg = isServerError(error) ? error.errors[0].message : error.message;
