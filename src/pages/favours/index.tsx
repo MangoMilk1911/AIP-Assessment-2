@@ -25,7 +25,7 @@ import PageNavigation from "components/list/PageNavigation";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { UserSchema } from "models/User";
-import { motion, Variants } from "framer-motion";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 import useDebounce from "hooks/useDebounce";
 
 dayjs.extend(relativeTime);
@@ -76,23 +76,19 @@ const FavourCardTitle: React.FC<FavourCardTitleProps> = ({ debtor, recipient }) 
  * Favour List
  */
 
-const ListLoader: React.FC = () => {
-  // Set a debounced show flag to only show the
-  // loading skeleton if 2 seconds has passed since request sent
-  const [show, setShow] = useState(false);
-  const debouncedShow = useDebounce(show, 2000);
-  useEffect(() => setShow(true), []);
-
-  return (
-    debouncedShow && (
-      <SimpleGrid columns={2} spacing={8}>
-        {[...Array(4)].map((_, i) => (
-          <Skeleton h={40} borderRadius="lg" key={i} />
-        ))}
-      </SimpleGrid>
-    )
-  );
-};
+const ListLoader: React.FC = () => (
+  <SimpleGrid
+    as={motion.div}
+    columns={2}
+    spacing={8}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1, transition: { delay: 1 } }}
+  >
+    {[...Array(6)].map((_, i) => (
+      <Skeleton h={40} borderRadius="lg" key={i} />
+    ))}
+  </SimpleGrid>
+);
 
 interface ListContentProps extends Omit<SimpleGridProps, "transition"> {
   data: PaginatedFavours;
@@ -110,35 +106,38 @@ const ListContent: React.FC<ListContentProps> = ({
 
   return (
     <Stack spacing={8}>
-      <SimpleGrid
-        as={motion.div}
-        columns={2}
-        spacing={8}
-        initial="hidden"
-        animate="visible"
-        variants={listVariants}
-        {...restProps}
-        key={pageIndex} // So the animation replays whenever the page changes
-      >
-        {favours.map((favour) => (
-          <Card href={`/favours/${favour._id}`} h={40} key={favour._id.toString()}>
-            {/* Title */}
-            <FavourCardTitle debtor={favour.debtor} recipient={favour.recipient} />
+      <AnimatePresence exitBeforeEnter>
+        <SimpleGrid
+          as={motion.div}
+          columns={2}
+          spacing={8}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          variants={listVariants}
+          {...restProps}
+          key={pageIndex} // So the animation replays whenever the page changes
+        >
+          {favours.map((favour) => (
+            <Card href={`/favours/${favour._id}`} h={40} key={favour._id.toString()}>
+              {/* Title */}
+              <FavourCardTitle debtor={favour.debtor} recipient={favour.recipient} />
 
-            {/* Rewards */}
-            <Text mt={1} fontSize="2xl">
-              {Object.keys(favour.rewards).map((reward) => (
-                <span key={reward}>{reward}</span>
-              ))}
-            </Text>
+              {/* Rewards */}
+              <Text mt={1} fontSize="2xl">
+                {Object.keys(favour.rewards).map((reward) => (
+                  <span key={reward}>{reward}</span>
+                ))}
+              </Text>
 
-            <Spacer />
+              <Spacer />
 
-            {/* Date */}
-            <Text>{dayjs(favour.createdAt).from(new Date())}</Text>
-          </Card>
-        ))}
-      </SimpleGrid>
+              {/* Date */}
+              <Text>{dayjs(favour.createdAt).from(new Date())}</Text>
+            </Card>
+          ))}
+        </SimpleGrid>
+      </AnimatePresence>
 
       <PageNavigation {...pageData} pageIndex={pageIndex} setPageIndex={setPageIndex} />
     </Stack>

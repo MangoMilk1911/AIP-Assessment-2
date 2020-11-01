@@ -26,6 +26,7 @@ import useSWR from "swr";
 import ErrorPage from "components/layout/Error";
 import Loader from "components/layout/Loader";
 import { UserSchema } from "models/User";
+import { motion } from "framer-motion";
 
 /**
  * User Preview
@@ -148,7 +149,7 @@ const FavourDetails: React.FC = () => {
   if (!favour) return <Loader />;
 
   return (
-    <Layout maxW="sm" mt={16}>
+    <Layout as={motion.div} maxW="sm" mt={16} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Back Button */}
       <Button
         variant="link"
