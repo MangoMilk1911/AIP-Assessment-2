@@ -18,6 +18,21 @@ import { UserSchema } from "models/User";
 import useSWR from "swr";
 import { motion } from "framer-motion";
 
+interface UserPreviewCardProps {
+  user: UserSchema;
+  onClick: () => void;
+}
+
+const UserPreviewCard: React.FC<UserPreviewCardProps> = ({ user, onClick }) => (
+  <Card as={motion.div} onClick={onClick} flexDir="row" variants={cardAnimation} key={user._id}>
+    <Avatar name={user.displayName} mr={4} />
+    <Box>
+      <Text fontSize="xl">{user.displayName}</Text>
+      <Text color={useColorModeValue("gray.700", "gray.400")}>{user.email}</Text>
+    </Box>
+  </Card>
+);
+
 /**
  * Select User
  */
@@ -92,22 +107,14 @@ const SelectUser: React.FC<SelectUserProps> = ({ onSelectUser }) => {
             animate={show ? "show" : "hidden"}
           >
             {users.map((user) => (
-              <Card
-                as={motion.div}
+              <UserPreviewCard
+                user={user}
                 onClick={() => {
                   onSelectUser(user);
                   setUserQuery(user.displayName);
                 }}
-                flexDir="row"
-                variants={cardAnimation}
                 key={user._id}
-              >
-                <Avatar name={user.displayName} mr={4} />
-                <Box>
-                  <Text fontSize="xl">{user.displayName}</Text>
-                  <Text color={useColorModeValue("gray.700", "gray.400")}>{user.email}</Text>
-                </Box>
-              </Card>
+              />
             ))}
           </Stack>
         )}
