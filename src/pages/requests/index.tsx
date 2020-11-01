@@ -14,8 +14,10 @@ import {
   Flex,
   Button,
   Input,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/core";
-import { AddIcon, ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowLeftIcon, ArrowRightIcon, CloseIcon } from "@chakra-ui/icons";
 import Card from "components/request/Card";
 import { useAuth } from "hooks/useAuth";
 import { ApiError } from "lib/errorHandler";
@@ -71,28 +73,34 @@ const RequestList: React.FC = () => {
           <Heading size="xl" my="8">
             Requests
           </Heading>
-          <Spacer />
-          <IconButton onClick={redirect} aria-label="Add" icon={<AddIcon />} />
         </Stack>
 
-        <Stack as="form" onSubmit={onQuerySubmit} direction="row" spacing={0} mb={4}>
-          <Input
-            ref={queryInputRef}
-            placeholder="Find a request"
-            borderRightRadius={0}
-            w={64}
-            size="sm"
-          />
+        <Stack as="form" onSubmit={onQuerySubmit} direction="row" spacing={0}>
+          <InputGroup w={64} size="sm">
+            <Input ref={queryInputRef} placeholder="Find a request" borderRightRadius={0} />
+            <InputRightElement>
+              <IconButton
+                aria-label="clear"
+                icon={<CloseIcon />}
+                onClick={clearSearch}
+                size="xs"
+                variant="link"
+              >
+                clear
+              </IconButton>
+            </InputRightElement>
+          </InputGroup>
+
           <Button type="submit" px={12} borderLeftRadius={0} size="sm">
             Search
           </Button>
-        </Stack>
-
-        <Stack as="form" direction="row" spacing={0} mb={16} alignSelf="flex-start">
-          <Button onClick={clearSearch} px={4} size="xs">
-            clear
+          <Spacer />
+          <Button onClick={redirect} rightIcon={<AddIcon />}>
+            Add
           </Button>
         </Stack>
+
+        <Stack as="form" direction="row" spacing={0} mx={2} mb={8} alignSelf="flex-start"></Stack>
 
         <Container centerContent>
           {!data ? (
