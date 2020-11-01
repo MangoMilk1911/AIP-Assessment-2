@@ -24,7 +24,18 @@ interface UserPreviewCardProps {
 }
 
 const UserPreviewCard: React.FC<UserPreviewCardProps> = ({ user, onClick }) => (
-  <Card as={motion.div} onClick={onClick} flexDir="row" variants={cardAnimation}>
+  <Card
+    as={motion.div}
+    onClick={onClick}
+    flexDir="row"
+    variants={cardAnimation}
+    bg={useColorModeValue("gray.200", "whiteAlpha.200")}
+    _active={{
+      bg: useColorModeValue("gray.100", "whiteAlpha.300"),
+      transform: "scale(0.95)",
+      boxShadow: useColorModeValue("md", "none"),
+    }}
+  >
     <Avatar name={user.displayName} mr={4} />
     <Box>
       <Text fontSize="xl">{user.displayName}</Text>
