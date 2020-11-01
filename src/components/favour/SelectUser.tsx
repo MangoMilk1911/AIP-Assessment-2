@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   Avatar,
   Box,
@@ -10,48 +11,12 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/core";
+import Card from "components/List/Card";
 import { useAuth } from "hooks/useAuth";
 import useDebounce from "hooks/useDebounce";
 import { UserSchema } from "models/User";
-import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { motion } from "framer-motion";
-
-/**
- * User Preview Card
- */
-
-const cardAnimation = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1 },
-};
-
-interface UserPreviewProps {
-  user: UserSchema;
-  onClick: () => void;
-}
-
-const UserPreview: React.FC<UserPreviewProps> = ({ user, onClick }) => (
-  <Stack
-    as={motion.div}
-    onClick={onClick}
-    direction="row"
-    spacing={4}
-    p={5}
-    bg={useColorModeValue("gray.200", "whiteAlpha.200")}
-    align="center"
-    borderRadius="lg"
-    style={{ transition: "background 0.2s ease" }}
-    _hover={{ cursor: "pointer", bg: useColorModeValue("gray.300", "whiteAlpha.300") }}
-    variants={cardAnimation}
-  >
-    <Avatar name={user.displayName} />
-    <Box>
-      <Text fontSize="xl">{user.displayName}</Text>
-      <Text color={useColorModeValue("gray.700", "gray.400")}>{user.email}</Text>
-    </Box>
-  </Stack>
-);
 
 /**
  * Select User
@@ -65,6 +30,11 @@ const listAnimation = {
       staggerChildren: 0.3,
     },
   },
+};
+
+const cardAnimation = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1 },
 };
 
 interface SelectUserProps {
@@ -91,20 +61,17 @@ const SelectUser: React.FC<SelectUserProps> = ({ onSelectUser }) => {
       {/* Search Bar */}
       <Input
         value={userQuery}
-        onChange={(e) => {
-          setUserQuery(e.target.value);
-        }}
+        placeholder="Search for user by name"
+        onChange={(e) => setUserQuery(e.target.value)}
         onFocus={() => setShow(true)}
         onBlur={() => {
           // Delay hide so Card onClick can register (kinda gross but...)
           setTimeout(() => setShow(false), 200);
         }}
-        placeholder="Search for user by name"
       />
       <FormHelperText fontSize="sm">Search must be more than 2 characters.</FormHelperText>
 
-      {/* Popup */}
-
+      {/* User List */}
       <Collapse in={show}>
         {isValidating ? (
           <Center py={6}>
@@ -125,14 +92,22 @@ const SelectUser: React.FC<SelectUserProps> = ({ onSelectUser }) => {
             animate={show ? "show" : "hidden"}
           >
             {users.map((user) => (
-              <UserPreview
-                user={user}
+              <Card
+                as={motion.div}
                 onClick={() => {
                   onSelectUser(user);
                   setUserQuery(user.displayName);
                 }}
+                flexDir="row"
+                variants={cardAnimation}
                 key={user._id}
-              />
+              >
+                <Avatar name={user.displayName} mr={4} />
+                <Box>
+                  <Text fontSize="xl">{user.displayName}</Text>
+                  <Text color={useColorModeValue("gray.700", "gray.400")}>{user.email}</Text>
+                </Box>
+              </Card>
             ))}
           </Stack>
         )}

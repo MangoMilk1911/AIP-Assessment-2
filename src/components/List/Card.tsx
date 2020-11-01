@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import NextLink from "next/link";
-import { Flex, FlexProps, useColorModeValue } from "@chakra-ui/core";
+import { ComponentWithAs, Flex, FlexProps, useColorModeValue } from "@chakra-ui/core";
 
 // const cardVariants: Variants = {
 //   hidden: {
@@ -12,10 +12,10 @@ import { Flex, FlexProps, useColorModeValue } from "@chakra-ui/core";
 // };
 
 interface CardProps extends FlexProps {
-  href: string;
+  href?: string;
 }
 
-const Card: React.FC<CardProps> = ({ href, children, ...restProps }) => {
+const Card: ComponentWithAs<"div", CardProps> = ({ href, children, ...restProps }) => {
   const cardAnimationStyles: FlexProps = {
     css: { transition: "0.15s ease" },
     transitionProperty: "transform, background, box-shadow",
@@ -31,22 +31,29 @@ const Card: React.FC<CardProps> = ({ href, children, ...restProps }) => {
     },
   };
 
+  // Only mount a NextLink if Card has href
+  const Wrapper = useCallback(
+    ({ children }) => {
+      return href ? <NextLink href={href}>{children}</NextLink> : <>{children}</>;
+    },
+    [href]
+  );
+
   return (
-    <NextLink href={href}>
+    <Wrapper>
       <Flex
         pos="relative"
-        h={40}
         p={5}
         bg={useColorModeValue("primary.50", "whiteAlpha.200")}
         boxShadow={useColorModeValue("lg", "none")}
         borderRadius="lg"
-        flexDir="column"
+        flexDir={restProps.flexDir || "column"}
         {...cardAnimationStyles}
         {...restProps}
       >
         {children}
       </Flex>
-    </NextLink>
+    </Wrapper>
   );
 };
 

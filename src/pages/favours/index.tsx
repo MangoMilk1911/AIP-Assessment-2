@@ -97,7 +97,7 @@ const ListContent: React.FC<ListContentProps> = ({
     <Stack spacing={8}>
       <SimpleGrid columns={2} spacing={8} {...restProps}>
         {favours.map((favour) => (
-          <Card href={`/favours/${favour._id}`} key={favour._id.toString()}>
+          <Card href={`/favours/${favour._id}`} h={40} key={favour._id.toString()}>
             {/* Title */}
             <FavourCardTitle debtor={favour.debtor} recipient={favour.recipient} />
 
