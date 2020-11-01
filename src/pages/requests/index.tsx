@@ -25,7 +25,7 @@ import { RequestSchema } from "models/Request";
 import useSWR from "swr";
 import useDebounce from "hooks/useDebounce";
 import Layout from "components/layout/Layout";
-//import Card from "components/list/Card";
+import PageNavigation from "components/list/PageNavigation";
 
 interface PaginatedRequests {
   requests: RequestSchema[];
@@ -42,7 +42,7 @@ const RequestList: React.FC = () => {
 
   //Pagination influenced by: https://medium.com/javascript-in-plain-english/simple-pagination-with-node-js-mongoose-and-express-4942af479ab2
   const [pageIndex, setPageIndex] = useState(1);
-  const { data, mutate } = useSWR<PaginatedRequests, ApiError>(
+  const { data } = useSWR<PaginatedRequests, ApiError>(
     `/api/requests?page=${pageIndex}&q=${debouncedQuery}`
   );
 
@@ -102,46 +102,27 @@ const RequestList: React.FC = () => {
       ) : (
         <>
           {data.requests.length == 0 ? (
-            <>
+            <Stack justify="center" align="center" mt={20}>
               <Text color="whiteAlpha.800" fontSize="3xl">
                 No Requests 😫
               </Text>
               <Text color="whiteAlpha.800" fontSize="xl">
                 Why not make one? 🤔
               </Text>
-            </>
+            </Stack>
           ) : (
             <>
-              <SimpleGrid columns={2} spacing="5">
+              <SimpleGrid columns={2} spacing="5" mb={8}>
                 {data.requests.map((request) => (
                   <RequestCard request={request} key={request._id.toString()} />
                 ))}
               </SimpleGrid>
-              <Stack direction="row" mt={8} spacing={16} align="center">
-                <IconButton
-                  disabled={prevDisabled}
-                  onClick={() => {
-                    if (data.currentPage > 1) setPageIndex(pageIndex - 1);
-                  }}
-                  aria-label="Previous"
-                  icon={<ArrowLeftIcon />}
-                />
-                <Text bg="whiteAlpha.200" px={4} py={2} borderRadius="full" fontWeight="bold">
-                  {data.currentPage}{" "}
-                  <Text as="span" fontWeight="normal">
-                    of
-                  </Text>{" "}
-                  {data.totalPages}
-                </Text>
-                <IconButton
-                  disabled={nextDisabled}
-                  onClick={() => {
-                    if (data.currentPage < data.totalPages) setPageIndex(pageIndex + 1);
-                  }}
-                  aria-label="Next"
-                  icon={<ArrowRightIcon />}
-                />
-              </Stack>
+              <PageNavigation
+                currentPage={data.currentPage}
+                totalPages={data.totalPages}
+                pageIndex={pageIndex}
+                setPageIndex={setPageIndex}
+              />
             </>
           )}
         </>
