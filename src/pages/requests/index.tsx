@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
@@ -23,6 +23,7 @@ import { useAuth } from "hooks/useAuth";
 import { ApiError } from "lib/errorHandler";
 import { RequestSchema } from "models/Request";
 import useSWR from "swr";
+import useDebounce from "hooks/useDebounce";
 
 interface PaginatedRequests {
   requests: RequestSchema[];
@@ -35,24 +36,19 @@ const RequestList: React.FC = () => {
   const { user } = useAuth();
 
   const [query, setQuery] = useState("");
-  const queryInputRef = useRef<HTMLInputElement>();
-  function onQuerySubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setQuery(queryInputRef.current.value);
-  }
-
-  function clearSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setQuery((queryInputRef.current.value = ""));
-  }
+  const debouncedQuery = useDebounce(query, 500);
 
   const [pageIndex, setPageIndex] = useState(1);
   const { data, mutate } = useSWR<PaginatedRequests, ApiError>(
-    `/api/requests?page=${pageIndex}&q=${query}`
+    `/api/requests?page=${pageIndex}&q=${debouncedQuery}`
   );
 
   const prevDisabled = pageIndex === 1;
   const nextDisabled = pageIndex === data?.totalPages;
+
+  useEffect(() => {
+    setPageIndex(1);
+  }, [debouncedQuery]);
 
   const redirect = () => {
     if (!user) {
@@ -75,14 +71,19 @@ const RequestList: React.FC = () => {
           </Heading>
         </Stack>
 
-        <Stack as="form" onSubmit={onQuerySubmit} direction="row" spacing={0}>
+        <Stack direction="row" spacing={0}>
           <InputGroup w={64} size="sm">
-            <Input ref={queryInputRef} placeholder="Find a request" borderRightRadius={0} />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Find a request"
+              borderRightRadius={0}
+            />
             <InputRightElement>
               <IconButton
                 aria-label="clear"
                 icon={<CloseIcon />}
-                onClick={clearSearch}
+                onClick={() => setQuery("")}
                 size="xs"
                 variant="link"
               >
@@ -91,9 +92,6 @@ const RequestList: React.FC = () => {
             </InputRightElement>
           </InputGroup>
 
-          <Button type="submit" px={12} borderLeftRadius={0} size="sm">
-            Search
-          </Button>
           <Spacer />
           <Button onClick={redirect} rightIcon={<AddIcon />}>
             Add
