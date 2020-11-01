@@ -64,7 +64,7 @@ const FavourCardTitle: React.FC<FavourCardTitleProps> = ({ debtor, recipient }) 
   const isDebtor = user?.uid === debtor._id;
 
   return (
-    <Text fontSize="xl" fontWeight="bold">
+    <Text fontSize="xl" fontWeight="bold" isTruncated>
       {isDebtor ? "You" : debtor.displayName}{" "}
       <Text as="span" fontWeight="normal">
         promised
