@@ -46,7 +46,7 @@ const OwingForm: React.FC = () => {
   const { rewards } = useRewardList();
 
   // Form
-  const { handleSubmit, register, errors: formErrors } = useForm<OwingFormData>({
+  const { handleSubmit, register, errors: formErrors, formState } = useForm<OwingFormData>({
     resolver: yupResolver(favourValidation),
     context: { form: true, create: true },
   });
@@ -118,7 +118,7 @@ const OwingForm: React.FC = () => {
       </FormControl>
 
       {/* Submit */}
-      <Button type="submit" colorScheme="primary" size="lg">
+      <Button type="submit" colorScheme="primary" size="lg" disabled={formState.isSubmitting}>
         Submit
       </Button>
     </Stack>

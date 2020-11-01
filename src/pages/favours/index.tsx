@@ -164,7 +164,7 @@ const FavourList: React.FC = () => {
       {!data ? (
         <SimpleGrid columns={2} spacing={8}>
           {[...Array(4)].map((_, i) => (
-            <Skeleton h={40} key={i} />
+            <Skeleton h={40} borderRadius="lg" key={i} />
           ))}
         </SimpleGrid>
       ) : data.favours.length === 0 ? (
