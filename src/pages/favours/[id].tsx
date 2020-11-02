@@ -45,6 +45,7 @@ import { motion } from "framer-motion";
 import UserPreview from "components/favour/UserPreview";
 import { useDropzone } from "react-dropzone";
 import DeleteFavourAlert from "components/favour/DeleteAlert";
+import UploadModal from "components/favour/UploadModal";
 
 /**
  * Favour Details Page
@@ -54,7 +55,6 @@ const FavourDetails: React.FC = () => {
   const { user, accessToken } = useAuth();
   const router = useRouter();
 
-  const toast = useToast();
   const { colorMode } = useColorMode();
   function useColorModeValue(light: any, dark: any) {
     return colorMode === "light" ? light : dark;
@@ -62,38 +62,16 @@ const FavourDetails: React.FC = () => {
 
   // Use initial query.id since exit page animation will set query.id to undefined.
   const id = useInitialValue(router.query.id);
-
-  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>([
+  const { data: favour, error } = useSWR<FavourSchema, ServerError>([
     `/api/favours/${id}`,
     accessToken,
   ]);
 
-  // Claiming
+  /**
+   * Claiming Favour
+   */
   const claimed = favour && favour.evidence;
-  const { isOpen: modalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
-
-  const previewImgRef = useRef<HTMLImageElement>();
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-
-    if (!file.type.includes("image")) {
-      toast({
-        status: "error",
-        title: "That ain't no image 👿",
-      });
-
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      previewImgRef.current.src = reader.result.toString();
-    };
-
-    reader.readAsDataURL(file);
-  }, []);
-
-  const { getRootProps, getInputProps, inputRef: imgInputRef } = useDropzone({ onDrop });
+  const modalState = useDisclosure();
 
   /**
    * Delete Alert State
@@ -103,47 +81,7 @@ const FavourDetails: React.FC = () => {
     favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
 
   // Upload Evidence
-  const [uploading, setUploading] = useState(false);
   const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
-  const uploadEvidence = useCallback(async () => {
-    setUploading(true);
-    const image = imgInputRef.current.files[0];
-
-    try {
-      const timestamp = new Date().toISOString();
-      const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
-      const storageRef = firebase.storage().ref();
-      const fileRef = storageRef.child(path);
-      await fileRef.put(image);
-
-      await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          evidence: path,
-        }),
-      });
-
-      mutate({
-        ...favour,
-        evidence: path,
-      });
-
-      toast({
-        status: "success",
-        title: "Evidence submitted! 🥳",
-      });
-
-      closeModal();
-      setUploading(false);
-    } catch (error) {
-      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
-      toast({
-        status: "error",
-        title: errMsg || "Something went wrong...",
-      });
-    }
-  }, [favour]);
 
   // Image
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
@@ -237,7 +175,7 @@ const FavourDetails: React.FC = () => {
               // Upload Evidence
               <Box>
                 <Button
-                  onClick={openModal}
+                  onClick={modalState.onOpen}
                   disabled={!canUploadEvidence}
                   boxSize="320px"
                   borderRadius="md"
@@ -272,44 +210,7 @@ const FavourDetails: React.FC = () => {
       </Stack>
 
       {/* Image Upload Modal */}
-      <Modal isOpen={modalOpen} onClose={closeModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Upload Evidence</ModalHeader>
-          <ModalCloseButton />
-
-          <ModalBody>
-            {/* Choose File Button */}
-            <Button
-              w="full"
-              colorScheme="teal"
-              rightIcon={<AttachmentIcon mb="2px" />}
-              mb={4}
-              {...getRootProps()}
-            >
-              <input {...getInputProps()} />
-              Choose File
-            </Button>
-
-            {/* Preview Image */}
-            <Image ref={previewImgRef} mx="auto" borderRadius="md" />
-          </ModalBody>
-
-          <ModalFooter>
-            <Button onClick={closeModal} mr={3} variant="outline">
-              Cancel
-            </Button>
-            <Button
-              onClick={uploadEvidence}
-              isDisabled={!imgInputRef.current?.files.length}
-              isLoading={uploading}
-              colorScheme="green"
-            >
-              Submit
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <UploadModal favour={favour} modalState={modalState} />
 
       {/* Delete Alert */}
       <DeleteFavourAlert favour={favour} isOpen={isAlertOpen} setOpen={setAlertOpen} />
