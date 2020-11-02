@@ -94,14 +94,14 @@ function authContextHook() {
   async function signOut() {
     setLoading(true);
 
+    await firebase.auth().signOut();
     await router.push("/login");
+
     toast({
       status: "success",
       title: "You are now logged out.",
       position: "bottom-right",
     });
-
-    await firebase.auth().signOut();
   }
 
   return {
