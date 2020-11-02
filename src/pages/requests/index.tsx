@@ -1,31 +1,26 @@
-import React, { useRef, useState, useEffect } from "react";
-import Head from "next/head";
-import { useRouter } from "next/router";
 import {
-  Container,
-  Heading,
-  HStack,
-  IconButton,
-  SimpleGrid,
-  Skeleton,
-  Spacer,
-  Stack,
-  Text,
-  Flex,
   Button,
+  Heading,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Text,
 } from "@chakra-ui/core";
-import { AddIcon, ArrowLeftIcon, ArrowRightIcon, CloseIcon } from "@chakra-ui/icons";
-import RequestCard from "components/request/Card";
-import { useAuth } from "hooks/useAuth";
-import { ApiError } from "lib/errorHandler";
-import { RequestSchema } from "models/Request";
-import useSWR from "swr";
-import useDebounce from "hooks/useDebounce";
+import { AddIcon, CloseIcon } from "@chakra-ui/icons";
 import Layout from "components/layout/Layout";
 import PageNavigation from "components/list/PageNavigation";
+import RequestCard from "components/request/Card";
+import { useAuth } from "hooks/useAuth";
+import useDebounce from "hooks/useDebounce";
+import { ApiError } from "lib/errorHandler";
+import { RequestSchema } from "models/Request";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import useSWR from "swr";
 
 interface PaginatedRequests {
   requests: RequestSchema[];
@@ -45,9 +40,6 @@ const RequestList: React.FC = () => {
   const { data } = useSWR<PaginatedRequests, ApiError>(
     `/api/requests?page=${pageIndex}&q=${debouncedQuery}`
   );
-
-  const prevDisabled = pageIndex === 1;
-  const nextDisabled = pageIndex === data?.totalPages;
 
   useEffect(() => {
     setPageIndex(1);

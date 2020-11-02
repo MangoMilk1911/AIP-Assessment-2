@@ -1,10 +1,9 @@
-import React, { useMemo } from "react";
-import NextLink from "next/link";
-import { Flex, Spacer, Stack, Text, useColorModeValue, useDisclosure } from "@chakra-ui/core";
+import { Badge, Spacer, Stack, Text, useColorModeValue } from "@chakra-ui/core";
+import Card from "components/list/Card";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { RequestSchema } from "models/Request";
-import Card from "components/list/Card";
+import React, { useMemo } from "react";
 
 dayjs.extend(relativeTime);
 
@@ -14,7 +13,6 @@ interface RequestCardProps {
 
 const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
   const { owner, title, createdAt, contributions, isClaimed } = request;
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const rewardPool = useMemo(() => {
     const temp = {};
@@ -41,9 +39,9 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
     <Card
       href={`/requests/${request._id}`}
       h="12rem"
-      background={isClaimed ? "green.400" : useColorModeValue("primary.50", "whiteAlpha.200")}
+      background={useColorModeValue("primary.50", "whiteAlpha.200")}
       _active={{
-        bg: isClaimed ? "green.500" : useColorModeValue("primary.100", "whiteAlpha.300"),
+        bg: useColorModeValue("primary.100", "whiteAlpha.300"),
         transform: "scale(0.95)",
         boxShadow: useColorModeValue("md", "none"),
       }}
@@ -64,7 +62,11 @@ const RequestCard: React.FC<RequestCardProps> = ({ request }) => {
       <Stack direction="row">
         <Text>{dayjs(createdAt).from(new Date())}</Text>
         <Spacer />
-        {isClaimed && <Text>Completed!</Text>}
+        {isClaimed && (
+          <Badge colorScheme="green" border="1px">
+            CLAIMED
+          </Badge>
+        )}
       </Stack>
     </Card>
   );

@@ -1,5 +1,3 @@
-import React, { useCallback, useEffect } from "react";
-import { useRouter } from "next/router";
 import {
   Button,
   Modal,
@@ -12,12 +10,13 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import RewardList from "components/reward/RewardList";
-import { useRewardList } from "hooks/useRewardList";
 import { useAuth } from "hooks/useAuth";
+import { useRewardList } from "hooks/useRewardList";
+import { isServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
 import { Rewards } from "models/Request";
-import { ApiError } from "next/dist/next-server/server/api-utils";
-import { isServerError } from "lib/errorHandler";
+import { useRouter } from "next/router";
+import React, { useCallback, useEffect } from "react";
 
 interface RewardModalProps {
   isOpen: boolean;
