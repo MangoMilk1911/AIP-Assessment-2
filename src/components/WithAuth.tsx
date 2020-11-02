@@ -17,16 +17,23 @@ const WithAuth = (WrappedComponent) => {
     const toast = useToast();
 
     // Redirect if user isn't logged in and display toast
-    useEffect(() => {
-      if (!loading && !accessToken) {
-        toast({
-          status: "warning",
-          title: "You must be logged in to view to page!",
-        });
+    useEffect(
+      () => {
+        const atLogin = router.asPath.includes("login");
 
-        router.push("/login?redirect=" + router.asPath);
-      }
-    }, [loading, accessToken, router]);
+        // Don't redirect to login multiple times
+        if (!loading && !accessToken && !atLogin) {
+          toast({
+            status: "warning",
+            title: "You must be logged in to view to page!",
+          });
+
+          router.push("/login?redirect=" + router.asPath);
+        }
+      },
+      // Intentionally omit router from dependency array as we only care about auth state
+      [loading, accessToken]
+    );
 
     // if there's a loggedInUser, show the wrapped page, otherwise show a loading indicator
     return accessToken ? <WrappedComponent {...props} /> : <Loader />;
