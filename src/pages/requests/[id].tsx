@@ -215,7 +215,9 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 
           {isClaimed && (
             <Skeleton isLoaded={!evidenceLoading} h={64} w="25%">
-              {isClaimed && <Image src={evidenceURL} w="100%" h="auto" />}
+              {isClaimed && (
+                <Image borderRadius="md" fit-cover src={evidenceURL} w="100%" h="auto" />
+              )}
             </Skeleton>
           )}
 
@@ -223,7 +225,14 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
             <Stack my={18} spacing={4}>
               <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
                 <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
-                <Image ref={previewImageRef} hidden={cannotSubmit} w="25%" h="auto" />
+                <Image
+                  borderRadius="md"
+                  fit-cover
+                  ref={previewImageRef}
+                  hidden={cannotSubmit}
+                  w="25%"
+                  h="auto"
+                />
               </Stack>
             </Stack>
           )}
@@ -264,8 +273,9 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const request = await Request.findById(ctx.query.id).lean();
+    const initRequest = JSON.parse(JSON.stringify(request));
 
-    return { props: { initRequest: request } };
+    return { props: { initRequest: initRequest } };
   } catch (error) {
     // User isn't authenticated, send to login
 
