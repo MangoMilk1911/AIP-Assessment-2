@@ -42,6 +42,7 @@ const RewardModal: React.FC = () => {
                     onClick={() => addReward(reward)}
                     size="lg"
                     key={reward}
+                    m={1}
                     disabled={Object.keys(rewards).includes(reward)}
                   >
                     {reward}

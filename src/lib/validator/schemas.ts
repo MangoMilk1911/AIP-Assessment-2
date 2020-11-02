@@ -40,7 +40,7 @@ export const userValidation = yup.object({
     .formLabel("Display Name")
     .when("$create", {
       is: true,
-      then: yup.string().required().trim().min(4).max(30),
+      then: yup.string().required().trim().min(3).max(30),
     }),
   email: yup.string().formLabel("Email").email().required().trim(),
   password: yup.string().formLabel("Password").trim().required().min(4),

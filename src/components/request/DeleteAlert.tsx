@@ -32,12 +32,17 @@ const DeleteAlert: React.FC<DeleteAlertProps> = ({ id, isOpen, onClose }) => {
   const deleteRequest = async () => {
     try {
       await fetcher(`/api/requests/${id}`, accessToken, { method: "DELETE" });
+      toast({
+        status: "success",
+        title: "Success",
+        description: "Request was deleted.",
+      });
       router.push("/requests");
     } catch (error) {
       toast({
         status: "error",
         title: "Uh oh...",
-        description: "Bruh Sorry",
+        description: "There was a problem deleting your Request.",
       });
     }
   };

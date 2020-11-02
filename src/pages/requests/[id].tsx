@@ -1,33 +1,39 @@
-import React, { useMemo } from "react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Avatar,
   AvatarGroup,
   Box,
-  Heading,
-  Stack,
   Button,
-  Text,
-  SimpleGrid,
+  Container,
+  Heading,
   HStack,
+  Image,
+  SimpleGrid,
+  Skeleton,
   Spacer,
+  Stack,
+  Text,
   useDisclosure,
   useToast,
-  Image,
 } from "@chakra-ui/core";
-import { useRouter } from "next/router";
-import { RequestSchema } from "models/Request";
-import RewardCube from "components/reward/RewardCube";
-import { useAuth } from "hooks/useAuth";
-import fetcher from "lib/fetcher";
-import DeleteAlert from "components/request/DeleteAlert";
-import RewardModal from "components/request/ContributionModal";
-import useSWR from "swr";
-import { NextPage } from "next";
-import { useForm } from "react-hook-form";
-import { RewardListProvider } from "hooks/useRewardList";
 import Layout from "components/layout/Layout";
+import RewardModal from "components/request/ContributionModal";
+import DeleteAlert from "components/request/DeleteAlert";
+import RewardCube from "components/reward/RewardCube";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { useAuth } from "hooks/useAuth";
+import { RewardListProvider } from "hooks/useRewardList";
+import fetcher from "lib/fetcher";
+import { firebase } from "lib/firebase/client";
+import Request, { RequestSchema } from "models/Request";
+import { GetServerSideProps } from "next";
+import { useRouter } from "next/router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
 
 dayjs.extend(relativeTime);
 
@@ -35,55 +41,24 @@ interface RequestPageProps {
   initRequest: RequestSchema;
 }
 
-const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
-  const { user, accessToken } = useAuth();
-
-  const toast = useToast();
-
+const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
   const router = useRouter();
   const { id } = router.query;
 
+  const toast = useToast();
+
+  // get logged in user details
+  const { user, accessToken } = useAuth();
+
+  //get request details using SWR
   const { data: request } = useSWR<RequestSchema>("/api/requests/" + id, {
     initialData: initRequest,
   });
-
-  //Alert
-  const [isOpen, setIsOpen] = React.useState(false);
-  const onClose = () => setIsOpen(false);
-
-  //RewardsModal
-  const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
-
-  //Add Evidence Form
-  const { register, handleSubmit, errors } = useForm();
-
-  const { owner, title, createdAt, description, contributions, isClaimed } = request;
-
+  const { owner, title, createdAt, description, contributions, isClaimed } = initRequest;
   const isContributor = user && Object.keys(contributions).includes(user.uid);
 
-  function getEvidenceSrc(evidence: Buffer) {
-    return "data:image/png;base64," + Buffer.from(evidence).toString("base64");
-  }
-
-  const addEvidenceAndClaim = async (data) => {
-    const formData = new FormData();
-    formData.append("evidence", data.evidence[0]);
-
-    try {
-      const res = await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
-        method: "POST",
-        body: formData,
-      });
-      router.reload();
-    } catch (error) {
-      toast({
-        status: "error",
-        title: "Uh oh...",
-        description: "Maybe you haven't added evidence?",
-      });
-    }
-  };
-
+  //Edit rewards
+  const { isOpen: isOpenRM, onOpen, onClose: onCloseRM } = useDisclosure();
   const rewardPool = useMemo(() => {
     const temp = {};
 
@@ -96,12 +71,97 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
     return temp;
   }, [contributions]);
 
+  //state for delete request alert
+  const [isOpen, setIsOpen] = React.useState(false);
+  const onClose = () => setIsOpen(false);
+
+  //evidence upload
+  const previewImageRef = useRef<HTMLImageElement>(null);
+  const [cannotSubmit, setCannotSubmit] = useState(true);
+
+  const checkFileType = () => {
+    const fileInput = document.getElementById("evidence") as HTMLInputElement;
+    const filePath = fileInput.value;
+    var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+    // Checking if uploaded image is a image type file, otherwise empty file input
+    // RegEx inspired by: https://www.geeksforgeeks.org/file-type-validation-while-uploading-it-using-javascript/
+    if (!allowedExtensions.exec(filePath)) {
+      toast({
+        title: "OI MATE",
+        description: "Please only upload image type files.",
+        status: "error",
+      });
+      fileInput.value = "";
+      previewImageRef.current.src = "";
+      setCannotSubmit(true);
+    } else {
+      if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImageRef.current.src = e.target.result.toString();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+        setCannotSubmit(false);
+      }
+    }
+  };
+
+  //Claim Request method
+  const confirmAndClaim = async () => {
+    const fileInput = document.getElementById("evidence") as HTMLInputElement;
+    const evidence = fileInput.files[0];
+
+    //prettier-ignore
+    //using firebase storage to store image and use link instead
+    const path = `requests/${request.title}_${request._id}_${new Date().toISOString()}/evidence.png`;
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(path);
+    await fileRef.put(evidence);
+
+    await fetcher(`/api/requests/${request._id}/evidence`, accessToken, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evidence: path,
+      }),
+    });
+
+    router.reload();
+  };
+
+  //Showing evidence after claimed on page
+  const [evidenceURL, setEvidenceURL] = useState<string>();
+  const evidenceLoading = request.evidence && !evidenceURL;
+  useEffect(() => {
+    if (request.evidence) {
+      firebase.storage().ref(request.evidence).getDownloadURL().then(setEvidenceURL);
+    }
+  }, [request.evidence]);
+
   return (
     <Layout>
       <Stack direction="column" spacing={10}>
         <Stack mb={18}>
           <Heading size="xl">{title}</Heading>
           <Text>{dayjs(createdAt).from(new Date())}</Text>
+        </Stack>
+
+        <Stack>
+          {isClaimed ? (
+            <Alert status="success">
+              <AlertIcon />
+              <AlertTitle mr={2}>Woo Hoo!</AlertTitle>
+              <AlertDescription>This request has been completed. Rejoice! 🥳</AlertDescription>
+            </Alert>
+          ) : (
+            <Alert status="info">
+              <AlertIcon />
+              <AlertTitle mr={2}></AlertTitle>
+              <AlertDescription>
+                Contribute or Claim this request below. Evidence required. 😳
+              </AlertDescription>
+            </Alert>
+          )}
         </Stack>
 
         <SimpleGrid columns={2} spacing={5}>
@@ -146,39 +206,59 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
           </Box>
         </Stack>
 
-        {!isContributor && (
-          <Stack my={18} spacing={4}>
-            <Heading size="md">Evidence</Heading>
-            <Stack
-              id="evidenceform"
-              as="form"
-              align="flex-start"
-              spacing={5}
-              onSubmit={handleSubmit(addEvidenceAndClaim)}
-            >
-              <input id="evidence" type="file" name="evidence" ref={register} />
+        <Stack>
+          <Heading size="md">Evidence</Heading>
+          {isContributor ||
+            (!user && !isClaimed && (
+              <Text>You cannot claim if you are a contributor or not logged in.</Text>
+            ))}
+
+          {isClaimed && (
+            <Skeleton isLoaded={!evidenceLoading} h={64} w="25%">
+              {isClaimed && (
+                <Image borderRadius="md" fit-cover src={evidenceURL} w="100%" h="auto" />
+              )}
+            </Skeleton>
+          )}
+
+          {!isContributor && !isClaimed && user && (
+            <Stack my={18} spacing={4}>
+              <Stack id="evidenceform" as="form" align="flex-start" spacing={5}>
+                <input id="evidence" type="file" onChange={checkFileType} name="evidence" />
+                <Image
+                  borderRadius="md"
+                  fit-cover
+                  ref={previewImageRef}
+                  hidden={cannotSubmit}
+                  w="25%"
+                  h="auto"
+                />
+              </Stack>
             </Stack>
-            {request.evidence && <Image boxSize="xs" src={getEvidenceSrc(request.evidence)} />}
-            {isClaimed && <Text>CLAIMED</Text>}
-          </Stack>
-        )}
+          )}
+        </Stack>
 
         <HStack w="100%">
-          {user?.uid === request.owner._id && (
+          {user?.uid === initRequest.owner._id && (
             <Button onClick={() => setIsOpen(true)} colorScheme="red" isDisabled={isClaimed}>
               Delete Request
             </Button>
           )}
           <Spacer />
-          {user?.uid !== request.owner._id && !isContributor && (
-            <Button colorScheme="teal" form="evidenceform" type="submit" isDisabled={isClaimed}>
+          {user?.uid !== initRequest.owner._id && !isContributor && !isClaimed && user && (
+            <Button
+              colorScheme="green"
+              type="submit"
+              isDisabled={cannotSubmit}
+              onClick={confirmAndClaim}
+            >
               Confirm & Claim
             </Button>
           )}
         </HStack>
       </Stack>
 
-      <DeleteAlert isOpen={isOpen} onClose={onClose} id={request._id} />
+      <DeleteAlert isOpen={isOpen} onClose={onClose} id={initRequest._id} />
       <RewardListProvider>
         <RewardModal
           isOpen={isOpenRM}
@@ -190,13 +270,16 @@ const RequestPage: NextPage<RequestPageProps> = ({ initRequest }) => {
   );
 };
 
-RequestPage.getInitialProps = async ({ query, req, res }) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
-    const request = await fetcher(`${process.env.NEXT_PUBLIC_APIURL}/api/requests/${query.id}`);
-    return { initRequest: request };
+    const request = await Request.findById(ctx.query.id).lean();
+    const initRequest = JSON.parse(JSON.stringify(request));
+
+    return { props: { initRequest: initRequest } };
   } catch (error) {
-    res.writeHead(302, { location: "/requests" });
-    res.end();
+    // User isn't authenticated, send to login
+
+    return { unstable_redirect: { destination: "/requests", permanent: false } };
   }
 };
 
