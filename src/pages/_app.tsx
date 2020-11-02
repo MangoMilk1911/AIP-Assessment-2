@@ -10,7 +10,8 @@ import SuperJSON from "superjson";
 import { Types } from "mongoose";
 import Header from "components/layout/Header";
 import Footer from "components/layout/Footer";
-import { AnimatePresence, motion, MotionProps, Variants } from "framer-motion";
+import { AnimatePresence, motion, MotionProps } from "framer-motion";
+import NextNProgress from "nextjs-progressbar";
 
 /**
  * Add global serializer for Mongo Object IDs
@@ -66,6 +67,8 @@ const App: React.FC<AppProps> = ({ Component, pageProps, router }) => (
     <ChakraProvider resetCSS theme={theme}>
       <AuthProvider>
         <SWRConfig value={{ fetcher }}>
+          <NextNProgress color="#ec5f90" startPosition={0.3} stopDelayMs={200} />
+
           <Flex h="100vh" flexDir="column">
             <Header />
 
