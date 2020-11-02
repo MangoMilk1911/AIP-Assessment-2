@@ -12,15 +12,13 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import { AttachmentIcon } from "@chakra-ui/icons";
-import firebase from "firebase";
 import { useAuth } from "hooks/useAuth";
 import { isServerError } from "lib/errorHandler";
+import { firebase } from "lib/firebase/client";
 import fetcher from "lib/fetcher";
 import { FavourSchema } from "models/Favour";
 import { useDropzone } from "react-dropzone";
 import { mutate } from "swr";
-
-const reader = new FileReader();
 
 interface UploadModalProps {
   favour: FavourSchema;
@@ -45,13 +43,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ favour, modalState }) => {
       return;
     }
 
-    // When reader finished reading selected image, set preview image src to result
-    reader.onload = () => {
-      previewImgRef.current.src = reader.result.toString();
-    };
-
-    // Actually read the selected image
-    reader.readAsDataURL(file);
+    // Set preview src to selected image
+    previewImgRef.current.src = URL.createObjectURL(file);
   }, []);
 
   const uploadState = useDropzone({ onDrop: onSelectFile });
