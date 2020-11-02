@@ -4,7 +4,6 @@ import createHandler from "lib/routeHandler";
 import createValidator from "lib/validator";
 import { Request, User } from "models";
 import { requestValidation } from "lib/validator/schemas";
-import { ApiError } from "next/dist/next-server/server/api-utils";
 
 const handler = createHandler();
 const validate = createValidator(requestValidation);
@@ -12,14 +11,36 @@ const validate = createValidator(requestValidation);
 // ==================== Get all Requests ====================
 
 handler.get(async (req, res) => {
-  const { page = 1, limit = 4 } = req.query;
-  const requests = await Request.find()
-    .limit(Number(limit))
-    .skip((Number(page) - 1) * Number(limit));
-  const numberOfRequests = await Request.countDocuments();
-  if (!requests) throw new ApiError(503, "Requests couldn't be loaded!");
+  const { page = 1, limit = 6, q } = req.query;
+
+  // Create initial pipeline with pagination stage
+  const pipeline: Object[] = [
+    {
+      $facet: {
+        metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+        data: [{ $skip: (Number(page) - 1) * Number(limit) }, { $limit: Number(limit) }],
+      },
+    },
+  ];
+
+  // If query add search stage to pipeline
+  if (q) {
+    pipeline.splice(0, 0, {
+      $search: {
+        autocomplete: {
+          path: "title",
+          query: req.query.q,
+        },
+      },
+    });
+  }
+
+  // Deconstruct metadata and data from aggregation result
+  const [{ metadata, data }] = await Request.aggregate(pipeline);
+  const numberOfRequests = metadata[0]?.total || 0; // Total number of matching requests
+
   res.json({
-    requests,
+    requests: data,
     currentPage: page,
     totalPages: Math.ceil(numberOfRequests / Number(limit)),
   });

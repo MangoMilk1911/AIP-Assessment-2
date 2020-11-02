@@ -13,14 +13,14 @@ import {
 } from "@chakra-ui/core";
 import { yupResolver } from "@hookform/resolvers/yup";
 import RewardList from "components/reward/RewardList";
-import { requestValidation } from "lib/validator/schemas";
-import { Rewards } from "models/Request";
-import { useForm } from "react-hook-form";
-import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { useAuth } from "hooks/useAuth";
-import fetcher from "lib/fetcher";
-import { useRouter } from "next/router";
+import { RewardListProvider, useRewardList } from "hooks/useRewardList";
 import { ServerError } from "lib/errorHandler";
+import fetcher from "lib/fetcher";
+import { requestValidation } from "lib/validator/schemas";
+import { RequestSchema, Rewards } from "models/Request";
+import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
 import Layout from "components/layout/Layout";
 
 interface RequestFormData {
@@ -33,6 +33,8 @@ const CreateRequest: React.FC = () => {
   const router = useRouter();
   const { accessToken } = useAuth();
   const { rewards, dispatch } = useRewardList();
+
+  //form validation and submission using React Hook Form
   const { register, handleSubmit, errors: formErrors, formState } = useForm<RequestFormData>({
     resolver: yupResolver(requestValidation),
     context: { form: true, create: true },
@@ -47,7 +49,7 @@ const CreateRequest: React.FC = () => {
 
   const createRequest = async ({ title, description, rewards }: RequestFormData) => {
     try {
-      await fetcher("/api/requests/", accessToken, {
+      const newRequest = (await fetcher("/api/requests/", accessToken, {
         method: "POST",
         body: JSON.stringify({
           title,
@@ -55,8 +57,9 @@ const CreateRequest: React.FC = () => {
           rewards,
         }),
         headers: { "Content-type": "application/json" },
-      });
-      router.push("/requests");
+      })) as RequestSchema;
+      toast({ status: "success", title: "Success!", description: "Request created!" });
+      router.push(`/requests/${newRequest._id}`);
     } catch (error) {
       (error as ServerError).errors.forEach((err) => {
         toast({

@@ -1,5 +1,3 @@
-import React, { useCallback, useEffect } from "react";
-import { useRouter } from "next/router";
 import {
   Button,
   Modal,
@@ -12,10 +10,13 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import RewardList from "components/reward/RewardList";
-import { useRewardList } from "hooks/useRewardList";
 import { useAuth } from "hooks/useAuth";
+import { useRewardList } from "hooks/useRewardList";
+import { isServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
 import { Rewards } from "models/Request";
+import { useRouter } from "next/router";
+import React, { useCallback, useEffect } from "react";
 
 interface RewardModalProps {
   isOpen: boolean;
@@ -50,9 +51,12 @@ const RewardModal: React.FC<RewardModalProps> = ({ isOpen, onClose, initRewards 
 
       router.reload();
     } catch (error) {
+      const message = isServerError(error)
+        ? error.errors[0].message
+        : "Something went wrong lmao rekt. Please try again.";
       toast({
         title: "Error!",
-        description: error.details.errors[0].message,
+        description: message,
         status: "error",
       });
     }
