@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import NextLink from "next/link";
 import {
+  Badge,
   Button,
+  Flex,
   Heading,
   SimpleGrid,
   SimpleGridProps,
@@ -26,7 +28,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { UserSchema } from "models/User";
 import { AnimatePresence, motion, Variants } from "framer-motion";
-import useDebounce from "hooks/useDebounce";
 
 dayjs.extend(relativeTime);
 
@@ -64,7 +65,7 @@ const FavourCardTitle: React.FC<FavourCardTitleProps> = ({ debtor, recipient }) 
   return (
     <Text fontSize="xl" fontWeight="bold" isTruncated>
       {isDebtor ? "You" : debtor.displayName}{" "}
-      <Text as="span" fontWeight="normal">
+      <Text as="span" fontWeight="normal" fontSize="md">
         promised
       </Text>{" "}
       {!isDebtor ? "You" : recipient.displayName}
@@ -85,7 +86,7 @@ const ListLoader: React.FC = () => (
     animate={{ opacity: 1, transition: { delay: 1 } }}
   >
     {[...Array(6)].map((_, i) => (
-      <Skeleton h={40} borderRadius="lg" key={i} />
+      <Skeleton h={44} borderRadius="lg" key={i} />
     ))}
   </SimpleGrid>
 );
@@ -119,12 +120,12 @@ const ListContent: React.FC<ListContentProps> = ({
           key={pageIndex} // So the animation replays whenever the page changes
         >
           {favours.map((favour) => (
-            <Card href={`/favours/${favour._id}`} h={40} key={favour._id.toString()}>
+            <Card href={`/favours/${favour._id}`} h={44} key={favour._id.toString()}>
               {/* Title */}
               <FavourCardTitle debtor={favour.debtor} recipient={favour.recipient} />
 
               {/* Rewards */}
-              <Text mt={1} fontSize="2xl">
+              <Text mt={1} fontSize="3xl">
                 {Object.keys(favour.rewards).map((reward) => (
                   <span key={reward}>{reward}</span>
                 ))}
@@ -132,8 +133,15 @@ const ListContent: React.FC<ListContentProps> = ({
 
               <Spacer />
 
-              {/* Date */}
-              <Text>{dayjs(favour.createdAt).from(new Date())}</Text>
+              {/* Bottom */}
+              <Flex align="center" justify="space-between">
+                <Text>{dayjs(favour.createdAt).from(new Date())}</Text>
+                {favour.evidence && (
+                  <Badge colorScheme="green" border="1px solid">
+                    Claimed
+                  </Badge>
+                )}
+              </Flex>
             </Card>
           ))}
         </SimpleGrid>
