@@ -258,7 +258,7 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
         </HStack>
       </Stack>
 
-      <DeleteAlert isOpen={isOpen} onClose={onClose} id={initRequest._id} />
+      <DeleteAlert isOpen={isOpen} onClose={onClose} id={request._id} />
       <RewardListProvider>
         <RewardModal
           isOpen={isOpenRM}
