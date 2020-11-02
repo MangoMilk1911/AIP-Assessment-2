@@ -5,6 +5,7 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
+  Image,
   Input,
   Stack,
   useToast,
@@ -22,6 +23,8 @@ import { UserSchema } from "models/User";
 import { useForm } from "react-hook-form";
 import SelectUser from "../SelectUser";
 import { OwingFormData } from "./OwingFormContent";
+import { useDropzone } from "react-dropzone";
+import { AttachmentIcon } from "@chakra-ui/icons";
 
 interface OweFormData extends OwingFormData {
   initEvidence: FileList;
@@ -36,18 +39,21 @@ const OweForm: React.FC = () => {
   const { rewards } = useRewardList();
 
   // Form
-  const { handleSubmit, register, errors: formErrors } = useForm<OweFormData>({
+  const { handleSubmit, register, errors: formErrors, formState } = useForm<OweFormData>({
     resolver: yupResolver(favourValidation),
     context: { form: true, create: true },
   });
 
-  async function createFavour({ debtor, recipient, rewards, initEvidence }: OweFormData) {
+  // Initial Evidence Upload
+  const uploadState = useDropzone();
+
+  async function createFavour({ debtor, recipient, rewards }: OweFormData) {
     try {
       // Upload evidence to firebase storage
       const initEvidencePath = `favours/${debtor}_${recipient}_${new Date().toISOString()}/initialEvidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(initEvidencePath);
-      await fileRef.put(initEvidence[0]);
+      await fileRef.put(uploadState.acceptedFiles[0]);
 
       // Add favour via API
       const { newFavour, party } = (await fetcher("/api/favours", accessToken, {
@@ -132,13 +138,40 @@ const OweForm: React.FC = () => {
         <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
       </FormControl>
 
-      <FormControl isRequired>
+      <FormControl isRequired isInvalid={!!formErrors.initEvidence}>
         <FormLabel>Initial Evidence</FormLabel>
-        <input type="file" name="initEvidence" ref={register} />
+        <Button
+          w="full"
+          py={12}
+          variant="outline"
+          colorScheme="teal"
+          rightIcon={<AttachmentIcon mb="2px" />}
+          borderRadius="md"
+          {...uploadState.getRootProps()}
+        >
+          <input name="initEvidence" {...uploadState.getInputProps()} />
+          Drag File or Click to Upload
+        </Button>
       </FormControl>
 
+      {uploadState.acceptedFiles[0] && (
+        <Image
+          src={URL.createObjectURL(uploadState.acceptedFiles[0])}
+          boxSize="sm"
+          alignSelf="center"
+          fit="cover"
+          borderRadius="md"
+        />
+      )}
+
       {/* Submit */}
-      <Button type="submit" colorScheme="primary" size="lg">
+      <Button
+        type="submit"
+        colorScheme="primary"
+        size="lg"
+        isDisabled={uploadState.acceptedFiles.length === 0}
+        isLoading={formState.isSubmitting}
+      >
         Submit
       </Button>
     </Stack>
