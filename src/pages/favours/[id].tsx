@@ -17,6 +17,7 @@ import Layout from "components/layout/Layout";
 import WithAuth from "components/WithAuth";
 import RewardCube from "components/reward/RewardCube";
 import { useAuth } from "hooks/useAuth";
+import useInitialValue from "hooks/useInitialValue";
 import { isServerError, ServerError } from "lib/errorHandler";
 import fetcher from "lib/fetcher";
 import { firebase } from "lib/firebase/client";
@@ -57,7 +58,9 @@ const FavourDetails: React.FC = () => {
     return colorMode === "light" ? light : dark;
   }
 
-  const { id } = router.query;
+  // Use initial query.id since exit page animation will set query.id to undefined.
+  const id = useInitialValue(router.query.id);
+
   const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>([
     `/api/favours/${id}`,
     accessToken,

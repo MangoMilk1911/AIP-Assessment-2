@@ -1,13 +1,11 @@
-import { Container, ContainerProps, Flex } from "@chakra-ui/core";
+import { ComponentWithAs, Container, ContainerProps } from "@chakra-ui/core";
 import Head from "next/head";
-import Footer from "./Footer";
-import Header from "./Header";
 
-interface LayoutProps {
+interface LayoutProps extends ContainerProps {
   title?: string;
 }
 
-const Layout: React.FC<LayoutProps & ContainerProps> = ({
+const Layout: ComponentWithAs<"div", LayoutProps> = ({
   title,
   maxW = "lg",
   children,
@@ -20,15 +18,10 @@ const Layout: React.FC<LayoutProps & ContainerProps> = ({
       </Head>
     )}
 
-    <Flex h="100vh" flexDir="column">
-      <Header />
-
-      <Container as="main" maxW={maxW} flexGrow={1} {...restProps}>
-        {children}
-      </Container>
-
-      <Footer />
-    </Flex>
+    {/* @ts-ignore issue with chakra types */}
+    <Container maxW={maxW} flexGrow={1} {...restProps}>
+      {children}
+    </Container>
   </>
 );
 
