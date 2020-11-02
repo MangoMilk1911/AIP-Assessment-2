@@ -2,57 +2,39 @@ import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
-  Avatar,
+  Alert,
+  AlertIcon,
   Box,
   Button,
+  Flex,
   Image,
   Stack,
   Text,
   useColorMode,
-  useToast,
+  useDisclosure,
   Wrap,
 } from "@chakra-ui/core";
-import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import DeleteFavourAlert from "components/favour/DeleteAlert";
+import UploadModal from "components/favour/UploadModal";
+import UserPreview from "components/favour/UserPreview";
+import ErrorPage from "components/layout/Error";
 import Layout from "components/layout/Layout";
-import WithAuth from "components/WithAuth";
+import Loader from "components/layout/Loader";
 import RewardCube from "components/reward/RewardCube";
+import WithAuth from "components/WithAuth";
+import { motion } from "framer-motion";
 import { useAuth } from "hooks/useAuth";
 import useInitialValue from "hooks/useInitialValue";
-import { isServerError, ServerError } from "lib/errorHandler";
-import fetcher from "lib/fetcher";
+import { ServerError } from "lib/errorHandler";
 import { firebase } from "lib/firebase/client";
 import { FavourSchema } from "models/Favour";
 import useSWR from "swr";
-import ErrorPage from "components/layout/Error";
-import Loader from "components/layout/Loader";
-import { UserSchema } from "models/User";
-
-/**
- * User Preview
- */
-
-interface UserPreviewProps {
-  user: UserSchema;
-}
-
-const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (
-  <Stack direction="row" align="center" spacing={4}>
-    <Avatar src={user.photoURL} name={user.displayName} />
-    <Text fontSize="xl" fontWeight="bold">
-      {user.displayName}
-    </Text>
-  </Stack>
-);
-
-/**
- * Favour Details Page
- */
 
 const FavourDetails: React.FC = () => {
   const { user, accessToken } = useAuth();
   const router = useRouter();
 
-  const toast = useToast();
   const { colorMode } = useColorMode();
   function useColorModeValue(light: any, dark: any) {
     return colorMode === "light" ? light : dark;
@@ -60,87 +42,36 @@ const FavourDetails: React.FC = () => {
 
   // Use initial query.id since exit page animation will set query.id to undefined.
   const id = useInitialValue(router.query.id);
-
-  const { data: favour, error, mutate } = useSWR<FavourSchema, ServerError>([
+  const { data: favour, error } = useSWR<FavourSchema, ServerError>([
     `/api/favours/${id}`,
     accessToken,
   ]);
 
-  // Delete Favour
+  /**
+   * Claiming Favour
+   */
+  const claimed = favour?.evidence;
+  const canClaim = favour && user.uid === favour.debtor._id && !favour.evidence;
+  const modalState = useDisclosure();
+
+  /**
+   * Delete Alert State
+   */
+  const [isAlertOpen, setAlertOpen] = useState(false);
   const canDelete =
-    favour &&
-    (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && favour.evidence));
+    favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
 
-  async function deleteFavour() {
-    try {
-      await fetcher(`/api/favours/${id}`, accessToken, { method: "DELETE" });
-
-      toast({
-        status: "success",
-        title: "Favour deleted!",
-      });
-
-      router.push("/favours");
-    } catch (fetchError) {
-      const { errors } = fetchError as ServerError;
-
-      toast({
-        status: "error",
-        title: "Unable to delete favour 😭",
-        description: errors[0].message,
-      });
-    }
-  }
-
-  // Upload Evidence
-  const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
-  const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
-    const evidence = e.target.files[0];
-
-    try {
-      const timestamp = new Date().toISOString();
-      const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
-      const storageRef = firebase.storage().ref();
-      const fileRef = storageRef.child(path);
-      await fileRef.put(evidence);
-
-      await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          evidence: path,
-        }),
-      });
-
-      mutate({
-        ...favour,
-        evidence: path,
-      });
-
-      toast({
-        status: "success",
-        title: "Evidence submitted! 🥳",
-      });
-    } catch (error) {
-      const errMsg = isServerError(error) ? error.errors[0].message : error.message;
-      toast({
-        status: "error",
-        title: errMsg || "Something went wrong...",
-      });
-    }
-  };
-
-  // Image
+  /**
+   * Loading Images from Firebase Storage
+   */
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
   const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
-    if (favour?.initialEvidence) {
+    if (favour?.initialEvidence)
       firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
-    }
 
-    if (favour?.evidence) {
+    if (favour?.evidence)
       firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
-    }
   }, [favour]);
 
   if (error) return <ErrorPage statusCode={error.statusCode} error={error.errors[0].message} />;
@@ -148,30 +79,46 @@ const FavourDetails: React.FC = () => {
   if (!favour) return <Loader />;
 
   return (
-    <Layout maxW="sm" mt={16}>
+    <Layout as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Back Button */}
-      <Button
-        variant="link"
-        color="inherit"
-        fontWeight="normal"
-        size="lg"
-        mb={6}
-        leftIcon={<ArrowBackIcon />}
-      >
-        <NextLink href="/favours">Back</NextLink>
-      </Button>
+      <NextLink href="/favours">
+        <Button
+          leftIcon={<ArrowBackIcon mb="2px" />}
+          variant="ghost"
+          colorScheme="teal"
+          size="sm"
+          mb={6}
+          fontWeight="normal"
+          borderRadius="full"
+        >
+          Back
+        </Button>
+      </NextLink>
 
-      <Stack spacing={8} align="center">
+      {/* Claimed Status */}
+      {claimed ? (
+        <Alert status="success">
+          <AlertIcon />
+          This favour has been claimed! 🥳
+        </Alert>
+      ) : (
+        <Alert status="info">
+          <AlertIcon />
+          This favour hasn't been completed yet. 😢
+        </Alert>
+      )}
+
+      <Stack mt={16} spacing={12} align="center">
         {/* Involved Users */}
         <Stack
           direction="row"
           spacing={4}
           align="center"
-          justify="center"
-          w="full"
-          p={8}
-          bg={useColorModeValue("primary.50", "whiteAlpha.200")}
-          borderRadius="lg"
+          px={8}
+          py={6}
+          bg={useColorModeValue("gray.100", "whiteAlpha.200")}
+          shadow={useColorModeValue("xl", "none")}
+          borderRadius="full"
         >
           <UserPreview user={favour.debtor} />
           <Text color={useColorModeValue("teal.500", "primary.300")}>Promised</Text>
@@ -181,40 +128,70 @@ const FavourDetails: React.FC = () => {
         {/* Reward Pool */}
         <Wrap justify="center" w="28rem">
           {Object.keys(favour.rewards).map((reward) => (
-            <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-              <RewardCube reward={reward} quantity={favour.rewards[reward]} />
-            </Box>
+            <RewardCube reward={reward} quantity={favour.rewards[reward]} key={reward} />
           ))}
         </Wrap>
 
-        {initEvidenceURL && (
-          <Box>
-            <Text textAlign="center">Initial Evidence</Text>
-            <Image boxSize="xs" src={initEvidenceURL} />
-          </Box>
-        )}
-        {evidenceURL && (
-          <Box>
-            <Text textAlign="center">Debtor Evidence</Text>
-            <Image boxSize="xs" src={evidenceURL} />
-          </Box>
-        )}
+        {/* Evidence */}
+        <Flex>
+          {initEvidenceURL && (
+            <Box mr={8}>
+              <Text textAlign="center" mb={2}>
+                Initial Evidence
+              </Text>
+              <Image boxSize="320px" src={initEvidenceURL} fit="cover" borderRadius="md" />
+            </Box>
+          )}
 
-        {/* Actions */}
-        <Stack direction="row" justify="space-between" w="full">
-          <Button
-            onClick={deleteFavour}
-            isDisabled={!canDelete}
-            variant="outline"
-            colorScheme="red"
-            rightIcon={<DeleteIcon />}
-          >
-            Delete
-          </Button>
+          <Box>
+            <Text textAlign="center" mb={2}>
+              Debtor Evidence
+            </Text>
+            {evidenceURL ? (
+              <Image boxSize="320px" src={evidenceURL} fit="cover" borderRadius="md" />
+            ) : (
+              // Upload Evidence
+              <Box>
+                <Button
+                  onClick={modalState.onOpen}
+                  disabled={!canClaim}
+                  boxSize="320px"
+                  borderRadius="md"
+                  colorScheme="teal"
+                  variant="outline"
+                  size="lg"
+                  rightIcon={<AddIcon mb="2px" />}
+                >
+                  Press to Upload
+                </Button>
+                {!canClaim && (
+                  <Text textAlign="center" color="gray.500" mt={2}>
+                    Only Debtor can upload evidence
+                  </Text>
+                )}
+              </Box>
+            )}
+          </Box>
+        </Flex>
 
-          {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
-        </Stack>
+        {/* Delete Favour */}
+        <Button
+          onClick={() => setAlertOpen(true)}
+          isDisabled={!canDelete}
+          rightIcon={<DeleteIcon />}
+          variant="outline"
+          colorScheme="red"
+          borderRadius="full"
+        >
+          Delete Favour
+        </Button>
       </Stack>
+
+      {/* Image Upload Modal */}
+      <UploadModal favour={favour} modalState={modalState} />
+
+      {/* Delete Alert */}
+      <DeleteFavourAlert favour={favour} isOpen={isAlertOpen} setOpen={setAlertOpen} />
     </Layout>
   );
 };

@@ -6,6 +6,7 @@ import Button from "./components/Button";
 import Input from "./components/Input";
 import Heading from "./components/Heading";
 import Menu from "./components/Menu";
+import Badge from "./components/Badge";
 
 // Hide focus box shadow when not using keyboard
 import "focus-visible/dist/focus-visible";
@@ -26,6 +27,7 @@ const theme = extendTheme({
     Input,
     Heading,
     Menu,
+    Badge,
   },
 });
 
