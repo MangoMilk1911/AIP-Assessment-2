@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
@@ -72,7 +73,7 @@ const CreateRequest: React.FC = () => {
   };
 
   return (
-    <Layout title="Add Request" maxW="30rem" mt={16}>
+    <Layout title="Add Request" maxW="sm" mt={16}>
       <Heading size="2xl" textAlign="center" mb={8}>
         Create Request
       </Heading>
@@ -110,9 +111,9 @@ const CreateRequest: React.FC = () => {
           ))}
           <FormErrorMessage>{formErrors.rewards?.message}</FormErrorMessage>
         </FormControl>
-        <Grid>
+        <Box w="100%">
           <RewardList />
-        </Grid>
+        </Box>
 
         <Button type="submit" colorScheme="primary" isLoading={formState.isSubmitting}>
           Submit

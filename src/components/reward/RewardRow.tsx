@@ -1,6 +1,16 @@
 import React from "react";
 import { availableRewards } from "lib/availableRewards";
-import { CloseButton, Grid, Heading, IconButton, Input } from "@chakra-ui/core";
+import {
+  Box,
+  CloseButton,
+  Grid,
+  Heading,
+  IconButton,
+  Input,
+  Spacer,
+  Stack,
+  useColorModeValue,
+} from "@chakra-ui/core";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons";
 import { useRewardList } from "hooks/useRewardList";
 
@@ -18,18 +28,28 @@ const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity }) => {
     dispatch({ type: "set", payload: { reward, quantity: Number(quantity) } });
 
   return (
-    <Grid templateColumns="15% 40% 35% 10%" py="2rem">
-      <Heading textAlign="center">{reward}</Heading>
-      <Heading textAlign="center" isTruncated>
-        {availableRewards[reward]}
-      </Heading>
-      <Grid px="1rem" templateColumns="repeat(3,1fr)">
-        <IconButton aria-label="Decrement reward" icon={<MinusIcon />} onClick={decrement} />
-        <Input value={quantity} type="number" min="1" onChange={(e) => set(e.target.value)} />
-        <IconButton aria-label="Increment reward" icon={<AddIcon />} onClick={increment} />
-      </Grid>
-      <CloseButton onClick={() => dispatch({ type: "remove", payload: reward })} />
-    </Grid>
+    <Box borderRadius="md" mb={3} background={useColorModeValue("primary.100", "whiteAlpha.100")}>
+      <Stack direction="row" p={4} align="center">
+        <Heading w={12}>{reward}</Heading>
+        <Spacer />
+        <Heading isTruncated py={1}>
+          {availableRewards[reward]}
+        </Heading>
+        <Spacer />
+        <Stack direction="row" spacing={2} align="center">
+          <IconButton aria-label="Decrement reward" icon={<MinusIcon />} onClick={decrement} />
+          <Input
+            value={quantity}
+            type="number"
+            min="1"
+            maxW={16}
+            onChange={(e) => set(e.target.value)}
+          />
+          <IconButton aria-label="Increment reward" icon={<AddIcon />} onClick={increment} />
+          <CloseButton onClick={() => dispatch({ type: "remove", payload: reward })} />
+        </Stack>
+      </Stack>
+    </Box>
   );
 };
 
