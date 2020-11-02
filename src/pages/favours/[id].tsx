@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
@@ -10,14 +10,23 @@ import {
   Center,
   Flex,
   Image,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Stack,
   Text,
   Tooltip,
   useColorMode,
+  useDisclosure,
   useToast,
   Wrap,
 } from "@chakra-ui/core";
-import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
 import Layout from "components/layout/Layout";
 import WithAuth from "components/WithAuth";
 import RewardCube from "components/reward/RewardCube";
@@ -32,6 +41,7 @@ import ErrorPage from "components/layout/Error";
 import Loader from "components/layout/Loader";
 import { motion } from "framer-motion";
 import UserPreview from "components/favour/UserPreview";
+import { useDropzone } from "react-dropzone";
 
 /**
  * Favour Details Page
@@ -55,7 +65,32 @@ const FavourDetails: React.FC = () => {
     accessToken,
   ]);
 
+  // Claiming
   const claimed = favour && favour.evidence;
+  const { isOpen, onOpen: openModal, onClose } = useDisclosure();
+
+  const previewImgRef = useRef<HTMLImageElement>();
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+
+    if (!file.type.includes("image")) {
+      toast({
+        status: "error",
+        title: "That ain't no image 👿",
+      });
+
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImgRef.current.src = reader.result.toString();
+    };
+
+    reader.readAsDataURL(file);
+  }, []);
+
+  const { getRootProps, getInputProps, inputRef: imgInputRef } = useDropzone({ onDrop });
 
   // Delete Favour
   const canDelete =
@@ -83,16 +118,18 @@ const FavourDetails: React.FC = () => {
   }
 
   // Upload Evidence
+  const [uploading, setUploading] = useState(false);
   const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
-  const uploadEvidence: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
-    const evidence = e.target.files[0];
+  const uploadEvidence = useCallback(async () => {
+    setUploading(true);
+    const image = imgInputRef.current.files[0];
 
     try {
       const timestamp = new Date().toISOString();
       const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(path);
-      await fileRef.put(evidence);
+      await fileRef.put(image);
 
       await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
         method: "POST",
@@ -111,6 +148,9 @@ const FavourDetails: React.FC = () => {
         status: "success",
         title: "Evidence submitted! 🥳",
       });
+
+      onClose();
+      setUploading(false);
     } catch (error) {
       const errMsg = isServerError(error) ? error.errors[0].message : error.message;
       toast({
@@ -118,7 +158,7 @@ const FavourDetails: React.FC = () => {
         title: errMsg || "Something went wrong...",
       });
     }
-  };
+  }, [favour]);
 
   // Image
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
@@ -198,7 +238,7 @@ const FavourDetails: React.FC = () => {
               <Text textAlign="center" mb={2}>
                 Initial Evidence
               </Text>
-              <Image boxSize="320px" src={initEvidenceURL} borderRadius="md" />
+              <Image boxSize="320px" src={initEvidenceURL} fit="cover" borderRadius="md" />
             </Box>
           )}
 
@@ -207,11 +247,12 @@ const FavourDetails: React.FC = () => {
               Debtor Evidence
             </Text>
             {evidenceURL ? (
-              <Image boxSize="320px" src={evidenceURL} borderRadius="md" />
+              <Image boxSize="320px" src={evidenceURL} fit="cover" borderRadius="md" />
             ) : (
               // Upload Evidence
               <Box>
                 <Button
+                  onClick={openModal}
                   disabled={!canUploadEvidence}
                   boxSize="320px"
                   borderRadius="md"
@@ -220,7 +261,7 @@ const FavourDetails: React.FC = () => {
                   size="lg"
                   rightIcon={<AddIcon mb="2px" />}
                 >
-                  Upload
+                  Press to Upload
                 </Button>
                 {!canUploadEvidence && (
                   <Text textAlign="center" color="gray.500" mt={2}>
@@ -244,6 +285,46 @@ const FavourDetails: React.FC = () => {
           Delete Favour
         </Button>
       </Stack>
+
+      {/* Image Upload Modal */}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Upload Evidence</ModalHeader>
+          <ModalCloseButton />
+
+          <ModalBody>
+            {/* Choose File Button */}
+            <Button
+              w="full"
+              colorScheme="teal"
+              rightIcon={<AttachmentIcon mb="2px" />}
+              mb={4}
+              {...getRootProps()}
+            >
+              <input {...getInputProps()} />
+              Choose File
+            </Button>
+
+            {/* Preview Image */}
+            <Image ref={previewImgRef} mx="auto" borderRadius="md" />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button onClick={onClose} mr={3} variant="outline">
+              Cancel
+            </Button>
+            <Button
+              onClick={uploadEvidence}
+              isDisabled={!imgInputRef.current?.files.length}
+              isLoading={uploading}
+              colorScheme="green"
+            >
+              Submit
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Layout>
   );
 };
