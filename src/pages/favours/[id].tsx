@@ -1,55 +1,35 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
   Alert,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   AlertIcon,
   Box,
   Button,
   Flex,
   Image,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Stack,
   Text,
   useColorMode,
   useDisclosure,
-  useToast,
   Wrap,
 } from "@chakra-ui/core";
-import { AddIcon, ArrowBackIcon, AttachmentIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import DeleteFavourAlert from "components/favour/DeleteAlert";
+import UploadModal from "components/favour/UploadModal";
+import UserPreview from "components/favour/UserPreview";
+import ErrorPage from "components/layout/Error";
 import Layout from "components/layout/Layout";
-import WithAuth from "components/WithAuth";
+import Loader from "components/layout/Loader";
 import RewardCube from "components/reward/RewardCube";
+import WithAuth from "components/WithAuth";
+import { motion } from "framer-motion";
 import { useAuth } from "hooks/useAuth";
 import useInitialValue from "hooks/useInitialValue";
-import { isServerError, ServerError } from "lib/errorHandler";
-import fetcher from "lib/fetcher";
+import { ServerError } from "lib/errorHandler";
 import { firebase } from "lib/firebase/client";
 import { FavourSchema } from "models/Favour";
 import useSWR from "swr";
-import ErrorPage from "components/layout/Error";
-import Loader from "components/layout/Loader";
-import { motion } from "framer-motion";
-import UserPreview from "components/favour/UserPreview";
-import { useDropzone } from "react-dropzone";
-import DeleteFavourAlert from "components/favour/DeleteAlert";
-import UploadModal from "components/favour/UploadModal";
-
-/**
- * Favour Details Page
- */
 
 const FavourDetails: React.FC = () => {
   const { user, accessToken } = useAuth();
@@ -70,7 +50,8 @@ const FavourDetails: React.FC = () => {
   /**
    * Claiming Favour
    */
-  const claimed = favour && favour.evidence;
+  const claimed = favour?.evidence;
+  const canClaim = favour && user.uid === favour.debtor._id && !favour.evidence;
   const modalState = useDisclosure();
 
   /**
@@ -80,20 +61,17 @@ const FavourDetails: React.FC = () => {
   const canDelete =
     favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
 
-  // Upload Evidence
-  const canUploadEvidence = favour && user.uid === favour.debtor._id && !favour.evidence;
-
-  // Image
+  /**
+   * Loading Images from Firebase Storage
+   */
   const [initEvidenceURL, setinitEvidenceURL] = useState("");
   const [evidenceURL, setEvidenceURL] = useState("");
   useEffect(() => {
-    if (favour?.initialEvidence) {
+    if (favour?.initialEvidence)
       firebase.storage().ref(favour.initialEvidence).getDownloadURL().then(setinitEvidenceURL);
-    }
 
-    if (favour?.evidence) {
+    if (favour?.evidence)
       firebase.storage().ref(favour.evidence).getDownloadURL().then(setEvidenceURL);
-    }
   }, [favour]);
 
   if (error) return <ErrorPage statusCode={error.statusCode} error={error.errors[0].message} />;
@@ -176,7 +154,7 @@ const FavourDetails: React.FC = () => {
               <Box>
                 <Button
                   onClick={modalState.onOpen}
-                  disabled={!canUploadEvidence}
+                  disabled={!canClaim}
                   boxSize="320px"
                   borderRadius="md"
                   colorScheme="teal"
@@ -186,7 +164,7 @@ const FavourDetails: React.FC = () => {
                 >
                   Press to Upload
                 </Button>
-                {!canUploadEvidence && (
+                {!canClaim && (
                   <Text textAlign="center" color="gray.500" mt={2}>
                     Only Debtor can upload evidence
                   </Text>

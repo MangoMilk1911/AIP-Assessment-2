@@ -20,6 +20,8 @@ import { FavourSchema } from "models/Favour";
 import { useDropzone } from "react-dropzone";
 import { mutate } from "swr";
 
+const reader = new FileReader();
+
 interface UploadModalProps {
   favour: FavourSchema;
   modalState: any;
@@ -30,9 +32,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ favour, modalState }) => {
   const toast = useToast();
 
   const previewImgRef = useRef<HTMLImageElement>();
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onSelectFile = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
 
+    // If not image type, shout at them!!!
     if (!file.type.includes("image")) {
       toast({
         status: "error",
@@ -42,15 +45,16 @@ const UploadModal: React.FC<UploadModalProps> = ({ favour, modalState }) => {
       return;
     }
 
-    const reader = new FileReader();
+    // When reader finished reading selected image, set preview image src to result
     reader.onload = () => {
       previewImgRef.current.src = reader.result.toString();
     };
 
+    // Actually read the selected image
     reader.readAsDataURL(file);
   }, []);
 
-  const uploadState = useDropzone({ onDrop });
+  const uploadState = useDropzone({ onDrop: onSelectFile });
 
   const [uploading, setUploading] = useState(false);
   const submitEvidence = useCallback(async () => {
@@ -58,12 +62,14 @@ const UploadModal: React.FC<UploadModalProps> = ({ favour, modalState }) => {
     const image = uploadState.inputRef.current.files[0];
 
     try {
+      // Construct unqiue path for image and upload to firebase storage
       const timestamp = new Date().toISOString();
       const path = `favours/${favour.debtor._id}_${favour.recipient._id}_${timestamp}/evidence.png`;
       const storageRef = firebase.storage().ref();
       const fileRef = storageRef.child(path);
       await fileRef.put(image);
 
+      // Store that fb storage path on the mongo doc
       await fetcher(`/api/favours/${favour._id}/evidence`, accessToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +78,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ favour, modalState }) => {
         }),
       });
 
+      // Update the SWR cache for this favour to instantly update
       mutate([`/api/favours/${favour._id}`, accessToken], {
         ...favour,
         evidence: path,
