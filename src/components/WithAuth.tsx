@@ -2,18 +2,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "hooks/useAuth";
 import { useToast } from "@chakra-ui/core";
-import SuperJSON from "superjson";
 import Loader from "./layout/Loader";
 
 const WithAuth = (ProtectedComponent) => {
   const AuthGuard: React.FC = (props) => {
-    // Deserialize if coming from GS(S)P
-    // This is normally handled by the superjson babel plugin,
-    // but since we're using our own HOC, we have to do it ourselves
-    if ("json" in props) {
-      props = SuperJSON.deserialize(props);
-    }
-
     const { loading, user, accessToken } = useAuth();
     const router = useRouter();
     const toast = useToast();

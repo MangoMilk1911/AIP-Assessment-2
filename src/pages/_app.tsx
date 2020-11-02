@@ -6,25 +6,10 @@ import { AuthProvider } from "hooks/useAuth";
 import fetcher from "lib/fetcher";
 import theme from "theme";
 import { SWRConfig } from "swr";
-import SuperJSON from "superjson";
-import { Types } from "mongoose";
 import Header from "components/layout/Header";
 import Footer from "components/layout/Footer";
 import { AnimatePresence, motion, MotionProps } from "framer-motion";
 import NextNProgress from "nextjs-progressbar";
-
-/**
- * Add global serializer for Mongo Object IDs
- */
-
-SuperJSON.registerCustom<Types.ObjectId, string>(
-  {
-    isApplicable: (v): v is Types.ObjectId => v instanceof Types.ObjectId,
-    serialize: (v) => v.toHexString(),
-    deserialize: (v) => new Types.ObjectId(v),
-  },
-  "objectid"
-);
 
 /**
  * Animations

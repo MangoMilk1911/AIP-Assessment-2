@@ -275,7 +275,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const request = await Request.findById(ctx.query.id).lean();
     const initRequest = JSON.parse(JSON.stringify(request));
 
-    return { props: { initRequest: initRequest } };
+    return { props: { initRequest } };
   } catch (error) {
     // User isn't authenticated, send to login
 
