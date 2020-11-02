@@ -10,13 +10,10 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   AlertIcon,
-  Badge,
   Box,
   Button,
-  Center,
   Flex,
   Image,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -26,7 +23,6 @@ import {
   ModalOverlay,
   Stack,
   Text,
-  Tooltip,
   useColorMode,
   useDisclosure,
   useToast,
@@ -48,6 +44,7 @@ import Loader from "components/layout/Loader";
 import { motion } from "framer-motion";
 import UserPreview from "components/favour/UserPreview";
 import { useDropzone } from "react-dropzone";
+import DeleteFavourAlert from "components/favour/DeleteAlert";
 
 /**
  * Favour Details Page
@@ -98,34 +95,12 @@ const FavourDetails: React.FC = () => {
 
   const { getRootProps, getInputProps, inputRef: imgInputRef } = useDropzone({ onDrop });
 
-  // Delete Favour
-  const cancelRef = useRef();
-  const [alertOpen, setAlertOpen] = useState(false);
+  /**
+   * Delete Alert State
+   */
+  const [isAlertOpen, setAlertOpen] = useState(false);
   const canDelete =
     favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
-
-  async function deleteFavour() {
-    setAlertOpen(false);
-
-    try {
-      await fetcher(`/api/favours/${id}`, accessToken, { method: "DELETE" });
-
-      toast({
-        status: "success",
-        title: "Favour deleted!",
-      });
-
-      router.push("/favours");
-    } catch (error) {
-      const { errors } = error as ServerError;
-
-      toast({
-        status: "error",
-        title: "Unable to delete favour 😭",
-        description: errors[0].message,
-      });
-    }
-  }
 
   // Upload Evidence
   const [uploading, setUploading] = useState(false);
@@ -337,35 +312,7 @@ const FavourDetails: React.FC = () => {
       </Modal>
 
       {/* Delete Alert */}
-      <AlertDialog
-        isOpen={alertOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={() => setAlertOpen(false)}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              You sure about this one, chief? 🤔
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              You can't rewind time to undo this...{" "}
-              <Text as="span" fontSize="xs">
-                I think...
-              </Text>
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setAlertOpen(false)}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={deleteFavour} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+      <DeleteFavourAlert favour={favour} isOpen={isAlertOpen} setOpen={setAlertOpen} />
     </Layout>
   );
 };
