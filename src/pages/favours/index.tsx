@@ -192,7 +192,10 @@ const FavourList: React.FC = () => {
 
       {/* Tabs */}
       <Tabs
-        onChange={(i) => setFilterQuery(i === 0 ? "owed" : "owing")}
+        onChange={(i) => {
+          setPageIndex(1);
+          setFilterQuery(i === 0 ? "owed" : "owing");
+        }}
         colorScheme="primary"
         isFitted
         mb={6}

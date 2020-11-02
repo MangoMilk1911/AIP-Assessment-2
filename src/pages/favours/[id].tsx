@@ -2,17 +2,22 @@ import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
-  Avatar,
+  Alert,
+  AlertIcon,
+  Badge,
   Box,
   Button,
+  Center,
+  Flex,
   Image,
   Stack,
   Text,
+  Tooltip,
   useColorMode,
   useToast,
   Wrap,
 } from "@chakra-ui/core";
-import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import Layout from "components/layout/Layout";
 import WithAuth from "components/WithAuth";
 import RewardCube from "components/reward/RewardCube";
@@ -25,25 +30,8 @@ import { FavourSchema } from "models/Favour";
 import useSWR from "swr";
 import ErrorPage from "components/layout/Error";
 import Loader from "components/layout/Loader";
-import { UserSchema } from "models/User";
 import { motion } from "framer-motion";
-
-/**
- * User Preview
- */
-
-interface UserPreviewProps {
-  user: UserSchema;
-}
-
-const UserPreview: React.FC<UserPreviewProps> = ({ user }) => (
-  <Stack direction="row" align="center" spacing={4}>
-    <Avatar src={user.photoURL} name={user.displayName} />
-    <Text fontSize="xl" fontWeight="bold">
-      {user.displayName}
-    </Text>
-  </Stack>
-);
+import UserPreview from "components/favour/UserPreview";
 
 /**
  * Favour Details Page
@@ -67,10 +55,11 @@ const FavourDetails: React.FC = () => {
     accessToken,
   ]);
 
+  const claimed = favour && favour.evidence;
+
   // Delete Favour
   const canDelete =
-    favour &&
-    (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && favour.evidence));
+    favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
 
   async function deleteFavour() {
     try {
@@ -82,8 +71,8 @@ const FavourDetails: React.FC = () => {
       });
 
       router.push("/favours");
-    } catch (fetchError) {
-      const { errors } = fetchError as ServerError;
+    } catch (error) {
+      const { errors } = error as ServerError;
 
       toast({
         status: "error",
@@ -149,30 +138,46 @@ const FavourDetails: React.FC = () => {
   if (!favour) return <Loader />;
 
   return (
-    <Layout as={motion.div} maxW="sm" mt={16} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <Layout as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Back Button */}
-      <Button
-        variant="link"
-        color="inherit"
-        fontWeight="normal"
-        size="lg"
-        mb={6}
-        leftIcon={<ArrowBackIcon />}
-      >
-        <NextLink href="/favours">Back</NextLink>
-      </Button>
+      <NextLink href="/favours">
+        <Button
+          leftIcon={<ArrowBackIcon mb="2px" />}
+          variant="ghost"
+          colorScheme="teal"
+          size="sm"
+          mb={6}
+          fontWeight="normal"
+          borderRadius="full"
+        >
+          Back
+        </Button>
+      </NextLink>
 
-      <Stack spacing={8} align="center">
+      {/* Claimed Status */}
+      {claimed ? (
+        <Alert status="success">
+          <AlertIcon />
+          This favour has been claimed! 🥳
+        </Alert>
+      ) : (
+        <Alert status="info">
+          <AlertIcon />
+          This favour hasn't been completed yet. 😢
+        </Alert>
+      )}
+
+      <Stack mt={16} spacing={12} align="center">
         {/* Involved Users */}
         <Stack
           direction="row"
           spacing={4}
           align="center"
-          justify="center"
-          w="full"
-          p={8}
-          bg={useColorModeValue("primary.50", "whiteAlpha.200")}
-          borderRadius="lg"
+          px={8}
+          py={6}
+          bg={useColorModeValue("gray.100", "whiteAlpha.200")}
+          shadow={useColorModeValue("xl", "none")}
+          borderRadius="full"
         >
           <UserPreview user={favour.debtor} />
           <Text color={useColorModeValue("teal.500", "primary.300")}>Promised</Text>
@@ -182,39 +187,62 @@ const FavourDetails: React.FC = () => {
         {/* Reward Pool */}
         <Wrap justify="center" w="28rem">
           {Object.keys(favour.rewards).map((reward) => (
-            <Box bg="whiteAlpha.200" borderRadius="lg" px={4} py={3} key={reward}>
-              <RewardCube reward={reward} quantity={favour.rewards[reward]} />
-            </Box>
+            <RewardCube reward={reward} quantity={favour.rewards[reward]} key={reward} />
           ))}
         </Wrap>
 
-        {initEvidenceURL && (
-          <Box>
-            <Text textAlign="center">Initial Evidence</Text>
-            <Image boxSize="xs" src={initEvidenceURL} />
-          </Box>
-        )}
-        {evidenceURL && (
-          <Box>
-            <Text textAlign="center">Debtor Evidence</Text>
-            <Image boxSize="xs" src={evidenceURL} />
-          </Box>
-        )}
+        {/* Evidence */}
+        <Flex>
+          {initEvidenceURL && (
+            <Box mr={8}>
+              <Text textAlign="center" mb={2}>
+                Initial Evidence
+              </Text>
+              <Image boxSize="320px" src={initEvidenceURL} borderRadius="md" />
+            </Box>
+          )}
 
-        {/* Actions */}
-        <Stack direction="row" justify="space-between" w="full">
-          <Button
-            onClick={deleteFavour}
-            isDisabled={!canDelete}
-            variant="outline"
-            colorScheme="red"
-            rightIcon={<DeleteIcon />}
-          >
-            Delete
-          </Button>
+          <Box>
+            <Text textAlign="center" mb={2}>
+              Debtor Evidence
+            </Text>
+            {evidenceURL ? (
+              <Image boxSize="320px" src={evidenceURL} borderRadius="md" />
+            ) : (
+              // Upload Evidence
+              <Box>
+                <Button
+                  disabled={!canUploadEvidence}
+                  boxSize="320px"
+                  borderRadius="md"
+                  colorScheme="teal"
+                  variant="outline"
+                  size="lg"
+                  rightIcon={<AddIcon mb="2px" />}
+                >
+                  Upload
+                </Button>
+                {!canUploadEvidence && (
+                  <Text textAlign="center" color="gray.500" mt={2}>
+                    Only Debtor can upload evidence
+                  </Text>
+                )}
+              </Box>
+            )}
+          </Box>
+        </Flex>
 
-          {canUploadEvidence && <input type="file" onChange={uploadEvidence} />}
-        </Stack>
+        {/* Delete Favour */}
+        <Button
+          onClick={deleteFavour}
+          isDisabled={!canDelete}
+          rightIcon={<DeleteIcon />}
+          variant="outline"
+          colorScheme="red"
+          borderRadius="full"
+        >
+          Delete Favour
+        </Button>
       </Stack>
     </Layout>
   );

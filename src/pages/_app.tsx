@@ -73,7 +73,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps, router }) => (
             <Header />
 
             <AnimatePresence exitBeforeEnter>
-              <motion.main style={{ flexGrow: 1 }} {...pageAnimation} key={router.asPath}>
+              <motion.main style={{ flexGrow: 1 }} {...pageAnimation} key={router.route}>
                 <Component {...pageProps} />
               </motion.main>
             </AnimatePresence>
