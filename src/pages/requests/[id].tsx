@@ -264,8 +264,9 @@ const RequestPage: React.FC<RequestPageProps> = ({ initRequest }) => {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const request = await Request.findById(ctx.query.id).lean();
+    const initRequest = JSON.parse(JSON.stringify(request));
 
-    return { props: { initRequest: request } };
+    return { props: { initRequest: initRequest } };
   } catch (error) {
     // User isn't authenticated, send to login
 
