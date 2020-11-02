@@ -28,7 +28,7 @@ const RewardRow: React.FC<RewardRowProps> = ({ reward, quantity }) => {
     dispatch({ type: "set", payload: { reward, quantity: Number(quantity) } });
 
   return (
-    <Box borderRadius="md" mb={3} background={useColorModeValue("primary.100", "whiteAlpha.100")}>
+    <Box borderRadius="md" mb={3} background={useColorModeValue("primary.50", "whiteAlpha.100")}>
       <Stack direction="row" p={4} align="center">
         <Heading w={12}>{reward}</Heading>
         <Spacer />

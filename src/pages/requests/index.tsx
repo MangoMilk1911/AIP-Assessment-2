@@ -60,7 +60,7 @@ const RequestList: React.FC = () => {
       </Heading>
 
       <Stack direction="row" justify="space-between" align="center" mb={4}>
-        <InputGroup w={64} size="sm">
+        <InputGroup w={64} borderRadius="lg">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -86,7 +86,7 @@ const RequestList: React.FC = () => {
       </Stack>
 
       {!data ? (
-        <SimpleGrid columns={2} spacing="5">
+        <SimpleGrid columns={2} spacing={8}>
           {[...Array(6)].map((_, i) => (
             <Skeleton h="12rem" borderRadius="lg" key={i} />
           ))}
@@ -104,7 +104,7 @@ const RequestList: React.FC = () => {
             </Stack>
           ) : (
             <>
-              <SimpleGrid columns={2} spacing="5" mb={8}>
+              <SimpleGrid columns={2} spacing={8} mb={8}>
                 {data.requests.map((request) => (
                   <RequestCard request={request} key={request._id.toString()} />
                 ))}
