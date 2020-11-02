@@ -3,6 +3,12 @@ import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
   Alert,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   AlertIcon,
   Badge,
   Box,
@@ -67,7 +73,7 @@ const FavourDetails: React.FC = () => {
 
   // Claiming
   const claimed = favour && favour.evidence;
-  const { isOpen, onOpen: openModal, onClose } = useDisclosure();
+  const { isOpen: modalOpen, onOpen: openModal, onClose: closeModal } = useDisclosure();
 
   const previewImgRef = useRef<HTMLImageElement>();
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -93,10 +99,14 @@ const FavourDetails: React.FC = () => {
   const { getRootProps, getInputProps, inputRef: imgInputRef } = useDropzone({ onDrop });
 
   // Delete Favour
+  const cancelRef = useRef();
+  const [alertOpen, setAlertOpen] = useState(false);
   const canDelete =
     favour && (user.uid === favour.recipient._id || (user.uid === favour.debtor._id && claimed));
 
   async function deleteFavour() {
+    setAlertOpen(false);
+
     try {
       await fetcher(`/api/favours/${id}`, accessToken, { method: "DELETE" });
 
@@ -149,7 +159,7 @@ const FavourDetails: React.FC = () => {
         title: "Evidence submitted! 🥳",
       });
 
-      onClose();
+      closeModal();
       setUploading(false);
     } catch (error) {
       const errMsg = isServerError(error) ? error.errors[0].message : error.message;
@@ -275,7 +285,7 @@ const FavourDetails: React.FC = () => {
 
         {/* Delete Favour */}
         <Button
-          onClick={deleteFavour}
+          onClick={() => setAlertOpen(true)}
           isDisabled={!canDelete}
           rightIcon={<DeleteIcon />}
           variant="outline"
@@ -287,7 +297,7 @@ const FavourDetails: React.FC = () => {
       </Stack>
 
       {/* Image Upload Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={modalOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Upload Evidence</ModalHeader>
@@ -311,7 +321,7 @@ const FavourDetails: React.FC = () => {
           </ModalBody>
 
           <ModalFooter>
-            <Button onClick={onClose} mr={3} variant="outline">
+            <Button onClick={closeModal} mr={3} variant="outline">
               Cancel
             </Button>
             <Button
@@ -325,6 +335,37 @@ const FavourDetails: React.FC = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Delete Alert */}
+      <AlertDialog
+        isOpen={alertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setAlertOpen(false)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              You sure about this one, chief? 🤔
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              You can't rewind time to undo this...{" "}
+              <Text as="span" fontSize="xs">
+                I think...
+              </Text>
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setAlertOpen(false)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={deleteFavour} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Layout>
   );
 };
