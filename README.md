@@ -63,17 +63,16 @@ We used `yup` as our validation library to share validation logic on both client
 - Custom validators such as `isMongoID`.
 - Custom Validator HOF allows for a really nice 👌 request validation pattern in our server-side code.
 
-```
+```typescript
 // Just create a validate function via the `createValidator` HOF by passing it a schema
 const validate = createValidator(favourValidation)
-
-//...
 
 // Then, in any route, simply validate the request with any additonal context
 // This example is validating the current request as a `create` action, which will dynamically adjsut the validation schema. How Cool!
 const validatedData = await validate(req /* The HTTP request to validate */, "create", /* An optional context action*/)
 
-// If validation fails for the request, a custom `Validation Error` is thrown within `validate()` caught by the route error handler (see the "General Server-Side Code Design" section below) automatically.
+// If validation fails for the request, a custom `Validation Error` is thrown within `validate()` 
+// and caught by the route error handler (see the "General Server-Side Code Design" section below) automatically.
 ```
 
 ### General Client-Side Code Design
@@ -85,7 +84,7 @@ const validatedData = await validate(req /* The HTTP request to validate */, "cr
 - Custom-built `WithAuth` HOF to protect routes easily. For an example of this, please look at the favour page components.
 
 ```typescript
-// Simply wrap a Page Component with WithAuth
+// Simply wrap a Page Component with WithAuth, and it's protected!
 export default WithAuth(FavourList)
 ```
 
