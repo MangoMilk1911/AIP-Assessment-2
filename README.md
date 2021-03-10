@@ -1,5 +1,9 @@
 # AIP Assessment 2 | Group 7
 
+### Demo 📽
+
+![pinki-demo](https://user-images.githubusercontent.com/13981703/110570808-a524ae00-81aa-11eb-8464-8e44173bd62f.gif)
+
 ### Running local development server
 
 Add a `.env` file in the root directory containing the required env vars (see `.env.example`)
