@@ -18,7 +18,7 @@
     "@hookform/resolvers": "^1.0.0",
     "@typegoose/typegoose": "^7.4.1",
     "constate": "^3.0.1",
-    "dayjs": "^1.9.3",
+    "dayjs": "^1.11.10",
     "firebase": "^7.23.0",
     "firebase-admin": "^9.2.0",
     "focus-visible": "^5.2.0",
