@@ -33,7 +33,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-dropzone": "^11.2.3",
-    "react-hook-form": "^6.8.6",
+    "react-hook-form": "^6.15.8",
     "swr": "^0.3.5",
     "yup": "^0.29.3"
   },
