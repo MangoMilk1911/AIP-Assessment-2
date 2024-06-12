@@ -20,7 +20,7 @@
     "constate": "^3.0.1",
     "dayjs": "^1.9.3",
     "firebase": "^7.23.0",
-    "firebase-admin": "^9.2.0",
+    "firebase-admin": "^11.1.0",
     "focus-visible": "^5.2.0",
     "framer-motion": "^2.9.4",
     "mongoose": "^5.10.7",
